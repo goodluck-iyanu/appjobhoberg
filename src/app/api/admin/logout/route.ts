@@ -6,3 +6,4 @@ export async function POST() {
   cookieStore.delete('hoberg_admin_token')
   return NextResponse.json({ success: true, message: 'Logged out' })
 }
+

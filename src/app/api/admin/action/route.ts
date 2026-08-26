@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 
 const ADMIN_TOKEN = 'hoberg_admin_secure_session_token_2026'
 
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     if (action === 'approve') {
       const { error } = await supabase
@@ -85,3 +85,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err?.message || 'Action failed' }, { status: 500 })
   }
 }
+

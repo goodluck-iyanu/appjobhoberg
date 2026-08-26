@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 
 const ADMIN_TOKEN = 'hoberg_admin_secure_session_token_2026'
 
@@ -13,7 +13,7 @@ export async function GET() {
   }
 
   try {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Fetch all user profiles
     const { data: profiles, error } = await supabase
@@ -57,3 +57,4 @@ export async function GET() {
     return NextResponse.json({ error: err?.message || 'Failed to fetch users' }, { status: 500 })
   }
 }
+
