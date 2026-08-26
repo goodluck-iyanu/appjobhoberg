@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>1.00</priority>
+  </url>
+
+  <!-- Live Remote Jobs Directory -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/jobs</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- Regional Filter: Nigeria & Africa -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/jobs?q=Nigeria</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.90</priority>
+  </url>
+
+  <!-- Category: Customer Support -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/jobs?cat=support</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Category: Virtual Assistant & Admin -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/jobs?cat=admin</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Category: Writing & Content -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/jobs?cat=writing</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Category: Finance & Accounting -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/jobs?cat=finance</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Category: Marketing & Sales -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/jobs?cat=marketing</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Category: Software & Tech -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/jobs?cat=dev</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Categories Overview -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/categories</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- Premium Membership -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/premium</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- Premium Waitlist -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/premium/waitlist</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- Privacy Policy -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/privacy_policy</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.60</priority>
+  </url>
+
+  <!-- Terms of Service -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/terms_of_service</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.60</priority>
+  </url>
+
+  <!-- Authentication -->
+  <url>
+    <loc>https://jobs.hoberg.com.ng/signup</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.50</priority>
+  </url>
+
+  <url>
+    <loc>https://jobs.hoberg.com.ng/login</loc>
+    <lastmod>2026-08-26T00:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.50</priority>
+  </url>
+
+</urlset>
