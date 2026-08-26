@@ -1,7 +1,17 @@
 import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { MapPin, Briefcase, Clock, Building2, ArrowLeft, ExternalLink, ShieldCheck } from 'lucide-react'
+import {
+  MapPin,
+  Briefcase,
+  Clock,
+  Building2,
+  ArrowLeft,
+  ExternalLink,
+  ShieldCheck,
+  DollarSign,
+  Calendar,
+} from '@/components/icons'
 
 export default async function JobDetails({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params
@@ -21,106 +31,145 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
   // Check if user is logged in
   const { data: { user } } = await supabase.auth.getUser()
 
+  const postedDate = new Date(job.created_at).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Back Button */}
-        <Link href="/" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 mb-6 transition-colors">
-          <ArrowLeft className="w-4 h-4 mr-2" />
+    <div className="min-h-screen bg-[#f5f5f7]">
+      <div className="max-w-[720px] mx-auto px-5 sm:px-6 py-10 sm:py-14">
+
+        {/* Breadcrumb */}
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-[15px] font-medium text-[#0066cc] hover:text-[#0077ed] transition-colors mb-8 group"
+        >
+          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
           Back to Jobs
         </Link>
 
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
-          
-          {/* Header */}
-          <div className="p-8 border-b border-gray-100">
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-              <div className="flex items-start gap-6">
-                <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center shrink-0 border border-gray-200">
-                  <Building2 className="w-8 h-8 text-gray-400" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">{job.title}</h1>
-                  <p className="text-lg text-gray-600 font-medium">{job.company_name}</p>
-                </div>
+        {/* Main Card */}
+        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-[0_1px_12px_rgba(0,0,0,0.06)] border border-[#d2d2d7]/30 overflow-hidden">
+
+          {/* ── Header ── */}
+          <div className="px-6 pt-8 pb-7 sm:px-10 sm:pt-10 sm:pb-8 border-b border-[#d2d2d7]/30">
+
+            {/* Logo + Title */}
+            <div className="flex items-start gap-5">
+              <div className="w-16 h-16 sm:w-[72px] sm:h-[72px] bg-[#f5f5f7] rounded-2xl flex items-center justify-center shrink-0 border border-[#d2d2d7]/50">
+                <Building2 className="w-8 h-8 sm:w-9 sm:h-9 text-[#86868b]" />
               </div>
-              
-              {/* Apply Button Logic based on auth state */}
-              <div className="shrink-0 flex flex-col items-center md:items-end">
-                {user ? (
-                  <a 
-                    href={job.apply_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-xl transition-colors"
-                  >
-                    Apply Now
-                    <ExternalLink className="w-4 h-4 ml-2" />
-                  </a>
-                ) : (
-                  <Link 
-                    href="/login"
-                    className="inline-flex items-center justify-center w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-medium px-8 py-3 rounded-xl transition-colors"
-                  >
-                    Log in to Apply
-                  </Link>
-                )}
-                {!user && <p className="text-xs text-gray-500 mt-3 text-center">You must be signed in to apply.</p>}
+              <div className="min-w-0">
+                <h1 className="text-[24px] sm:text-[28px] font-semibold text-[#1d1d1f] tracking-[-0.02em] leading-tight">
+                  {job.title}
+                </h1>
+                <p className="text-[16px] sm:text-[17px] text-[#86868b] mt-1">
+                  {job.company_name}
+                </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-6 mt-8 pt-6 border-t border-gray-100">
-              <div className="flex items-center gap-2 text-gray-600">
-                <MapPin className="w-5 h-5 text-gray-400" />
-                <span className="font-medium">{job.is_remote ? 'Remote' : job.location}</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <Briefcase className="w-5 h-5 text-gray-400" />
-                <span className="font-medium">{job.employment_type}</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <Clock className="w-5 h-5 text-gray-400" />
-                <span className="font-medium">Posted {new Date(job.created_at).toLocaleDateString()}</span>
-              </div>
+            {/* Metadata Badges */}
+            <div className="flex flex-wrap items-center gap-2.5 mt-6">
+              <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#1d1d1f] bg-[#f5f5f7] px-3 py-1.5 rounded-full">
+                <MapPin className="w-3.5 h-3.5 text-[#86868b]" />
+                {job.is_remote ? 'Remote' : job.location}
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#1d1d1f] bg-[#f5f5f7] px-3 py-1.5 rounded-full">
+                <Briefcase className="w-3.5 h-3.5 text-[#86868b]" />
+                {job.employment_type}
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#1d1d1f] bg-[#f5f5f7] px-3 py-1.5 rounded-full">
+                <Calendar className="w-3.5 h-3.5 text-[#86868b]" />
+                {postedDate}
+              </span>
+              {job.salary_range && (
+                <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full">
+                  <DollarSign className="w-3.5 h-3.5" />
+                  {job.salary_range}
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Job Description</h2>
-            <div className="prose prose-blue max-w-none text-gray-600 mb-8 whitespace-pre-wrap">
-              {job.description}
-            </div>
+          {/* ── Apply Section ── */}
+          <div className="px-6 py-6 sm:px-10 sm:py-7 border-b border-[#d2d2d7]/30 bg-[#fafafa]">
+            {user ? (
+              <a
+                href={job.apply_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center w-full sm:w-auto bg-[#0066cc] hover:bg-[#0077ed] active:bg-[#004499] text-white font-medium px-8 py-3 rounded-full transition-colors text-[15px] sm:text-[16px]"
+              >
+                Apply Now
+                <ExternalLink className="w-4 h-4 ml-2 opacity-70" />
+              </a>
+            ) : (
+              <div>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center w-full sm:w-auto bg-[#0066cc] hover:bg-[#0077ed] active:bg-[#004499] text-white font-medium px-8 py-3 rounded-full transition-colors text-[15px] sm:text-[16px]"
+                >
+                  Sign in to Apply
+                </Link>
+                <p className="text-[13px] text-[#86868b] mt-2.5">
+                  Create a free account or sign in to apply for this position.
+                </p>
+              </div>
+            )}
+          </div>
 
+          {/* ── Body Content ── */}
+          <div className="px-6 py-8 sm:px-10 sm:py-10 space-y-10">
+
+            {/* About this role */}
+            <section>
+              <h2 className="text-[18px] sm:text-[20px] font-semibold text-[#1d1d1f] mb-4">
+                About this role
+              </h2>
+              <div className="text-[15px] sm:text-[16px] text-[#1d1d1f]/75 leading-[1.7] whitespace-pre-wrap">
+                {job.description}
+              </div>
+            </section>
+
+            {/* Requirements */}
             {job.requirements && (
-              <>
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Requirements</h2>
-                <div className="prose prose-blue max-w-none text-gray-600 mb-8 whitespace-pre-wrap">
+              <section>
+                <h2 className="text-[18px] sm:text-[20px] font-semibold text-[#1d1d1f] mb-4">
+                  Requirements
+                </h2>
+                <div className="text-[15px] sm:text-[16px] text-[#1d1d1f]/75 leading-[1.7] whitespace-pre-wrap">
                   {job.requirements}
                 </div>
-              </>
+              </section>
             )}
 
+            {/* Salary Card */}
             {job.salary_range && (
-              <div className="bg-green-50 rounded-2xl p-6 border border-green-100 flex items-center gap-4">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm text-green-600 font-bold">
-                  $
+              <section className="bg-[#f5f5f7] rounded-2xl p-6 flex items-center gap-5">
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-[#d2d2d7]/30">
+                  <DollarSign className="w-5 h-5 text-[#1d1d1f]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-green-800 uppercase tracking-wider mb-1">Salary Range</h3>
-                  <p className="text-lg font-bold text-green-900">{job.salary_range}</p>
+                  <p className="text-[12px] font-semibold text-[#86868b] uppercase tracking-wider mb-0.5">
+                    Estimated Salary
+                  </p>
+                  <p className="text-[20px] sm:text-[22px] font-semibold text-[#1d1d1f] tracking-tight">
+                    {job.salary_range}
+                  </p>
                 </div>
-              </div>
+              </section>
             )}
           </div>
 
-          {/* Footer Warning */}
-          <div className="bg-gray-50 p-6 border-t border-gray-200 text-sm text-gray-500 flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-            <p>
-              Hoberg Jobs does its best to verify all opportunities, but please exercise caution. 
-              Never pay for an interview or share sensitive financial information during the application process.
+          {/* ── Footer Notice ── */}
+          <div className="px-6 py-5 sm:px-10 sm:py-6 bg-[#fbfbfd] border-t border-[#d2d2d7]/30 flex items-start gap-3.5">
+            <ShieldCheck className="w-5 h-5 text-[#86868b] shrink-0 mt-0.5" />
+            <p className="text-[13px] text-[#86868b] leading-relaxed">
+              Hoberg Jobs verifies all opportunities to the best of our ability. Never pay for
+              an interview or share sensitive financial information during the application process.
             </p>
           </div>
         </div>
@@ -128,4 +177,3 @@ export default async function JobDetails({ params }: { params: Promise<{ id: str
     </div>
   )
 }
-
