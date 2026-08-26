@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import './globals.css'
-import MobileMenu from '@/components/MobileMenu'
+import Navbar from '@/components/Navbar'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -11,9 +11,9 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Hoberg Jobs — Premium Remote Work',
+  title: 'Hoberg Jobs — Premium Remote Work Platform',
   description:
-    'Discover curated remote opportunities from world-class companies. Your next career move starts here.',
+    'Discover curated remote opportunities from world-class companies worldwide. Your next career move starts here.',
 }
 
 export default function RootLayout({
@@ -23,75 +23,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body
-        className={`${inter.className} min-h-screen flex flex-col`}
-      >
-        {/* ─── Navbar ─── */}
-        <header className="sticky top-0 z-50 glass-nav border-b border-black/[0.04]">
-          <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div
-                className="w-7 h-7 bg-[#1d1d1f] rounded-lg flex items-center justify-center
-                            transition-transform duration-200 group-hover:scale-105"
-              >
-                <span className="font-bold text-[14px] leading-none text-white">
-                  H
-                </span>
-              </div>
-              <span className="font-semibold text-[15px] tracking-tight text-[#1d1d1f]">
-                Hoberg Jobs
-              </span>
-            </Link>
-
-            {/* Desktop nav */}
-            <nav className="hidden md:flex items-center gap-7">
-              <Link
-                href="/jobs"
-                className="text-[13px] font-medium text-[#1d1d1f]/70 hover:text-[#1d1d1f]
-                           transition-colors duration-200"
-              >
-                Find Jobs
-              </Link>
-              <Link
-                href="/categories"
-                className="text-[13px] font-medium text-[#1d1d1f]/70 hover:text-[#1d1d1f]
-                           transition-colors duration-200"
-              >
-                Categories
-              </Link>
-              <Link
-                href="/premium"
-                className="text-[13px] font-medium text-[#1d1d1f]/70 hover:text-[#1d1d1f]
-                           transition-colors duration-200"
-              >
-                Premium
-              </Link>
-            </nav>
-
-            {/* Right side: auth + mobile menu */}
-            <div className="flex items-center gap-3">
-              <Link
-                href="/login"
-                className="hidden md:inline-flex text-[13px] font-medium text-[#1d1d1f]/70
-                           hover:text-[#1d1d1f] transition-colors duration-200"
-              >
-                Log in
-              </Link>
-              <Link
-                href="/signup"
-                className="hidden md:inline-flex text-[13px] font-medium text-white
-                           bg-[#0066cc] hover:bg-[#0077ed] px-4 py-1.5 rounded-full
-                           transition-colors duration-200"
-              >
-                Sign up
-              </Link>
-
-              {/* Mobile hamburger */}
-              <MobileMenu />
-            </div>
-          </div>
-        </header>
+      <body className={`${inter.className} min-h-screen flex flex-col`}>
+        {/* ─── Dynamic Navbar ─── */}
+        <Navbar />
 
         {/* ─── Main ─── */}
         <main className="flex-1 flex flex-col">{children}</main>
@@ -107,7 +41,7 @@ export default function RootLayout({
                   Hoberg Jobs
                 </p>
                 <p className="text-[12px] text-[#86868b] max-w-xs leading-relaxed">
-                  Curated remote opportunities from world-class companies.
+                  Curated remote opportunities from world-class companies worldwide.
                 </p>
               </div>
 
@@ -156,7 +90,12 @@ export default function RootLayout({
             <div className="border-t border-black/[0.04] py-5 flex flex-col sm:flex-row justify-between items-center gap-3">
               <p className="text-[11px] text-[#86868b]">
                 Copyright &copy; {new Date().getFullYear()} Hoberg Jobs. Built by{' '}
-                <a href="https://hoberg.com.ng" target="_blank" rel="noopener noreferrer" className="text-[#0066cc] hover:underline">
+                <a
+                  href="https://hoberg.com.ng"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#0066cc] hover:underline"
+                >
                   Hoberg Digital Agency
                 </a>
                 . All rights reserved.

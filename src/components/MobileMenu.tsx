@@ -2,9 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { Menu, X } from '@/components/icons'
+import { Menu, X, Crown } from '@/components/icons'
 
-export default function MobileMenu() {
+interface MobileMenuProps {
+  userEmail?: string | null
+  isPremium?: boolean
+}
+
+export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   const close = useCallback(() => setIsOpen(false), [])
@@ -71,15 +76,18 @@ export default function MobileMenu() {
                 {[
                   { label: 'Find Jobs', href: '/jobs' },
                   { label: 'Categories', href: '/categories' },
-                  { label: 'Premium', href: '/premium' },
+                  { label: 'Premium', href: '/premium', isPremiumBadge: true },
                 ].map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={close}
-                    className="flex items-center px-4 py-3.5 rounded-xl text-[17px] font-medium text-[#1d1d1f] hover:bg-[#f5f5f7] active:bg-[#ebebed] transition-colors"
+                    className="flex items-center justify-between px-4 py-3.5 rounded-xl text-[17px] font-medium text-[#1d1d1f] hover:bg-[#f5f5f7] active:bg-[#ebebed] transition-colors"
                   >
-                    {link.label}
+                    <span>{link.label}</span>
+                    {link.isPremiumBadge && (
+                      <Crown className="w-4 h-4 text-amber-500" />
+                    )}
                   </Link>
                 ))}
               </div>
@@ -87,20 +95,44 @@ export default function MobileMenu() {
 
             {/* Auth buttons at the bottom */}
             <div className="px-4 py-6 border-t border-gray-100 space-y-3">
-              <Link
-                href="/login"
-                onClick={close}
-                className="flex items-center justify-center w-full py-3 rounded-full text-[15px] font-medium text-[#1d1d1f] border border-gray-200 hover:bg-[#f5f5f7] transition-colors"
-              >
-                Log in
-              </Link>
-              <Link
-                href="/signup"
-                onClick={close}
-                className="flex items-center justify-center w-full py-3 rounded-full text-[15px] font-medium text-white bg-[#0066cc] hover:bg-[#0077ed] transition-colors"
-              >
-                Sign up — it&apos;s free
-              </Link>
+              {userEmail ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    onClick={close}
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-full text-[15px] font-medium text-white bg-[#0066cc] hover:bg-[#0077ed] transition-colors"
+                  >
+                    {isPremium && <Crown className="w-4 h-4 text-amber-300" />}
+                    <span>Go to Dashboard</span>
+                  </Link>
+                  <form action="/auth/signout" method="POST">
+                    <button
+                      type="submit"
+                      onClick={close}
+                      className="flex items-center justify-center w-full py-2.5 rounded-full text-[14px] font-medium text-[#86868b] border border-gray-200 hover:bg-[#f5f5f7] transition-colors"
+                    >
+                      Sign Out
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={close}
+                    className="flex items-center justify-center w-full py-3 rounded-full text-[15px] font-medium text-[#1d1d1f] border border-gray-200 hover:bg-[#f5f5f7] transition-colors"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    href="/signup"
+                    onClick={close}
+                    className="flex items-center justify-center w-full py-3 rounded-full text-[15px] font-medium text-white bg-[#0066cc] hover:bg-[#0077ed] transition-colors"
+                  >
+                    Sign up — it&apos;s free
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
