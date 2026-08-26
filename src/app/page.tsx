@@ -15,16 +15,24 @@ import {
   Crown,
   ArrowRight,
   Sparkles,
+  Headphones,
+  FileText,
+  DollarSign,
+  Globe,
 } from '@/components/icons'
 
 export default async function Home() {
-  const jobs = await fetchLiveJobs({ limit: 10 })
+  const jobs = await fetchLiveJobs({ limit: 12 })
 
-  const categories = [
-    { label: 'Software Development', icon: Code, href: '/jobs?cat=software-dev' },
-    { label: 'Design', icon: Palette, href: '/jobs?cat=design' },
-    { label: 'Marketing', icon: Megaphone, href: '/jobs?cat=marketing' },
-    { label: 'Product', icon: Package, href: '/jobs?cat=product' },
+  const categoryChips = [
+    { label: 'All Jobs', href: '/jobs' },
+    { label: '🇳🇬 Nigeria & Africa', href: '/jobs?q=Nigeria' },
+    { label: '🎧 Customer Support', href: '/jobs?cat=support' },
+    { label: '✍️ Writing & Content', href: '/jobs?cat=writing' },
+    { label: '💼 Admin & Virtual Assistant', href: '/jobs?cat=admin' },
+    { label: '💰 Finance & Accounting', href: '/jobs?cat=finance' },
+    { label: '📈 Marketing & Sales', href: '/jobs?cat=marketing' },
+    { label: '💻 Tech & Software', href: '/jobs?cat=dev' },
   ]
 
   return (
@@ -36,7 +44,7 @@ export default async function Home() {
           <div className="inline-flex items-center gap-2 bg-[#f5f5f7] border border-[#d2d2d7] rounded-full px-4 py-1.5 mb-6 sm:mb-8 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="text-[12px] sm:text-[13px] font-semibold text-[#1d1d1f] tracking-wide">
-              Live Real-Time Remote Jobs
+              Live Global &amp; Nigerian Remote Jobs
             </span>
           </div>
 
@@ -44,12 +52,12 @@ export default async function Home() {
           <h1 className="text-[36px] sm:text-[56px] md:text-[72px] lg:text-[80px] font-semibold tracking-tight text-[#1d1d1f] leading-[1.08] mb-6">
             Find your next
             <br className="hidden sm:block" />
-            <span className="text-[#0066cc]"> remote opportunity.</span>
+            <span className="text-[#0066cc]"> remote career.</span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-[16px] sm:text-[19px] md:text-[21px] text-[#86868b] max-w-2xl mx-auto font-normal mb-8 sm:mb-10 leading-relaxed px-2">
-            Real, verified remote jobs from world-class tech companies, startups, and remote teams. Apply directly and take your career global.
+            Discover real remote opportunities across all fields: Customer Service, Virtual Assistance, Finance, Marketing, Writing, Operations, and Tech.
           </p>
 
           {/* Search Bar Form */}
@@ -65,7 +73,7 @@ export default async function Home() {
               <input
                 type="text"
                 name="q"
-                placeholder="Search by job title, skill (React, Python), or company..."
+                placeholder="Search any job (e.g. Customer Care, Virtual Assistant, Writer, Nigeria)..."
                 className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-[#1d1d1f] placeholder-[#86868b] outline-none text-[14px] sm:text-[16px] py-2 sm:py-3"
               />
               <button
@@ -78,14 +86,13 @@ export default async function Home() {
           </form>
 
           {/* Quick Categories */}
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 px-2">
-            {categories.map(({ label, icon: Icon, href }) => (
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 px-2">
+            {categoryChips.map(({ label, href }) => (
               <Link
                 key={label}
                 href={href}
-                className="inline-flex items-center gap-2 bg-white border border-[#d2d2d7] rounded-full px-3.5 py-1.5 sm:px-4 sm:py-2 text-[13px] sm:text-[14px] font-medium text-[#1d1d1f] hover:border-[#0066cc] hover:text-[#0066cc] transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 bg-white border border-[#d2d2d7] rounded-full px-3.5 py-1.5 sm:px-4 sm:py-2 text-[12px] sm:text-[13px] font-medium text-[#1d1d1f] hover:border-[#0066cc] hover:text-[#0066cc] transition-colors shadow-sm"
               >
-                <Icon className="w-4 h-4 text-[#86868b]" />
                 <span>{label}</span>
               </Link>
             ))}
@@ -103,19 +110,19 @@ export default async function Home() {
                 <h2 className="text-[20px] sm:text-[26px] font-semibold text-[#1d1d1f] tracking-tight">
                   Verified Remote Opportunities
                 </h2>
-                <span className="bg-blue-50 text-[#0066cc] border border-blue-200 text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                   Live Feed
                 </span>
               </div>
               <p className="text-[13px] sm:text-[14px] text-[#86868b] mt-0.5">
-                Updated in real-time with verified hiring destinations
+                Aggregated from top remote job networks &amp; global employers
               </p>
             </div>
             <Link
               href="/jobs"
               className="text-[13px] sm:text-[14px] font-medium text-[#0066cc] hover:underline flex items-center gap-1"
             >
-              Browse all <ChevronRight className="w-4 h-4" />
+              Browse all ({jobs.length}) <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
 
@@ -162,6 +169,11 @@ export default async function Home() {
                             <Briefcase className="w-3 h-3 text-[#86868b]" />
                             {job.employment_type}
                           </span>
+                          {job.category && (
+                            <span className="inline-flex items-center text-[11px] sm:text-[12px] font-medium text-[#0066cc] bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">
+                              {job.category}
+                            </span>
+                          )}
                           {job.salary_range && (
                             <span className="inline-flex items-center text-[11px] sm:text-[12px] font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
                               {job.salary_range}
@@ -246,7 +258,7 @@ export default async function Home() {
             How Hoberg Jobs Works
           </h2>
           <p className="text-[15px] sm:text-[17px] text-[#86868b]">
-            Simple, transparent, and built for modern remote professionals.
+            Simple, transparent, and built for modern remote professionals worldwide.
           </p>
         </div>
 
@@ -254,20 +266,20 @@ export default async function Home() {
           {[
             {
               step: '01',
-              title: 'Browse Freely',
-              desc: 'Search hundreds of real live remote jobs without needing to create an account first.',
+              title: 'Browse All Roles',
+              desc: 'Explore opportunities across all sectors without requiring sign-up.',
               icon: Search,
             },
             {
               step: '02',
               title: 'Build Profile',
-              desc: 'Create a free account to save favorite roles, upload CV, and add your skills & links.',
+              desc: 'Create a free account to save favorite roles, upload CV, and add skills.',
               icon: UserPlus,
             },
             {
               step: '03',
-              title: 'Apply & Track',
-              desc: 'Apply directly to verified employers and track application statuses in one dashboard.',
+              title: 'Apply Directly',
+              desc: 'Apply directly to official employers and track status securely.',
               icon: Rocket,
             },
           ].map(({ step, title, desc, icon: Icon }) => (

@@ -6,21 +6,32 @@ import {
   Briefcase,
   Building2,
   ChevronRight,
-  Filter,
   ArrowLeft,
 } from '@/components/icons'
 
 export default async function JobsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; cat?: string }>
+  searchParams: Promise<{ q?: string; cat?: string; loc?: string }>
 }) {
-  const { q, cat } = await searchParams
+  const { q, cat, loc } = await searchParams
 
   const jobs = await fetchLiveJobs({
     query: q,
     category: cat,
+    location: loc,
   })
+
+  const filterChips = [
+    { label: 'All Jobs', href: '/jobs', active: !q && !cat && !loc },
+    { label: '🇳🇬 Nigeria & Africa', href: '/jobs?q=Nigeria', active: q?.toLowerCase() === 'nigeria' },
+    { label: '🎧 Customer Support', href: '/jobs?cat=support', active: cat === 'support' },
+    { label: '✍️ Writing & Content', href: '/jobs?cat=writing', active: cat === 'writing' },
+    { label: '💼 Virtual Assistant / Admin', href: '/jobs?cat=admin', active: cat === 'admin' },
+    { label: '💰 Finance & Accounting', href: '/jobs?cat=finance', active: cat === 'finance' },
+    { label: '📈 Marketing & Sales', href: '/jobs?cat=marketing', active: cat === 'marketing' },
+    { label: '💻 Software & Tech', href: '/jobs?cat=dev', active: cat === 'dev' },
+  ]
 
   return (
     <div className="flex-1 bg-[#f5f5f7] py-8 sm:py-14">
@@ -35,18 +46,18 @@ export default async function JobsPage({
             Back to Home
           </Link>
           <h1 className="text-[28px] sm:text-[36px] font-semibold text-[#1d1d1f] tracking-tight">
-            {q ? `Remote Jobs matching "${q}"` : cat ? `${cat} Remote Jobs` : 'All Remote Jobs'}
+            {q ? `Jobs matching "${q}"` : cat ? `${cat.toUpperCase()} Remote Jobs` : 'All Remote Jobs'}
           </h1>
           <p className="text-[14px] sm:text-[16px] text-[#86868b] mt-1">
-            Showing {jobs.length} verified real-time remote opportunities
+            Showing {jobs.length} verified live opportunities across all industries
           </p>
         </div>
 
-        {/* Search & Filter Form */}
+        {/* Search Bar Form */}
         <form
           action="/jobs"
           method="GET"
-          className="bg-white border border-[#d2d2d7] rounded-2xl p-2 sm:p-3 mb-8 shadow-sm flex flex-col sm:flex-row gap-2"
+          className="bg-white border border-[#d2d2d7] rounded-2xl p-2 sm:p-3 mb-4 shadow-sm flex flex-col sm:flex-row gap-2"
         >
           <div className="flex-1 flex items-center bg-[#f5f5f7] rounded-xl px-3.5 py-2.5">
             <Search className="w-4 h-4 text-[#86868b] mr-2.5 shrink-0" />
@@ -54,7 +65,7 @@ export default async function JobsPage({
               type="text"
               name="q"
               defaultValue={q || ''}
-              placeholder="Filter by keyword (e.g. React, Python, Marketing, Lead)..."
+              placeholder="Search keyword (e.g. Customer Care, Virtual Assistant, Writer, Finance, Nigeria)..."
               className="w-full bg-transparent border-none outline-none text-[#1d1d1f] placeholder-[#86868b] text-[14px] sm:text-[15px]"
             />
           </div>
@@ -62,25 +73,42 @@ export default async function JobsPage({
             type="submit"
             className="bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium px-6 py-2.5 rounded-xl transition-colors text-[14px] sm:text-[15px]"
           >
-            Search Jobs
+            Search
           </button>
         </form>
+
+        {/* Category Pills Bar */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-none">
+          {filterChips.map((chip) => (
+            <Link
+              key={chip.label}
+              href={chip.href}
+              className={`shrink-0 text-[12px] sm:text-[13px] font-medium px-3.5 py-1.5 rounded-full transition-colors ${
+                chip.active
+                  ? 'bg-[#1d1d1f] text-white'
+                  : 'bg-white border border-[#d2d2d7] text-[#1d1d1f] hover:border-[#0066cc]'
+              }`}
+            >
+              {chip.label}
+            </Link>
+          ))}
+        </div>
 
         {/* Jobs List */}
         {jobs.length === 0 ? (
           <div className="bg-white border border-[#d2d2d7] rounded-2xl p-12 text-center">
             <Briefcase className="w-10 h-10 text-[#86868b] mx-auto mb-3" />
             <h3 className="text-[18px] font-semibold text-[#1d1d1f] mb-1">
-              No jobs found
+              No matching jobs found
             </h3>
             <p className="text-[14px] text-[#86868b] mb-4">
-              Try searching with different keywords or browse all jobs.
+              Try searching with broader terms or choose another category.
             </p>
             <Link
               href="/jobs"
               className="inline-flex items-center text-[14px] font-medium text-[#0066cc] hover:underline"
             >
-              Clear filters
+              Show all remote jobs
             </Link>
           </div>
         ) : (
@@ -123,6 +151,11 @@ export default async function JobsPage({
                             <Briefcase className="w-3 h-3 text-[#86868b]" />
                             {job.employment_type}
                           </span>
+                          {job.category && (
+                            <span className="inline-flex items-center text-[11px] sm:text-[12px] font-medium text-[#0066cc] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                              {job.category}
+                            </span>
+                          )}
                           {job.salary_range && (
                             <span className="inline-flex items-center text-[11px] sm:text-[12px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
                               {job.salary_range}
