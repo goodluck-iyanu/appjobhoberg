@@ -1,17 +1,16 @@
-import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { FALLBACK_JOBS, Job } from '@/data/jobs'
+import { createClient } from '@/utils/supabase/server'
+import { fetchJobById } from '@/utils/jobs'
 import {
   MapPin,
   Briefcase,
-  Clock,
+  Calendar,
   Building2,
   ArrowLeft,
   ExternalLink,
   ShieldCheck,
   DollarSign,
-  Calendar,
 } from '@/components/icons'
 
 export default async function JobDetails({
@@ -21,26 +20,7 @@ export default async function JobDetails({
 }) {
   const { id } = await params
 
-  let job: Job | null = null
-
-  try {
-    const supabase = await createClient()
-    const { data } = await supabase
-      .from('jobs')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (data) {
-      job = data as Job
-    }
-  } catch {
-    // Database check failed, fallback to in-memory jobs
-  }
-
-  if (!job) {
-    job = FALLBACK_JOBS.find((j) => j.id === id) || null
-  }
+  const job = await fetchJobById(id)
 
   if (!job) {
     notFound()
@@ -58,12 +38,15 @@ export default async function JobDetails({
     user = null
   }
 
+  // Check if description is HTML or plain text
+  const isHtml = job.description.includes('<p>') || job.description.includes('<div>') || job.description.includes('<br>')
+
   return (
     <div className="flex-1 bg-[#f5f5f7] py-8 sm:py-14">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
         {/* Back Link */}
         <Link
-          href="/"
+          href="/jobs"
           className="inline-flex items-center text-[14px] font-medium text-[#0066cc] hover:underline mb-6 sm:mb-8"
         >
           <ArrowLeft className="w-4 h-4 mr-1.5" />
@@ -76,9 +59,18 @@ export default async function JobDetails({
           <div className="p-6 sm:p-10 border-b border-[#f5f5f7]">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
               <div className="flex items-start gap-4 sm:gap-5">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#f5f5f7] rounded-2xl flex items-center justify-center shrink-0 border border-[#d2d2d7]/50">
-                  <Building2 className="w-7 h-7 sm:w-8 sm:h-8 text-[#1d1d1f]" />
-                </div>
+                {job.company_logo_url ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={job.company_logo_url}
+                    alt={job.company_name}
+                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-contain bg-[#f5f5f7] border border-[#d2d2d7]/50 p-2 shrink-0"
+                  />
+                ) : (
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#f5f5f7] rounded-2xl flex items-center justify-center shrink-0 border border-[#d2d2d7]/50">
+                    <Building2 className="w-7 h-7 sm:w-8 sm:h-8 text-[#1d1d1f]" />
+                  </div>
+                )}
                 <div>
                   <h1 className="text-[22px] sm:text-[30px] font-semibold text-[#1d1d1f] tracking-tight leading-snug mb-1">
                     {job.title}
@@ -98,7 +90,7 @@ export default async function JobDetails({
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium px-6 py-3 rounded-full transition-colors text-[15px] shadow-sm"
                   >
-                    Apply Now
+                    Apply on Official Site
                     <ExternalLink className="w-4 h-4 ml-2" />
                   </a>
                 ) : (
@@ -121,7 +113,7 @@ export default async function JobDetails({
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-6 pt-6 border-t border-black/[0.04]">
               <span className="inline-flex items-center gap-1.5 text-[12px] sm:text-[13px] font-medium text-[#1d1d1f] bg-[#f5f5f7] px-3 py-1.5 rounded-lg">
                 <MapPin className="w-3.5 h-3.5 text-[#86868b]" />
-                {job.is_remote ? '100% Remote' : job.location}
+                {job.location}
               </span>
               <span className="inline-flex items-center gap-1.5 text-[12px] sm:text-[13px] font-medium text-[#1d1d1f] bg-[#f5f5f7] px-3 py-1.5 rounded-lg">
                 <Briefcase className="w-3.5 h-3.5 text-[#86868b]" />
@@ -134,15 +126,22 @@ export default async function JobDetails({
             </div>
           </div>
 
-          {/* Description & Requirements */}
+          {/* Description */}
           <div className="p-6 sm:p-10 space-y-8">
             <div>
-              <h2 className="text-[18px] sm:text-[20px] font-semibold text-[#1d1d1f] mb-3">
-                About this role
+              <h2 className="text-[18px] sm:text-[20px] font-semibold text-[#1d1d1f] mb-4">
+                Job Overview &amp; Responsibilities
               </h2>
-              <div className="text-[15px] sm:text-[16px] text-[#1d1d1f]/85 leading-relaxed whitespace-pre-line">
-                {job.description}
-              </div>
+              {isHtml ? (
+                <div
+                  className="prose prose-neutral max-w-none text-[15px] sm:text-[16px] text-[#1d1d1f]/85 leading-relaxed space-y-3"
+                  dangerouslySetInnerHTML={{ __html: job.description }}
+                />
+              ) : (
+                <div className="text-[15px] sm:text-[16px] text-[#1d1d1f]/85 leading-relaxed whitespace-pre-line">
+                  {job.description}
+                </div>
+              )}
             </div>
 
             {job.requirements && (
@@ -171,6 +170,34 @@ export default async function JobDetails({
                 </div>
               </div>
             )}
+
+            {/* Bottom Apply Card */}
+            <div className="bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-2xl p-6 text-center">
+              <h3 className="text-[17px] font-semibold text-[#1d1d1f] mb-1">
+                Interested in this role at {job.company_name}?
+              </h3>
+              <p className="text-[14px] text-[#86868b] mb-5">
+                Applications are processed directly through the employer&apos;s verified portal.
+              </p>
+              {user ? (
+                <a
+                  href={job.apply_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm"
+                >
+                  Proceed to Application
+                  <ExternalLink className="w-4 h-4 ml-2" />
+                </a>
+              ) : (
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm"
+                >
+                  Create Account / Sign in to Apply
+                </Link>
+              )}
+            </div>
           </div>
 
           {/* Footer Security Notice */}

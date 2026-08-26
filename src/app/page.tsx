@@ -1,6 +1,5 @@
-import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
-import { FALLBACK_JOBS, Job } from '@/data/jobs'
+import { fetchLiveJobs } from '@/utils/jobs'
 import {
   Search,
   MapPin,
@@ -16,35 +15,16 @@ import {
   Crown,
   ArrowRight,
   Sparkles,
-  ShieldCheck,
-  CheckCircle,
 } from '@/components/icons'
 
 export default async function Home() {
-  let jobs: Job[] = []
-
-  try {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('*')
-      .eq('status', 'open')
-      .order('created_at', { ascending: false })
-
-    if (!error && data && data.length > 0) {
-      jobs = data as Job[]
-    } else {
-      jobs = FALLBACK_JOBS
-    }
-  } catch {
-    jobs = FALLBACK_JOBS
-  }
+  const jobs = await fetchLiveJobs({ limit: 10 })
 
   const categories = [
-    { label: 'Engineering', icon: Code, count: '12 roles' },
-    { label: 'Design', icon: Palette, count: '8 roles' },
-    { label: 'Marketing', icon: Megaphone, count: '6 roles' },
-    { label: 'Product', icon: Package, count: '5 roles' },
+    { label: 'Software Development', icon: Code, href: '/jobs?cat=software-dev' },
+    { label: 'Design', icon: Palette, href: '/jobs?cat=design' },
+    { label: 'Marketing', icon: Megaphone, href: '/jobs?cat=marketing' },
+    { label: 'Product', icon: Package, href: '/jobs?cat=product' },
   ]
 
   return (
@@ -53,10 +33,10 @@ export default async function Home() {
       <section className="pt-16 pb-12 sm:pt-24 sm:pb-20 px-4 text-center">
         <div className="max-w-4xl mx-auto">
           {/* Pill badge */}
-          <div className="inline-flex items-center gap-2 bg-[#f5f5f7] border border-[#d2d2d7] rounded-full px-4 py-1.5 mb-6 sm:mb-8">
-            <span className="text-sm">✨</span>
+          <div className="inline-flex items-center gap-2 bg-[#f5f5f7] border border-[#d2d2d7] rounded-full px-4 py-1.5 mb-6 sm:mb-8 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="text-[12px] sm:text-[13px] font-semibold text-[#1d1d1f] tracking-wide">
-              Curated by Hoberg Digital Agency
+              Live Real-Time Remote Jobs
             </span>
           </div>
 
@@ -69,65 +49,73 @@ export default async function Home() {
 
           {/* Subtitle */}
           <p className="text-[16px] sm:text-[19px] md:text-[21px] text-[#86868b] max-w-2xl mx-auto font-normal mb-8 sm:mb-10 leading-relaxed px-2">
-            Discover legitimate, verified remote opportunities worldwide. Build your profile, save jobs, and track your applications securely.
+            Real, verified remote jobs from world-class tech companies, startups, and remote teams. Apply directly and take your career global.
           </p>
 
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto mb-8 px-2">
+          {/* Search Bar Form */}
+          <form
+            action="/jobs"
+            method="GET"
+            className="max-w-2xl mx-auto mb-8 px-2"
+          >
             <div className="bg-white border border-[#d2d2d7] rounded-full p-1.5 flex items-center shadow-[0_2px_14px_rgba(0,0,0,0.04)] focus-within:ring-4 focus-within:ring-blue-100 focus-within:border-[#0066cc] transition-all">
               <div className="pl-3 sm:pl-4 pr-2 sm:pr-3 text-[#86868b]">
                 <Search className="w-5 h-5" />
               </div>
               <input
                 type="text"
-                placeholder="Search job title, skills, or company..."
+                name="q"
+                placeholder="Search by job title, skill (React, Python), or company..."
                 className="flex-1 min-w-0 bg-transparent border-none focus:ring-0 text-[#1d1d1f] placeholder-[#86868b] outline-none text-[14px] sm:text-[16px] py-2 sm:py-3"
               />
-              <Link
-                href="/jobs"
-                className="bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium px-4 sm:px-6 py-2.5 sm:py-3 rounded-full transition-colors text-[13px] sm:text-[15px] whitespace-nowrap"
+              <button
+                type="submit"
+                className="bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium px-5 sm:px-7 py-2.5 sm:py-3 rounded-full transition-colors text-[13px] sm:text-[15px] whitespace-nowrap"
               >
                 Search
-              </Link>
+              </button>
             </div>
-          </div>
+          </form>
 
           {/* Quick Categories */}
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 px-2">
-            {categories.map(({ label, icon: Icon, count }) => (
+            {categories.map(({ label, icon: Icon, href }) => (
               <Link
                 key={label}
-                href="/jobs"
-                className="inline-flex items-center gap-2 bg-white border border-[#d2d2d7] rounded-full px-3.5 py-1.5 sm:px-4 sm:py-2 text-[13px] sm:text-[14px] font-medium text-[#1d1d1f] hover:border-[#0066cc] hover:text-[#0066cc] transition-colors"
+                href={href}
+                className="inline-flex items-center gap-2 bg-white border border-[#d2d2d7] rounded-full px-3.5 py-1.5 sm:px-4 sm:py-2 text-[13px] sm:text-[14px] font-medium text-[#1d1d1f] hover:border-[#0066cc] hover:text-[#0066cc] transition-colors shadow-sm"
               >
                 <Icon className="w-4 h-4 text-[#86868b]" />
                 <span>{label}</span>
-                <span className="text-[11px] text-[#86868b] hidden sm:inline">({count})</span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ─── Featured Jobs Section ─── */}
+      {/* ─── Featured Live Jobs Section ─── */}
       <section className="bg-[#f5f5f7] py-14 sm:py-20 border-t border-b border-black/[0.04]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           {/* Section header */}
           <div className="flex items-center justify-between mb-6 sm:mb-8 pb-4 border-b border-[#d2d2d7]">
             <div>
-              <h2 className="text-[20px] sm:text-[26px] font-semibold text-[#1d1d1f] tracking-tight">
-                Verified Remote Jobs
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-[20px] sm:text-[26px] font-semibold text-[#1d1d1f] tracking-tight">
+                  Verified Remote Opportunities
+                </h2>
+                <span className="bg-blue-50 text-[#0066cc] border border-blue-200 text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Live Feed
+                </span>
+              </div>
               <p className="text-[13px] sm:text-[14px] text-[#86868b] mt-0.5">
-                Hand-picked &amp; legitimate opportunities
+                Updated in real-time with verified hiring destinations
               </p>
             </div>
             <Link
               href="/jobs"
               className="text-[13px] sm:text-[14px] font-medium text-[#0066cc] hover:underline flex items-center gap-1"
             >
-              View all <span className="hidden sm:inline">({jobs.length})</span>
-              <ChevronRight className="w-4 h-4" />
+              Browse all <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
 
@@ -141,17 +129,25 @@ export default async function Home() {
               >
                 <div className="bg-white border border-[#d2d2d7]/70 rounded-2xl p-4 sm:p-6 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:border-[#86868b] transition-all duration-200">
                   <div className="flex items-start justify-between gap-3 sm:gap-4">
-                    {/* Left: icon + info */}
+                    {/* Left: icon / logo + info */}
                     <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#f5f5f7] rounded-[12px] sm:rounded-[14px] flex items-center justify-center shrink-0 border border-[#d2d2d7]/50 mt-0.5">
-                        <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-[#1d1d1f]" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <h3 className="text-[16px] sm:text-[19px] font-semibold text-[#1d1d1f] group-hover:text-[#0066cc] transition-colors leading-snug">
-                            {job.title}
-                          </h3>
+                      {job.company_logo_url ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={job.company_logo_url}
+                          alt={job.company_name}
+                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-contain bg-[#f5f5f7] border border-[#d2d2d7]/50 p-1 shrink-0 mt-0.5"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#f5f5f7] rounded-xl flex items-center justify-center shrink-0 border border-[#d2d2d7]/50 mt-0.5">
+                          <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-[#1d1d1f]" />
                         </div>
+                      )}
+
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-[16px] sm:text-[19px] font-semibold text-[#1d1d1f] group-hover:text-[#0066cc] transition-colors leading-snug mb-1">
+                          {job.title}
+                        </h3>
                         <p className="text-[13px] sm:text-[14px] font-medium text-[#86868b] mb-3">
                           {job.company_name}
                         </p>
@@ -160,7 +156,7 @@ export default async function Home() {
                         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                           <span className="inline-flex items-center gap-1 text-[11px] sm:text-[12px] font-medium text-[#1d1d1f] bg-[#f5f5f7] px-2.5 py-1 rounded-md">
                             <MapPin className="w-3 h-3 text-[#86868b]" />
-                            {job.is_remote ? '100% Remote' : job.location}
+                            {job.location}
                           </span>
                           <span className="inline-flex items-center gap-1 text-[11px] sm:text-[12px] font-medium text-[#1d1d1f] bg-[#f5f5f7] px-2.5 py-1 rounded-md">
                             <Briefcase className="w-3 h-3 text-[#86868b]" />
@@ -259,19 +255,19 @@ export default async function Home() {
             {
               step: '01',
               title: 'Browse Freely',
-              desc: 'Search hundreds of verified remote jobs without needing to create an account first.',
+              desc: 'Search hundreds of real live remote jobs without needing to create an account first.',
               icon: Search,
             },
             {
               step: '02',
               title: 'Build Profile',
-              desc: 'Create an account to save favorite roles, upload CV, and add your skills & links.',
+              desc: 'Create a free account to save favorite roles, upload CV, and add your skills & links.',
               icon: UserPlus,
             },
             {
               step: '03',
               title: 'Apply & Track',
-              desc: 'Apply directly to legitimate employers and track application statuses in one dashboard.',
+              desc: 'Apply directly to verified employers and track application statuses in one dashboard.',
               icon: Rocket,
             },
           ].map(({ step, title, desc, icon: Icon }) => (
