@@ -125,6 +125,8 @@ export default function AdminPortalPage() {
     checkAuth()
   }, [checkAuth])
 
+  const [dashboardError, setDashboardError] = useState<string | null>(null)
+
   // Fetch users & metrics
   const fetchDashboardData = useCallback(async (silent = false) => {
     if (!silent) setDataLoading(true)
@@ -134,9 +136,12 @@ export default function AdminPortalPage() {
       if (data.success) {
         setUsers(data.users || [])
         setMetrics(data.metrics)
+        setDashboardError(null)
+      } else {
+        setDashboardError(data.error || 'Failed to load candidates from database.')
       }
     } catch {
-      // Ignore background sync errors
+      if (!silent) setDashboardError('Failed to connect to admin API.')
     } finally {
       if (!silent) setDataLoading(false)
     }
@@ -433,6 +438,20 @@ export default function AdminPortalPage() {
             </button>
           </div>
         </div>
+
+        {/* Sync / Database Alert if error occurs */}
+        {dashboardError && (
+          <div className="mb-6 p-4 bg-red-950/60 border border-red-800 rounded-2xl flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-bold text-red-200 text-sm">Database Sync Note:</h4>
+              <p className="text-red-300 text-xs mt-0.5">{dashboardError}</p>
+              <p className="text-gray-400 text-xs mt-2">
+                Make sure you have run the Supabase RLS policy query in your Supabase SQL editor so the admin dashboard can read candidates.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* 5 Real-Time KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
