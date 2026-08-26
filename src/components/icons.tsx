@@ -21,8 +21,6 @@ import {
   Mail,
   Lock,
   Globe,
-  Github,
-  Linkedin,
   FileText,
   Bell,
   Settings,
@@ -49,6 +47,7 @@ import {
   BarChart3,
   Database,
   Server,
+  Save,
 } from 'lucide-react'
 
 export {
@@ -72,8 +71,6 @@ export {
   Mail,
   Lock,
   Globe,
-  Github,
-  Linkedin,
   FileText,
   Bell,
   Settings,
@@ -100,4 +97,5 @@ export {
   BarChart3,
   Database,
   Server,
+  Save,
 }

@@ -2,180 +2,243 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Globe, Mail, Lock, Eye, EyeOff, Check } from '@/components/icons'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/utils/supabase/client'
+import { Globe, Mail, Lock, Eye, EyeOff, CheckCircle } from '@/components/icons'
 
 export default function SignupPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [agreed, setAgreed] = useState(false)
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-  })
+  const router = useRouter()
+  const supabase = createClient()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [agreed, setAgreed] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: integrate auth
+    setErrorMsg(null)
+
+    if (password.length < 6) {
+      setErrorMsg('Password must be at least 6 characters long.')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+
+      if (error) {
+        setErrorMsg(error.message)
+        setLoading(false)
+        return
+      }
+
+      // Check if email confirmation is required
+      if (data.session) {
+        router.push('/dashboard')
+        router.refresh()
+      } else {
+        setSuccess(true)
+      }
+    } catch {
+      setErrorMsg('An unexpected error occurred. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  const handleGoogleSignup = async () => {
+    setErrorMsg(null)
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      if (error) {
+        setErrorMsg(error.message)
+        setLoading(false)
+      }
+    } catch {
+      setErrorMsg('Failed to initiate Google sign in.')
+      setLoading(false)
+    }
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center px-4 py-12 sm:py-20">
+    <div className="flex-1 flex items-center justify-center px-4 py-12 sm:py-20 bg-[#f5f5f7]">
       <div className="w-full max-w-sm">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-[#1d1d1f] rounded-2xl mb-5">
+          <Link href="/" className="inline-flex items-center justify-center w-12 h-12 bg-[#1d1d1f] rounded-2xl mb-4 shadow-sm hover:scale-105 transition-transform">
             <span className="font-bold text-xl text-white">H</span>
-          </div>
+          </Link>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f]">
-            Create your account
+            Create an account
           </h1>
-          <p className="text-[#86868b] text-[15px] mt-2">
-            Start your journey with Hoberg
+          <p className="text-[#86868b] text-[15px] mt-1.5">
+            Join Hoberg Jobs and discover remote careers
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white border border-[#d2d2d7]/60 rounded-2xl p-6 sm:p-8 shadow-sm">
-          {/* Google Button */}
-          <button
-            type="button"
-            className="w-full flex items-center justify-center gap-3 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] font-medium text-[15px] px-4 py-2.5 rounded-xl border border-[#d2d2d7]/60 transition-colors"
-          >
-            <Globe className="w-5 h-5" />
-            Continue with Google
-          </button>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-[#d2d2d7]/60" />
-            <span className="text-[13px] text-[#86868b]">or</span>
-            <div className="flex-1 h-px bg-[#d2d2d7]/60" />
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
-            <div>
-              <label htmlFor="email" className="block text-[13px] font-medium text-[#1d1d1f] mb-1.5">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]/60 focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] transition-colors"
-                />
+        <div className="bg-white border border-[#d2d2d7]/70 rounded-3xl p-6 sm:p-8 shadow-sm">
+          {success ? (
+            <div className="text-center py-6">
+              <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-100">
+                <CheckCircle className="w-8 h-8" />
               </div>
+              <h2 className="text-xl font-bold text-[#1d1d1f] mb-2">Check your email</h2>
+              <p className="text-[14px] text-[#86868b] leading-relaxed mb-6">
+                We sent a confirmation link to <span className="font-semibold text-[#1d1d1f]">{email}</span>. Click the link to activate your profile.
+              </p>
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center w-full bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium text-[15px] py-3 rounded-full transition-colors"
+              >
+                Back to Sign in
+              </Link>
             </div>
+          ) : (
+            <>
+              {errorMsg && (
+                <div className="mb-5 p-3.5 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-xl flex items-start gap-2">
+                  <span className="shrink-0 text-base">⚠️</span>
+                  <span>{errorMsg}</span>
+                </div>
+              )}
 
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-[13px] font-medium text-[#1d1d1f] mb-1.5">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  name="password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Create a password"
-                  className="w-full pl-10 pr-11 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]/60 focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#86868b] hover:text-[#1d1d1f] transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-              <label htmlFor="confirmPassword" className="block text-[13px] font-medium text-[#1d1d1f] mb-1.5">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
-                <input
-                  type={showConfirm ? 'text' : 'password'}
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="Confirm your password"
-                  className="w-full pl-10 pr-11 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]/60 focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#86868b] hover:text-[#1d1d1f] transition-colors"
-                >
-                  {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            {/* Terms Checkbox */}
-            <div className="flex items-start gap-3 pt-1">
+              {/* Google Button */}
               <button
                 type="button"
-                onClick={() => setAgreed(!agreed)}
-                className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-                  agreed
-                    ? 'bg-[#0066cc] border-[#0066cc]'
-                    : 'border-[#d2d2d7] hover:border-[#86868b]'
-                }`}
+                onClick={handleGoogleSignup}
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-3 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] font-medium text-[15px] px-4 py-3 rounded-2xl border border-[#d2d2d7]/60 transition-colors disabled:opacity-60"
               >
-                {agreed && <Check className="w-3 h-3 text-white" />}
+                <Globe className="w-4 h-4 text-[#0066cc]" />
+                <span>Sign up with Google</span>
               </button>
-              <span className="text-[13px] text-[#86868b] leading-relaxed">
-                I agree to the{' '}
-                <Link href="#" className="text-[#0066cc] hover:underline">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link href="#" className="text-[#0066cc] hover:underline">
-                  Privacy Policy
-                </Link>
-              </span>
-            </div>
 
-            {/* Create Account Button */}
-            <button
-              type="submit"
-              disabled={!agreed}
-              className="w-full bg-[#0066cc] text-white font-semibold text-[15px] px-6 py-2.5 rounded-xl hover:bg-[#0077ed] transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Create account
-            </button>
-          </form>
+              {/* Divider */}
+              <div className="flex items-center gap-3 my-6">
+                <div className="flex-1 h-px bg-[#d2d2d7]/60" />
+                <span className="text-[12px] uppercase font-semibold text-[#86868b] tracking-wider">or email</span>
+                <div className="flex-1 h-px bg-[#d2d2d7]/60" />
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSignup} className="space-y-4">
+                <div>
+                  <label htmlFor="fullName" className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5">
+                    Full Name
+                  </label>
+                  <input
+                    id="fullName"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="e.g. Alex Johnson"
+                    required
+                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@example.com"
+                      required
+                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl pl-10 pr-3.5 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="password" className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="At least 6 characters"
+                      required
+                      minLength={6}
+                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl pl-10 pr-10 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#86868b] hover:text-[#1d1d1f] transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5 pt-1">
+                  <input
+                    id="terms"
+                    type="checkbox"
+                    checked={agreed}
+                    onChange={(e) => setAgreed(e.target.checked)}
+                    required
+                    className="mt-1 w-4 h-4 rounded border-gray-300 text-[#0066cc] focus:ring-[#0066cc]"
+                  />
+                  <label htmlFor="terms" className="text-[12px] text-[#86868b] leading-tight cursor-pointer">
+                    I agree to the Hoberg Jobs Terms of Service and Privacy Policy.
+                  </label>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading || !agreed}
+                  className="w-full bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium text-[15px] py-3 rounded-full transition-colors shadow-sm disabled:opacity-60 mt-2"
+                >
+                  {loading ? 'Creating account...' : 'Create Account'}
+                </button>
+              </form>
+
+              {/* Footer */}
+              <div className="text-center mt-6 pt-5 border-t border-[#d2d2d7]/40">
+                <p className="text-[13px] text-[#86868b]">
+                  Already have an account?{' '}
+                  <Link href="/login" className="text-[#0066cc] font-semibold hover:underline">
+                    Sign in
+                  </Link>
+                </p>
+              </div>
+            </>
+          )}
         </div>
-
-        {/* Bottom Link */}
-        <p className="text-center text-[13px] text-[#86868b] mt-6">
-          Already have an account?{' '}
-          <Link href="/login" className="text-[#0066cc] font-medium hover:underline">
-            Log in
-          </Link>
-        </p>
       </div>
     </div>
   )

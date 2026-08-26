@@ -2,88 +2,151 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Globe, Mail, Lock, Eye, EyeOff } from '@/components/icons'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/utils/supabase/client'
+import { Globe, Mail, Lock, Eye, EyeOff, Sparkles } from '@/components/icons'
 
 export default function LoginPage() {
+  const router = useRouter()
+  const supabase = createClient()
+
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: integrate auth
+    setErrorMsg(null)
+    setLoading(true)
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        setErrorMsg(error.message)
+        setLoading(false)
+        return
+      }
+
+      router.push('/dashboard')
+      router.refresh()
+    } catch {
+      setErrorMsg('An unexpected error occurred. Please try again.')
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    setErrorMsg(null)
+    setLoading(true)
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      if (error) {
+        setErrorMsg(error.message)
+        setLoading(false)
+      }
+    } catch {
+      setErrorMsg('Failed to initiate Google sign in.')
+      setLoading(false)
+    }
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center px-4 py-12 sm:py-20">
+    <div className="flex-1 flex items-center justify-center px-4 py-12 sm:py-20 bg-[#f5f5f7]">
       <div className="w-full max-w-sm">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-[#1d1d1f] rounded-2xl mb-5">
+          <Link href="/" className="inline-flex items-center justify-center w-12 h-12 bg-[#1d1d1f] rounded-2xl mb-4 shadow-sm hover:scale-105 transition-transform">
             <span className="font-bold text-xl text-white">H</span>
-          </div>
+          </Link>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f]">
             Welcome back
           </h1>
-          <p className="text-[#86868b] text-[15px] mt-2">
-            Sign in to your Hoberg account
+          <p className="text-[#86868b] text-[15px] mt-1.5">
+            Sign in to your Hoberg Jobs account
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white border border-[#d2d2d7]/60 rounded-2xl p-6 sm:p-8 shadow-sm">
+        <div className="bg-white border border-[#d2d2d7]/70 rounded-3xl p-6 sm:p-8 shadow-sm">
+          {errorMsg && (
+            <div className="mb-5 p-3.5 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-xl flex items-start gap-2">
+              <span className="shrink-0 text-base">⚠️</span>
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
           {/* Google Button */}
           <button
             type="button"
-            className="w-full flex items-center justify-center gap-3 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] font-medium text-[15px] px-4 py-2.5 rounded-xl border border-[#d2d2d7]/60 transition-colors"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] font-medium text-[15px] px-4 py-3 rounded-2xl border border-[#d2d2d7]/60 transition-colors disabled:opacity-60"
           >
-            <Globe className="w-5 h-5" />
-            Continue with Google
+            <Globe className="w-4 h-4 text-[#0066cc]" />
+            <span>Continue with Google</span>
           </button>
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-6">
             <div className="flex-1 h-px bg-[#d2d2d7]/60" />
-            <span className="text-[13px] text-[#86868b]">or</span>
+            <span className="text-[12px] uppercase font-semibold text-[#86868b] tracking-wider">or email</span>
             <div className="flex-1 h-px bg-[#d2d2d7]/60" />
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
+          <form onSubmit={handleEmailLogin} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-[13px] font-medium text-[#1d1d1f] mb-1.5">
-                Email
+              <label htmlFor="email" className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5">
+                Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
                 <input
-                  type="email"
                   id="email"
-                  required
+                  type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]/60 focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] transition-colors"
+                  placeholder="name@example.com"
+                  required
+                  className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl pl-10 pr-3.5 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-all"
                 />
               </div>
             </div>
 
-            {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-[13px] font-medium text-[#1d1d1f] mb-1.5">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="password" className="text-[13px] font-semibold text-[#1d1d1f]">
+                  Password
+                </label>
+                <Link
+                  href="/login"
+                  onClick={() => alert('Password reset links will be sent to your verified email address.')}
+                  className="text-[12px] font-medium text-[#0066cc] hover:underline"
+                >
+                  Forgot?
+                </Link>
+              </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#86868b]" />
                 <input
-                  type={showPassword ? 'text' : 'password'}
                   id="password"
-                  required
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="w-full pl-10 pr-11 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]/60 focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] transition-colors"
+                  placeholder="••••••••"
+                  required
+                  className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl pl-10 pr-10 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-all"
                 />
                 <button
                   type="button"
@@ -95,33 +158,25 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Forgot Password */}
-            <div className="flex justify-end">
-              <Link
-                href="#"
-                className="text-[13px] text-[#0066cc] hover:underline"
-              >
-                Forgot password?
-              </Link>
-            </div>
-
-            {/* Sign In Button */}
             <button
               type="submit"
-              className="w-full bg-[#0066cc] text-white font-semibold text-[15px] px-6 py-2.5 rounded-xl hover:bg-[#0077ed] transition-colors shadow-sm"
+              disabled={loading}
+              className="w-full bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium text-[15px] py-3 rounded-full transition-colors shadow-sm disabled:opacity-60 mt-2"
             >
-              Sign in
+              {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
-        </div>
 
-        {/* Bottom Link */}
-        <p className="text-center text-[13px] text-[#86868b] mt-6">
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="text-[#0066cc] font-medium hover:underline">
-            Sign up
-          </Link>
-        </p>
+          {/* Footer */}
+          <div className="text-center mt-6 pt-5 border-t border-[#d2d2d7]/40">
+            <p className="text-[13px] text-[#86868b]">
+              Don&apos;t have an account?{' '}
+              <Link href="/signup" className="text-[#0066cc] font-semibold hover:underline">
+                Sign up free
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )
