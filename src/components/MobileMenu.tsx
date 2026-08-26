@@ -2,7 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { Menu, X, Crown } from '@/components/icons'
+import {
+  Menu,
+  X,
+  Crown,
+  Briefcase,
+  Sparkles,
+  ArrowRight,
+} from '@/components/icons'
 
 interface MobileMenuProps {
   userEmail?: string | null
@@ -20,7 +27,9 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
     } else {
       document.body.style.overflow = ''
     }
-    return () => { document.body.style.overflow = '' }
+    return () => {
+      document.body.style.overflow = ''
+    }
   }, [isOpen])
 
   useEffect(() => {
@@ -36,80 +45,152 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
       {/* Hamburger button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-center w-10 h-10 rounded-full text-[#1d1d1f] hover:bg-black/5 transition-colors"
+        className="flex items-center justify-center w-10 h-10 rounded-xl text-[#1d1d1f] hover:bg-black/5 active:bg-black/10 transition-colors"
         aria-label="Open menu"
       >
-        <Menu className="w-5 h-5" />
+        <Menu className="w-6 h-6 text-[#1d1d1f]" />
       </button>
 
-      {/* Overlay */}
+      {/* Full-screen Drawer Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-[100]">
-          {/* Dark backdrop */}
+        <div className="fixed inset-0 z-[9999] flex justify-end">
+          {/* Dimmed backdrop */}
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
             onClick={close}
+            aria-hidden="true"
           />
 
-          {/* Menu panel — slides from right, full height */}
-          <div className="absolute top-0 right-0 bottom-0 w-[85%] max-w-[320px] bg-white shadow-2xl flex flex-col animate-slide-in">
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <Link href="/" onClick={close} className="flex items-center gap-2">
-                <div className="w-7 h-7 bg-[#1d1d1f] rounded-lg flex items-center justify-center">
+          {/* Menu Sheet (Solid 100% Opaque White Background) */}
+          <div
+            className="relative z-10 w-full max-w-[320px] sm:max-w-[360px] h-full flex flex-col shadow-2xl border-l border-gray-200"
+            style={{ backgroundColor: '#ffffff' }}
+          >
+            {/* Top Sheet Header */}
+            <div
+              className="flex items-center justify-between px-5 py-4 border-b border-gray-100"
+              style={{ backgroundColor: '#ffffff' }}
+            >
+              <Link href="/" onClick={close} className="flex items-center gap-2.5">
+                <div className="w-8 h-8 bg-[#1d1d1f] rounded-xl flex items-center justify-center shadow-sm">
                   <span className="font-bold text-sm text-white">H</span>
                 </div>
-                <span className="font-semibold text-[15px] text-[#1d1d1f]">Hoberg Jobs</span>
+                <div>
+                  <span className="font-bold text-[16px] text-[#1d1d1f] block leading-tight">
+                    Hoberg Jobs
+                  </span>
+                  <span className="text-[11px] text-[#86868b] block">Remote Careers</span>
+                </div>
               </Link>
+
               <button
                 onClick={close}
-                className="flex items-center justify-center w-9 h-9 rounded-full text-[#86868b] hover:bg-gray-100 transition-colors"
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-[#1d1d1f] transition-colors"
                 aria-label="Close menu"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Navigation links */}
-            <nav className="flex-1 px-4 py-6">
-              <div className="space-y-1">
-                {[
-                  { label: 'Find Jobs', href: '/jobs' },
-                  { label: 'Categories', href: '/categories' },
-                  { label: 'Premium', href: '/premium', isPremiumBadge: true },
-                ].map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={close}
-                    className="flex items-center justify-between px-4 py-3.5 rounded-xl text-[17px] font-medium text-[#1d1d1f] hover:bg-[#f5f5f7] active:bg-[#ebebed] transition-colors"
-                  >
-                    <span>{link.label}</span>
-                    {link.isPremiumBadge && (
-                      <Crown className="w-4 h-4 text-amber-500" />
-                    )}
-                  </Link>
-                ))}
+            {/* User status card (if signed in) */}
+            {userEmail && (
+              <div className="mx-4 mt-4 p-3.5 bg-[#f5f5f7] border border-gray-200 rounded-2xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-[#1d1d1f] text-white flex items-center justify-center text-xs font-bold">
+                      {userEmail[0].toUpperCase()}
+                    </div>
+                    <div className="min-w-0 max-w-[150px]">
+                      <p className="text-[13px] font-semibold text-[#1d1d1f] truncate">
+                        {userEmail}
+                      </p>
+                      <p className="text-[11px] text-[#86868b]">
+                        {isPremium ? 'PRO Member' : 'Free Account'}
+                      </p>
+                    </div>
+                  </div>
+                  {isPremium && (
+                    <span className="bg-amber-400/20 text-amber-700 border border-amber-400/40 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                      PRO
+                    </span>
+                  )}
+                </div>
               </div>
+            )}
+
+            {/* Navigation Links */}
+            <nav className="flex-1 px-4 py-5 overflow-y-auto space-y-2">
+              <Link
+                href="/jobs"
+                onClick={close}
+                className="flex items-center justify-between p-3.5 rounded-2xl bg-[#f5f5f7] hover:bg-[#ebebed] text-[#1d1d1f] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0066cc] flex items-center justify-center">
+                    <Briefcase className="w-4 h-4" />
+                  </div>
+                  <span className="font-semibold text-[15px]">Find Remote Jobs</span>
+                </div>
+                <ArrowRight className="w-4 h-4 text-[#86868b]" />
+              </Link>
+
+              <Link
+                href="/categories"
+                onClick={close}
+                className="flex items-center justify-between p-3.5 rounded-2xl bg-[#f5f5f7] hover:bg-[#ebebed] text-[#1d1d1f] transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <span className="font-semibold text-[15px]">Categories</span>
+                </div>
+                <ArrowRight className="w-4 h-4 text-[#86868b]" />
+              </Link>
+
+              <Link
+                href="/premium"
+                onClick={close}
+                className="flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/70 text-[#1d1d1f] hover:border-amber-300 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-sm">
+                    <Crown className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-[15px] block text-[#1d1d1f]">
+                      Hoberg Premium
+                    </span>
+                    <span className="text-[11px] text-amber-800 font-medium block">
+                      Founding Member (20% OFF)
+                    </span>
+                  </div>
+                </div>
+                <ArrowRight className="w-4 h-4 text-amber-600" />
+              </Link>
             </nav>
 
-            {/* Auth buttons at the bottom */}
-            <div className="px-4 py-6 border-t border-gray-100 space-y-3">
+            {/* Bottom Action Buttons */}
+            <div
+              className="p-4 border-t border-gray-100 space-y-2.5"
+              style={{ backgroundColor: '#ffffff' }}
+            >
               {userEmail ? (
                 <>
                   <Link
                     href="/dashboard"
                     onClick={close}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-full text-[15px] font-medium text-white bg-[#0066cc] hover:bg-[#0077ed] transition-colors"
+                    className="flex items-center justify-center gap-2 w-full py-3.5 rounded-full text-[15px] font-semibold text-white bg-[#0066cc] hover:bg-[#0077ed] transition-colors shadow-sm"
                   >
                     {isPremium && <Crown className="w-4 h-4 text-amber-300" />}
-                    <span>Go to Dashboard</span>
+                    <span>Open Dashboard</span>
                   </Link>
+
                   <form action="/auth/signout" method="POST">
                     <button
                       type="submit"
                       onClick={close}
-                      className="flex items-center justify-center w-full py-2.5 rounded-full text-[14px] font-medium text-[#86868b] border border-gray-200 hover:bg-[#f5f5f7] transition-colors"
+                      className="flex items-center justify-center w-full py-2.5 rounded-full text-[13px] font-medium text-[#86868b] hover:text-[#1d1d1f] hover:bg-[#f5f5f7] transition-colors"
                     >
                       Sign Out
                     </button>
@@ -118,18 +199,19 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
               ) : (
                 <>
                   <Link
-                    href="/login"
-                    onClick={close}
-                    className="flex items-center justify-center w-full py-3 rounded-full text-[15px] font-medium text-[#1d1d1f] border border-gray-200 hover:bg-[#f5f5f7] transition-colors"
-                  >
-                    Log in
-                  </Link>
-                  <Link
                     href="/signup"
                     onClick={close}
-                    className="flex items-center justify-center w-full py-3 rounded-full text-[15px] font-medium text-white bg-[#0066cc] hover:bg-[#0077ed] transition-colors"
+                    className="flex items-center justify-center w-full py-3.5 rounded-full text-[15px] font-semibold text-white bg-[#0066cc] hover:bg-[#0077ed] transition-colors shadow-sm"
                   >
-                    Sign up — it&apos;s free
+                    Sign up — Free Account
+                  </Link>
+
+                  <Link
+                    href="/login"
+                    onClick={close}
+                    className="flex items-center justify-center w-full py-3 rounded-full text-[14px] font-medium text-[#1d1d1f] border border-gray-200 hover:bg-[#f5f5f7] transition-colors"
+                  >
+                    Log in
                   </Link>
                 </>
               )}
@@ -137,16 +219,6 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        @keyframes slideIn {
-          from { transform: translateX(100%); }
-          to { transform: translateX(0); }
-        }
-        .animate-slide-in {
-          animation: slideIn 0.25s ease-out;
-        }
-      `}</style>
     </div>
   )
 }
