@@ -8,6 +8,9 @@ import {
   FileText,
   CheckCircle,
   ArrowRight,
+  ShieldCheck,
+  Clock,
+  ExternalLink,
 } from '@/components/icons'
 
 export default async function DashboardPage({
@@ -57,12 +60,14 @@ export default async function DashboardPage({
     .eq('user_id', user.id)
 
   const displayName =
+    profile?.full_name ||
     profile?.display_name ||
     user.user_metadata?.full_name ||
     user.email?.split('@')[0] ||
     'User'
 
   const isPremium = profile?.is_premium || upgraded === 'true'
+  const reviewStatus: 'draft' | 'under_review' | 'approved' | 'rejected' = profile?.review_status || 'draft'
 
   return (
     <div className="flex-1 bg-[#f5f5f7] py-10 sm:py-16">
@@ -102,11 +107,24 @@ export default async function DashboardPage({
                     Free Account
                   </span>
                 )}
-                <span className="inline-flex items-center gap-1 text-[12px] font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                  <CheckCircle className="w-3 h-3" />
-                  Verified
-                </span>
+
+                {reviewStatus === 'approved' ? (
+                  <span className="inline-flex items-center gap-1 text-[12px] font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    <CheckCircle className="w-3 h-3" />
+                    Verified &amp; Approved
+                  </span>
+                ) : reviewStatus === 'under_review' ? (
+                  <span className="inline-flex items-center gap-1 text-[12px] font-medium text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                    <Clock className="w-3 h-3 text-amber-600" />
+                    Under Review
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[12px] font-medium text-red-700 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200">
+                    Action Required
+                  </span>
+                )}
               </div>
+
               <h1 className="text-[26px] sm:text-[34px] font-bold text-[#1d1d1f] tracking-tight">
                 Welcome, {displayName}!
               </h1>
@@ -118,7 +136,7 @@ export default async function DashboardPage({
             <div className="flex items-center gap-3">
               <Link
                 href="/profile"
-                className="bg-[#1d1d1f] hover:bg-[#2d2d30] text-white text-[14px] font-medium px-5 py-2.5 rounded-full transition-colors"
+                className="bg-[#1d1d1f] hover:bg-[#2d2d30] text-white text-[14px] font-semibold px-5 py-2.5 rounded-full transition-colors"
               >
                 Edit Profile
               </Link>
@@ -133,6 +151,84 @@ export default async function DashboardPage({
             </div>
           </div>
         </div>
+
+        {/* Profile Review Status Banner */}
+        {reviewStatus === 'under_review' ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 sm:p-7 mb-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+            <div className="flex items-start gap-4">
+              <div className="w-11 h-11 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-800 shrink-0">
+                <Clock className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-200/80 text-amber-900 text-[11px] font-bold uppercase tracking-wider mb-1">
+                  🟡 Profile Under Review
+                </div>
+                <h3 className="font-bold text-[16px] text-amber-950">
+                  Our team is reviewing your professional profile
+                </h3>
+                <p className="text-[13px] text-amber-800/90 mt-0.5 leading-relaxed">
+                  Usually reviewed <strong className="text-amber-950">within 24 hours</strong>. Once approved, you can apply directly to all remote job openings.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/profile"
+              className="bg-white hover:bg-gray-50 text-[#1d1d1f] font-semibold text-[13px] px-5 py-2.5 rounded-full border border-gray-300 transition-colors shrink-0 shadow-sm"
+            >
+              View Profile Status
+            </Link>
+          </div>
+        ) : reviewStatus === 'approved' ? (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-6 sm:p-7 mb-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+            <div className="flex items-start gap-4">
+              <div className="w-11 h-11 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-800 shrink-0">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-200/80 text-emerald-900 text-[11px] font-bold uppercase tracking-wider mb-1">
+                  🟢 Verified &amp; Approved
+                </div>
+                <h3 className="font-bold text-[16px] text-emerald-950">
+                  You are approved to apply for remote opportunities
+                </h3>
+                <p className="text-[13px] text-emerald-800/90 mt-0.5 leading-relaxed">
+                  Your profile has been verified. You have full 1-click external application access across all listings.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/jobs"
+              className="bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold text-[13px] px-5 py-2.5 rounded-full transition-colors shrink-0 shadow-sm"
+            >
+              Browse Remote Jobs
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-white border-2 border-dashed border-[#e02424]/40 rounded-3xl p-6 sm:p-7 mb-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 bg-gradient-to-r from-red-50/40 to-transparent">
+            <div className="flex items-start gap-4">
+              <div className="w-11 h-11 bg-red-100 rounded-2xl flex items-center justify-center text-[#e02424] shrink-0">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-100 text-[#e02424] text-[11px] font-bold uppercase tracking-wider mb-1">
+                  ⚠️ Action Required
+                </div>
+                <h3 className="font-bold text-[16px] text-[#1d1d1f]">
+                  Complete &amp; Submit Your Profile for Hoberg Review
+                </h3>
+                <p className="text-[13px] text-[#86868b] mt-0.5 leading-relaxed">
+                  Before applying for any job, your career profile must be submitted and approved by our team.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/profile"
+              className="bg-[#e02424] hover:bg-[#c81e1e] text-white font-bold text-[13px] px-6 py-3 rounded-full transition-colors shrink-0 shadow-sm"
+            >
+              Complete Profile &rarr;
+            </Link>
+          </div>
+        )}
 
         {/* Premium Upgrade Banner if not premium */}
         {!isPremium && (
@@ -163,7 +259,7 @@ export default async function DashboardPage({
             </div>
             <h3 className="text-[16px] font-semibold text-[#1d1d1f] mb-1">Career Profile</h3>
             <p className="text-[13px] text-[#86868b] mb-4">
-              {profile?.career_field ? `Field: ${profile.career_field}` : 'Add your career field and skills for smart matching.'}
+              {profile?.career_field ? `Field: ${profile.career_field}` : 'Add your career field and skills for verification.'}
             </p>
             <Link href="/profile" className="text-[13px] font-semibold text-[#e02424] hover:underline inline-flex items-center">
               Update details <ArrowRight className="w-3.5 h-3.5 ml-1" />

@@ -11,6 +11,8 @@ import {
   ExternalLink,
   ShieldCheck,
   DollarSign,
+  Clock,
+  CheckCircle,
 } from '@/components/icons'
 
 export default async function JobDetails({
@@ -26,14 +28,28 @@ export default async function JobDetails({
     notFound()
   }
 
-  // Check auth
+  // Check auth & profile review status
   let user = null
+  let reviewStatus: 'draft' | 'under_review' | 'approved' | 'rejected' = 'draft'
+
   try {
     const supabase = await createClient()
     const {
       data: { user: authUser },
     } = await supabase.auth.getUser()
     user = authUser
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('review_status')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.review_status) {
+        reviewStatus = profile.review_status
+      }
+    }
   } catch {
     user = null
   }
@@ -84,9 +100,21 @@ export default async function JobDetails({
                 </div>
               </div>
 
-              {/* Apply button desktop / mobile */}
+              {/* Apply button desktop / mobile - Gated by Auth & Review Status */}
               <div className="shrink-0 flex flex-col items-stretch sm:items-end">
-                {user ? (
+                {!user ? (
+                  <>
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-6 py-3 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer"
+                    >
+                      Sign in with Google to Apply
+                    </Link>
+                    <p className="text-[12px] text-[#86868b] mt-2 text-center sm:text-right">
+                      Account &amp; profile verification required
+                    </p>
+                  </>
+                ) : reviewStatus === 'approved' ? (
                   <a
                     href={job.apply_url}
                     target="_blank"
@@ -96,18 +124,21 @@ export default async function JobDetails({
                     Apply on Official Site
                     <ExternalLink className="w-4 h-4 ml-2" />
                   </a>
+                ) : reviewStatus === 'under_review' ? (
+                  <Link
+                    href="/profile"
+                    className="inline-flex items-center justify-center bg-amber-50 border border-amber-300 text-amber-900 font-semibold px-5 py-2.5 rounded-full transition-colors text-[14px] shadow-sm"
+                  >
+                    <Clock className="w-4 h-4 mr-2 text-amber-700" />
+                    <span>Profile Under Review</span>
+                  </Link>
                 ) : (
                   <Link
-                    href="/login"
-                    className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-6 py-3 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer"
+                    href="/profile"
+                    className="inline-flex items-center justify-center bg-[#1d1d1f] hover:bg-black text-white font-semibold px-6 py-3 rounded-full transition-colors text-[14px] shadow-sm"
                   >
-                    Sign in to Apply
+                    <span>Complete Profile to Apply</span>
                   </Link>
-                )}
-                {!user && (
-                  <p className="text-[12px] text-[#86868b] mt-2 text-center sm:text-right">
-                    Free account required
-                  </p>
                 )}
               </div>
             </div>
@@ -174,31 +205,80 @@ export default async function JobDetails({
               </div>
             )}
 
-            {/* Bottom Apply Card */}
-            <div className="bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-2xl p-6 text-center">
-              <h3 className="text-[17px] font-semibold text-[#1d1d1f] mb-1">
-                Interested in this role at {job.company_name}?
-              </h3>
-              <p className="text-[14px] text-[#86868b] mb-5">
-                Applications are processed directly through the employer&apos;s verified portal.
-              </p>
-              {user ? (
-                <a
-                  href={job.apply_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer"
-                >
-                  Proceed to Application
-                  <ExternalLink className="w-4 h-4 ml-2" />
-                </a>
+            {/* Bottom Gated Application Action Card */}
+            <div className="bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-3xl p-6 sm:p-8 text-center">
+              {!user ? (
+                <>
+                  <h3 className="text-[18px] font-bold text-[#1d1d1f] mb-2">
+                    Sign in to apply for this role at {job.company_name}
+                  </h3>
+                  <p className="text-[14px] text-[#86868b] mb-6 max-w-md mx-auto">
+                    Create a free account or sign in with Google to build your verified profile and unlock applications.
+                  </p>
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer"
+                  >
+                    Sign in with Google
+                  </Link>
+                </>
+              ) : reviewStatus === 'approved' ? (
+                <>
+                  <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-[18px] font-bold text-[#1d1d1f] mb-1">
+                    You are verified &amp; ready to apply!
+                  </h3>
+                  <p className="text-[14px] text-[#86868b] mb-6 max-w-md mx-auto">
+                    Click below to open the official application portal for {job.company_name}.
+                  </p>
+                  <a
+                    href={job.apply_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer"
+                  >
+                    Apply on Official Site
+                    <ExternalLink className="w-4 h-4 ml-2" />
+                  </a>
+                </>
+              ) : reviewStatus === 'under_review' ? (
+                <>
+                  <div className="w-12 h-12 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Clock className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-[18px] font-bold text-amber-950 mb-1">
+                    Profile Under Review
+                  </h3>
+                  <p className="text-[14px] text-amber-900/90 mb-6 max-w-md mx-auto leading-relaxed">
+                    Our team is currently reviewing your professional profile. Usually reviewed within 24 hours. Once verified, you will be able to apply to all remote positions immediately.
+                  </p>
+                  <Link
+                    href="/profile"
+                    className="inline-flex items-center justify-center bg-white hover:bg-gray-50 text-[#1d1d1f] font-semibold px-8 py-3 rounded-full border border-gray-300 transition-colors text-[14px] shadow-sm"
+                  >
+                    View Review Status
+                  </Link>
+                </>
               ) : (
-                <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer"
-                >
-                  Create Account / Sign in to Apply
-                </Link>
+                <>
+                  <div className="w-12 h-12 bg-gray-200 text-[#1d1d1f] rounded-full flex items-center justify-center mx-auto mb-3">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-[18px] font-bold text-[#1d1d1f] mb-1">
+                    Complete &amp; Submit Your Profile
+                  </h3>
+                  <p className="text-[14px] text-[#86868b] mb-6 max-w-md mx-auto leading-relaxed">
+                    Before applying for opportunities, submit your verified career profile for Hoberg review.
+                  </p>
+                  <Link
+                    href="/profile"
+                    className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm"
+                  >
+                    Complete Profile &amp; Submit
+                  </Link>
+                </>
               )}
             </div>
           </div>
