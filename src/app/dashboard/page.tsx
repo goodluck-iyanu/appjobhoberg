@@ -33,7 +33,7 @@ export default async function DashboardPage({
   }
 
   // If returning from Paystack with a reference, ensure profile is updated
-  if (upgraded === 'true' && searchParams) {
+  if (upgraded === 'true') {
     try {
       await supabase
         .from('profiles')

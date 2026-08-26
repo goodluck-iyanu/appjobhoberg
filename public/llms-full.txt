@@ -1,0 +1,28 @@
+# Hoberg Jobs — Complete Technical & Platform Context for LLMs
+
+Platform URL: https://jobs.hoberg.com.ng
+Parent Organization: Hoberg Digital Agency (https://hoberg.com.ng)
+Focus: Remote work, Global & African talent recruitment, career advancement, and application tracking.
+
+## 1. Platform Overview
+Hoberg Jobs is an Apple-inspired, mobile-first, high-performance remote jobs marketplace and career platform. The platform connects skilled professionals from Nigeria, Africa, and across the globe with legitimate remote-first organizations, venture-backed startups, and multinational companies.
+
+## 2. Security & Verification Architecture
+- **Zero Scam Policy**: Job feeds are aggregated from verified job boards and curated by Hoberg Digital Agency with direct destination links.
+- **Row Level Security (RLS)**: Sensitive user profiles, saved jobs, CVs, and application records are strictly protected via PostgreSQL policies.
+- **No Third-Party Tracking**: Personal career details and application logs are kept private to authenticated owners.
+- **Official Payment Processing**: Premium memberships are handled via Paystack (licensed by the Central Bank of Nigeria) with server-side validation.
+
+## 3. Key Navigation & Page Structure
+1. `/` — Home with live remote job highlights, search bar, category shortcuts, Premium overview, and platform introduction.
+2. `/jobs` — Full filterable remote job board with query parameters (`?q=`, `?cat=`, `?loc=`).
+3. `/jobs/[id]` — Detailed job view showing full overview, requirements, compensation, location eligibility, and official application button.
+4. `/categories` — Grid of 10+ major career categories across all industries.
+5. `/premium` — Hoberg Premium value proposition, curated opportunity previews, and Paystack subscription checkout.
+6. `/premium/waitlist` — Founding member waitlist application for 20% lifetime discount.
+7. `/dashboard` — Authenticated member headquarters showing application counters, saved vacancies, and PRO status.
+8. `/profile` — Comprehensive profile editor (display name, country, career field, current title, key skills, experience level, portfolio, and LinkedIn).
+
+## 4. Metadata & Structured Data
+The platform generates standard OpenGraph metadata, dynamic XML sitemaps at `/sitemap.xml`, robots rules at `/robots.txt`, and schema.org markup for search engine and AI ingestion.
+

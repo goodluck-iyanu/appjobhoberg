@@ -11,9 +11,52 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Hoberg Jobs — Premium Remote Work Platform',
+  metadataBase: new URL('https://jobs.hoberg.com.ng'),
+  title: {
+    default: 'Hoberg Jobs — Verified Remote Opportunities Worldwide',
+    template: '%s | Hoberg Jobs',
+  },
   description:
-    'Discover curated remote opportunities from world-class companies worldwide. Your next career move starts here.',
+    'Discover legitimate, verified remote opportunities worldwide across all industries. Built by Hoberg Digital Agency.',
+  keywords: [
+    'Remote Jobs',
+    'Nigeria Remote Jobs',
+    'Work From Home Africa',
+    'Remote Tech Jobs',
+    'Virtual Assistant Jobs',
+    'Customer Support Remote',
+    'Hoberg Jobs',
+  ],
+  authors: [{ name: 'Hoberg Digital Agency', url: 'https://hoberg.com.ng' }],
+  creator: 'Hoberg Digital Agency',
+  publisher: 'Hoberg Digital Agency',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://jobs.hoberg.com.ng',
+    title: 'Hoberg Jobs — Verified Remote Opportunities Worldwide',
+    description:
+      'Discover legitimate, verified remote opportunities worldwide across all industries. Built by Hoberg Digital Agency.',
+    siteName: 'Hoberg Jobs',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Hoberg Jobs — Verified Remote Opportunities Worldwide',
+    description:
+      'Discover legitimate, verified remote opportunities worldwide across all industries. Built by Hoberg Digital Agency.',
+    creator: '@hobergdigital',
+  },
 }
 
 export default function RootLayout({

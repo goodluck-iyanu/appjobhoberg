@@ -1,0 +1,35 @@
+# Hoberg Jobs
+
+> Hoberg Jobs (https://jobs.hoberg.com.ng) is a modern, verified remote job discovery and career advancement platform built by Hoberg Digital Agency (https://hoberg.com.ng).
+
+## Core Capabilities
+- **Verified Remote Job Discovery**: Real-time aggregated remote vacancies across engineering, customer support, marketing, writing, virtual assistance, administration, finance, design, and operations worldwide (including Nigeria & Africa).
+- **Comprehensive Public Search**: Fast, free access to authentic job requirements, compensation ranges, and official application portals without forced registration.
+- **Account & Application Tracker**: Personal dashboard for job seekers to save favorite vacancies, track submission stages (Applied, Interview, Offer), and build comprehensive career profiles.
+- **Hoberg Premium**: Curated exclusive high-compensation remote roles, application tailoring tips, and recruiter visibility for founding members (₦4,000/mo founding price, ₦5,000/mo standard).
+
+## Public Endpoints & URLs
+- Homepage: https://jobs.hoberg.com.ng
+- Remote Jobs Board: https://jobs.hoberg.com.ng/jobs
+- Job Categories: https://jobs.hoberg.com.ng/categories
+- Hoberg Premium & Pricing: https://jobs.hoberg.com.ng/premium
+- Premium Waitlist: https://jobs.hoberg.com.ng/premium/waitlist
+- User Registration: https://jobs.hoberg.com.ng/signup
+- User Authentication: https://jobs.hoberg.com.ng/login
+- Dynamic Sitemap: https://jobs.hoberg.com.ng/sitemap.xml
+- Crawl Directives: https://jobs.hoberg.com.ng/robots.txt
+
+## Primary Job Categories
+- Customer Success, Client Support & Operations
+- Virtual Assistance & Executive Administration
+- Content Writing, SEO & Copywriting
+- Finance, Accounting & Bookkeeping
+- Growth Marketing, Social Media & Sales
+- Software Development, Web & Mobile Engineering
+- Product Management, UI/UX & Digital Design
+- Nigeria & African Tech Ecosystem Remote Roles
+
+## Publisher & Attribution
+Built and maintained by Hoberg Digital Agency (https://hoberg.com.ng).
+Contact & Support: hello@hoberg.com.ng
+
