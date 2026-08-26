@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
-import { Globe, Mail, Lock, Eye, EyeOff, Sparkles } from '@/components/icons'
+import { Globe, Mail, Lock, Eye, EyeOff } from '@/components/icons'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -91,9 +91,9 @@ export default function LoginPage() {
             type="button"
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] font-medium text-[15px] px-4 py-3 rounded-2xl border border-[#d2d2d7]/60 transition-colors disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-3 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] font-medium text-[15px] px-4 py-3 rounded-2xl border border-[#d2d2d7]/60 transition-colors disabled:opacity-60 cursor-pointer"
           >
-            <Globe className="w-4 h-4 text-[#0066cc]" />
+            <Globe className="w-4 h-4 text-[#e02424]" />
             <span>Continue with Google</span>
           </button>
 
@@ -119,7 +119,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
                   required
-                  className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl pl-10 pr-3.5 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-all"
+                  className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl pl-10 pr-3.5 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
                 />
               </div>
             </div>
@@ -132,7 +132,7 @@ export default function LoginPage() {
                 <Link
                   href="/login"
                   onClick={() => alert('Password reset links will be sent to your verified email address.')}
-                  className="text-[12px] font-medium text-[#0066cc] hover:underline"
+                  className="text-[12px] font-medium text-[#e02424] hover:underline"
                 >
                   Forgot?
                 </Link>
@@ -146,7 +146,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl pl-10 pr-10 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-all"
+                  className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl pl-10 pr-10 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
                 />
                 <button
                   type="button"
@@ -161,7 +161,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium text-[15px] py-3 rounded-full transition-colors shadow-sm disabled:opacity-60 mt-2"
+              className="w-full bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold text-[15px] py-3 rounded-full transition-colors shadow-sm disabled:opacity-60 mt-2 cursor-pointer"
             >
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
@@ -171,7 +171,7 @@ export default function LoginPage() {
           <div className="text-center mt-6 pt-5 border-t border-[#d2d2d7]/40">
             <p className="text-[13px] text-[#86868b]">
               Don&apos;t have an account?{' '}
-              <Link href="/signup" className="text-[#0066cc] font-semibold hover:underline">
+              <Link href="/signup" className="text-[#e02424] font-semibold hover:underline">
                 Sign up free
               </Link>
             </p>

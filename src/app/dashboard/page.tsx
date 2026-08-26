@@ -1,29 +1,23 @@
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/utils/supabase/server'
 import {
+  Crown,
   Briefcase,
   Bookmark,
-  Building2,
-  MapPin,
-  Clock,
-  Settings,
-  ArrowRight,
-  ShieldCheck,
-  CheckCircle,
   FileText,
-  Crown,
-  Sparkles,
-  Zap,
+  CheckCircle,
+  ArrowRight,
 } from '@/components/icons'
 
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ upgraded?: string }>
+  searchParams: Promise<{ upgraded?: string; reference?: string }>
 }) {
-  const { upgraded } = await searchParams
+  const { upgraded, reference } = await searchParams
   const supabase = await createClient()
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -40,15 +34,16 @@ export default async function DashboardPage({
         .update({
           is_premium: true,
           premium_tier: 'founding_member',
-          premium_since: new Date().toISOString(),
+          premium_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          updated_at: new Date().toISOString(),
         })
         .eq('id', user.id)
     } catch {
-      // ignore
+      // Ignore if update fails or duplicate
     }
   }
 
-  // Fetch user profile
+  // Fetch current user profile
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
@@ -130,7 +125,7 @@ export default async function DashboardPage({
               <form action="/auth/signout" method="POST">
                 <button
                   type="submit"
-                  className="bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] text-[14px] font-medium px-4 py-2.5 rounded-full border border-[#d2d2d7]/60 transition-colors"
+                  className="bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] text-[14px] font-medium px-4 py-2.5 rounded-full border border-[#d2d2d7]/60 transition-colors cursor-pointer"
                 >
                   Sign Out
                 </button>
@@ -153,7 +148,7 @@ export default async function DashboardPage({
             </div>
             <Link
               href="/premium"
-              className="bg-[#0066cc] hover:bg-[#0077ed] text-white font-semibold text-[14px] px-6 py-3 rounded-full transition-colors shrink-0 shadow-sm"
+              className="bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold text-[14px] px-6 py-3 rounded-full transition-colors shrink-0 shadow-sm"
             >
               Upgrade for ₦4,000
             </Link>
@@ -163,14 +158,14 @@ export default async function DashboardPage({
         {/* Profile Stats / Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
           <div className="bg-white border border-[#d2d2d7]/70 rounded-2xl p-6 shadow-sm">
-            <div className="w-10 h-10 bg-blue-50 text-[#0066cc] rounded-xl flex items-center justify-center mb-4">
+            <div className="w-10 h-10 bg-red-50 text-[#e02424] rounded-xl flex items-center justify-center mb-4">
               <Briefcase className="w-5 h-5" />
             </div>
             <h3 className="text-[16px] font-semibold text-[#1d1d1f] mb-1">Career Profile</h3>
             <p className="text-[13px] text-[#86868b] mb-4">
               {profile?.career_field ? `Field: ${profile.career_field}` : 'Add your career field and skills for smart matching.'}
             </p>
-            <Link href="/profile" className="text-[13px] font-semibold text-[#0066cc] hover:underline inline-flex items-center">
+            <Link href="/profile" className="text-[13px] font-semibold text-[#e02424] hover:underline inline-flex items-center">
               Update details <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Link>
           </div>
@@ -183,7 +178,7 @@ export default async function DashboardPage({
             <p className="text-[13px] text-[#86868b] mb-4">
               Bookmark interesting opportunities while browsing to review later.
             </p>
-            <Link href="/jobs" className="text-[13px] font-semibold text-[#0066cc] hover:underline inline-flex items-center">
+            <Link href="/jobs" className="text-[13px] font-semibold text-[#e02424] hover:underline inline-flex items-center">
               Find more jobs <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Link>
           </div>
@@ -196,7 +191,7 @@ export default async function DashboardPage({
             <p className="text-[13px] text-[#86868b] mb-4">
               {applications && applications.length > 0 ? `${applications.length} active application(s)` : 'Track all roles you have applied for in one place.'}
             </p>
-            <Link href="/jobs" className="text-[13px] font-semibold text-[#0066cc] hover:underline inline-flex items-center">
+            <Link href="/jobs" className="text-[13px] font-semibold text-[#e02424] hover:underline inline-flex items-center">
               Explore openings <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Link>
           </div>
@@ -246,7 +241,7 @@ export default async function DashboardPage({
                     </div>
                     <Link
                       href="/jobs"
-                      className="bg-[#0066cc] text-white text-[13px] font-semibold px-4 py-2 rounded-full hover:bg-[#0077ed] transition-colors shrink-0"
+                      className="bg-[#e02424] text-white text-[13px] font-semibold px-4 py-2 rounded-full hover:bg-[#c81e1e] transition-colors shrink-0 cursor-pointer"
                     >
                       Apply
                     </Link>
@@ -258,14 +253,14 @@ export default async function DashboardPage({
         )}
 
         {/* Explore Latest Jobs CTA */}
-        <div className="bg-gradient-to-r from-[#0066cc] to-[#004bb5] rounded-3xl p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
+        <div className="bg-gradient-to-r from-[#e02424] to-[#b91c1c] rounded-3xl p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
           <div>
             <h2 className="text-[20px] sm:text-[24px] font-bold mb-1">Ready to explore new roles?</h2>
             <p className="text-white/80 text-[14px]">Browse hundreds of verified remote opportunities across all fields.</p>
           </div>
           <Link
             href="/jobs"
-            className="bg-white text-[#0066cc] font-semibold text-[15px] px-6 py-3 rounded-full hover:bg-white/90 transition-colors shrink-0 shadow-sm"
+            className="bg-white text-[#e02424] font-semibold text-[15px] px-6 py-3 rounded-full hover:bg-white/90 transition-colors shrink-0 shadow-sm"
           >
             Browse Remote Jobs
           </Link>

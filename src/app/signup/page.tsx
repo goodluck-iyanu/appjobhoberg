@@ -111,7 +111,7 @@ export default function SignupPage() {
               </p>
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center w-full bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium text-[15px] py-3 rounded-full transition-colors"
+                className="inline-flex items-center justify-center w-full bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold text-[15px] py-3 rounded-full transition-colors cursor-pointer"
               >
                 Back to Sign in
               </Link>
@@ -130,9 +130,9 @@ export default function SignupPage() {
                 type="button"
                 onClick={handleGoogleSignup}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-3 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] font-medium text-[15px] px-4 py-3 rounded-2xl border border-[#d2d2d7]/60 transition-colors disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-3 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] font-medium text-[15px] px-4 py-3 rounded-2xl border border-[#d2d2d7]/60 transition-colors disabled:opacity-60 cursor-pointer"
               >
-                <Globe className="w-4 h-4 text-[#0066cc]" />
+                <Globe className="w-4 h-4 text-[#e02424]" />
                 <span>Sign up with Google</span>
               </button>
 
@@ -156,7 +156,7 @@ export default function SignupPage() {
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="e.g. Alex Johnson"
                     required
-                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-all"
+                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
                   />
                 </div>
 
@@ -173,7 +173,7 @@ export default function SignupPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@example.com"
                       required
-                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl pl-10 pr-3.5 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-all"
+                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl pl-10 pr-3.5 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
                     />
                   </div>
                 </div>
@@ -192,7 +192,7 @@ export default function SignupPage() {
                       placeholder="At least 6 characters"
                       required
                       minLength={6}
-                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl pl-10 pr-10 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc] transition-all"
+                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl pl-10 pr-10 py-2.5 text-[15px] text-[#1d1d1f] placeholder-[#86868b] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
                     />
                     <button
                       type="button"
@@ -211,7 +211,7 @@ export default function SignupPage() {
                     checked={agreed}
                     onChange={(e) => setAgreed(e.target.checked)}
                     required
-                    className="mt-1 w-4 h-4 rounded border-gray-300 text-[#0066cc] focus:ring-[#0066cc]"
+                    className="mt-1 w-4 h-4 rounded border-gray-300 text-[#e02424] focus:ring-[#e02424]"
                   />
                   <label htmlFor="terms" className="text-[12px] text-[#86868b] leading-tight cursor-pointer">
                     I agree to the Hoberg Jobs Terms of Service and Privacy Policy.
@@ -221,7 +221,7 @@ export default function SignupPage() {
                 <button
                   type="submit"
                   disabled={loading || !agreed}
-                  className="w-full bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium text-[15px] py-3 rounded-full transition-colors shadow-sm disabled:opacity-60 mt-2"
+                  className="w-full bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold text-[15px] py-3 rounded-full transition-colors shadow-sm disabled:opacity-60 mt-2 cursor-pointer"
                 >
                   {loading ? 'Creating account...' : 'Create Account'}
                 </button>
@@ -231,7 +231,7 @@ export default function SignupPage() {
               <div className="text-center mt-6 pt-5 border-t border-[#d2d2d7]/40">
                 <p className="text-[13px] text-[#86868b]">
                   Already have an account?{' '}
-                  <Link href="/login" className="text-[#0066cc] font-semibold hover:underline">
+                  <Link href="/login" className="text-[#e02424] font-semibold hover:underline">
                     Sign in
                   </Link>
                 </p>

@@ -5,17 +5,16 @@ import Link from 'next/link'
 import { Crown, ArrowLeft, CheckCircle, ChevronDown } from '@/components/icons'
 
 const careerFields = [
-  'Software Engineering',
-  'Product Management',
-  'Design (UI/UX)',
-  'Data Science & Analytics',
-  'Marketing & Growth',
-  'Sales & Business Development',
-  'Customer Support',
+  'Customer Support & Care',
+  'Virtual Assistant & Admin',
+  'Writing, SEO & Content',
   'Finance & Accounting',
-  'Human Resources',
-  'DevOps & Infrastructure',
-  'Content & Writing',
+  'Software & Web Engineering',
+  'Product & UI/UX Design',
+  'Data & Analytics',
+  'Marketing & Growth',
+  'Sales & BD',
+  'Operations & HR',
   'Other',
 ]
 
@@ -31,7 +30,6 @@ export default function WaitlistPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: integrate with backend
     setSubmitted(true)
   }
 
@@ -52,11 +50,11 @@ export default function WaitlistPage() {
             You&apos;re on the list!
           </h1>
           <p className="text-[#86868b] text-[15px] leading-relaxed mb-8">
-            Thanks, {formData.fullName.split(' ')[0]}! We&apos;ll notify you as soon as Hoberg Premium launches. You&apos;ve locked in the founding member rate.
+            Thanks, {formData.fullName.split(' ')[0]}! We&apos;ll notify you as soon as Hoberg Premium opens more slots. You&apos;ve locked in the founding member rate (₦4,000/mo).
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-[#0066cc] font-medium text-[15px] hover:underline"
+            className="inline-flex items-center gap-2 text-[#e02424] font-semibold text-[15px] hover:underline"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Home
@@ -108,7 +106,7 @@ export default function WaitlistPage() {
               value={formData.fullName}
               onChange={handleChange}
               placeholder="John Doe"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]/60 focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]/60 focus:outline-none focus:ring-2 focus:ring-[#e02424]/30 focus:border-[#e02424] transition-colors"
             />
           </div>
 
@@ -125,7 +123,7 @@ export default function WaitlistPage() {
               value={formData.email}
               onChange={handleChange}
               placeholder="john@example.com"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]/60 focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]/60 focus:outline-none focus:ring-2 focus:ring-[#e02424]/30 focus:border-[#e02424] transition-colors"
             />
           </div>
 
@@ -141,7 +139,7 @@ export default function WaitlistPage() {
                 required
                 value={formData.careerField}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] transition-colors appearance-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-[#e02424]/30 focus:border-[#e02424] transition-colors appearance-none"
               >
                 <option value="" disabled>Select your field</option>
                 {careerFields.map((field) => (
@@ -165,8 +163,8 @@ export default function WaitlistPage() {
               name="skills"
               value={formData.skills}
               onChange={handleChange}
-              placeholder="e.g. React, Python, Figma, Project Management"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]/60 focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] transition-colors"
+              placeholder="e.g. Virtual Assistance, Customer Support, Writing, React"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]/60 focus:outline-none focus:ring-2 focus:ring-[#e02424]/30 focus:border-[#e02424] transition-colors"
             />
           </div>
 
@@ -181,15 +179,15 @@ export default function WaitlistPage() {
               name="jobInterests"
               value={formData.jobInterests}
               onChange={handleChange}
-              placeholder="e.g. Frontend Developer, Product Designer, Data Analyst"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]/60 focus:outline-none focus:ring-2 focus:ring-[#0066cc]/30 focus:border-[#0066cc] transition-colors"
+              placeholder="e.g. Remote Admin, Customer Care Representative, Content Writer"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#d2d2d7] bg-[#f5f5f7]/50 text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]/60 focus:outline-none focus:ring-2 focus:ring-[#e02424]/30 focus:border-[#e02424] transition-colors"
             />
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-[#0066cc] text-white font-semibold text-[15px] px-6 py-3 rounded-xl hover:bg-[#0077ed] transition-colors shadow-sm mt-2"
+            className="w-full bg-[#e02424] text-white font-semibold text-[15px] px-6 py-3 rounded-xl hover:bg-[#c81e1e] transition-colors shadow-sm mt-2 cursor-pointer"
           >
             Join the Waitlist
           </button>
@@ -197,7 +195,7 @@ export default function WaitlistPage() {
 
         {/* Privacy Notice */}
         <p className="text-[12px] text-[#86868b] text-center mt-6 leading-relaxed">
-          By joining the waitlist, you agree to receive updates about Hoberg Premium. We respect your privacy and will never share your information with third parties. You can unsubscribe at any time.
+          By joining the waitlist, you agree to receive updates about Hoberg Premium. We respect your privacy and will never share your information with third parties.
         </p>
       </div>
     </div>

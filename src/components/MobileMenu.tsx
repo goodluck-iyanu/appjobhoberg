@@ -126,7 +126,7 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
                 className="flex items-center justify-between p-3.5 rounded-2xl bg-[#f5f5f7] hover:bg-[#ebebed] text-[#1d1d1f] transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#0066cc] flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-xl bg-red-50 text-[#e02424] flex items-center justify-center">
                     <Briefcase className="w-4 h-4" />
                   </div>
                   <span className="font-semibold text-[15px]">Find Remote Jobs</span>
@@ -180,7 +180,7 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
                   <Link
                     href="/dashboard"
                     onClick={close}
-                    className="flex items-center justify-center gap-2 w-full py-3.5 rounded-full text-[15px] font-semibold text-white bg-[#0066cc] hover:bg-[#0077ed] transition-colors shadow-sm"
+                    className="flex items-center justify-center gap-2 w-full py-3.5 rounded-full text-[15px] font-semibold text-white bg-[#e02424] hover:bg-[#c81e1e] transition-colors shadow-sm"
                   >
                     {isPremium && <Crown className="w-4 h-4 text-amber-300" />}
                     <span>Open Dashboard</span>
@@ -201,7 +201,7 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
                   <Link
                     href="/signup"
                     onClick={close}
-                    className="flex items-center justify-center w-full py-3.5 rounded-full text-[15px] font-semibold text-white bg-[#0066cc] hover:bg-[#0077ed] transition-colors shadow-sm"
+                    className="flex items-center justify-center w-full py-3.5 rounded-full text-[15px] font-semibold text-white bg-[#e02424] hover:bg-[#c81e1e] transition-colors shadow-sm"
                   >
                     Sign up — Free Account
                   </Link>

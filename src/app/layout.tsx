@@ -49,6 +49,14 @@ export const metadata: Metadata = {
     description:
       'Discover legitimate, verified remote opportunities worldwide across all industries. Built by Hoberg Digital Agency.',
     siteName: 'Hoberg Jobs',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'Hoberg Jobs — Built by Hoberg Digital Agency',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
@@ -56,6 +64,7 @@ export const metadata: Metadata = {
     description:
       'Discover legitimate, verified remote opportunities worldwide across all industries. Built by Hoberg Digital Agency.',
     creator: '@hobergdigital',
+    images: ['/opengraph-image'],
   },
 }
 
@@ -137,7 +146,7 @@ export default function RootLayout({
                   href="https://hoberg.com.ng"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[#0066cc] hover:underline"
+                  className="text-[#e02424] font-semibold hover:underline"
                 >
                   Hoberg Digital Agency
                 </a>

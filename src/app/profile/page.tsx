@@ -177,7 +177,7 @@ export default function ProfilePage() {
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="e.g. Alex Johnson"
-                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc]"
+                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]"
                   />
                 </div>
                 <div>
@@ -189,7 +189,7 @@ export default function ProfilePage() {
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
                     placeholder="e.g. Nigeria, United Kingdom, USA"
-                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc]"
+                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]"
                   />
                 </div>
               </div>
@@ -211,7 +211,7 @@ export default function ProfilePage() {
                     <select
                       value={careerField}
                       onChange={(e) => setCareerField(e.target.value)}
-                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc]"
+                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]"
                     >
                       <option value="Customer Support">Customer Support</option>
                       <option value="Admin & Virtual Assistant">Admin &amp; Virtual Assistant</option>
@@ -231,7 +231,7 @@ export default function ProfilePage() {
                     <select
                       value={experienceLevel}
                       onChange={(e) => setExperienceLevel(e.target.value)}
-                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc]"
+                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]"
                     >
                       <option value="Entry-Level">Entry-Level</option>
                       <option value="Junior">Junior (1-2 years)</option>
@@ -251,7 +251,7 @@ export default function ProfilePage() {
                     value={currentRole}
                     onChange={(e) => setCurrentRole(e.target.value)}
                     placeholder="e.g. Customer Support Specialist, Virtual Assistant, Frontend Dev"
-                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc]"
+                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]"
                   />
                 </div>
 
@@ -264,7 +264,7 @@ export default function ProfilePage() {
                     value={skills}
                     onChange={(e) => setSkills(e.target.value)}
                     placeholder="e.g. Zendesk, Google Docs, Excel, React, SEO, Copywriting"
-                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc]"
+                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]"
                   />
                 </div>
               </div>
@@ -287,7 +287,7 @@ export default function ProfilePage() {
                     value={linkedinUrl}
                     onChange={(e) => setLinkedinUrl(e.target.value)}
                     placeholder="https://linkedin.com/in/yourname"
-                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc]"
+                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]"
                   />
                 </div>
 
@@ -300,7 +300,7 @@ export default function ProfilePage() {
                     value={portfolioUrl}
                     onChange={(e) => setPortfolioUrl(e.target.value)}
                     placeholder="https://yourportfolio.com"
-                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#0066cc]/20 focus:border-[#0066cc]"
+                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]"
                   />
                 </div>
               </div>
@@ -309,7 +309,7 @@ export default function ProfilePage() {
             <button
               type="submit"
               disabled={saving}
-              className="w-full bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium text-[15px] py-3.5 rounded-full transition-colors shadow-sm disabled:opacity-60 flex items-center justify-center gap-2"
+              className="w-full bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold text-[15px] py-3.5 rounded-full transition-colors shadow-sm disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>{saving ? 'Saving changes...' : 'Save Profile'}</span>

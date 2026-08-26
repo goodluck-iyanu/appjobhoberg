@@ -6,19 +6,10 @@ import {
   Briefcase,
   Building2,
   ChevronRight,
-  Palette,
-  Code,
-  Megaphone,
-  Package,
   UserPlus,
   Rocket,
   Crown,
   ArrowRight,
-  Sparkles,
-  Headphones,
-  FileText,
-  DollarSign,
-  Globe,
 } from '@/components/icons'
 
 export default async function Home() {
@@ -42,7 +33,7 @@ export default async function Home() {
         <div className="max-w-4xl mx-auto">
           {/* Pill badge */}
           <div className="inline-flex items-center gap-2 bg-[#f5f5f7] border border-[#d2d2d7] rounded-full px-4 py-1.5 mb-6 sm:mb-8 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span className="w-2 h-2 rounded-full bg-[#e02424] animate-pulse"></span>
             <span className="text-[12px] sm:text-[13px] font-semibold text-[#1d1d1f] tracking-wide">
               Live Global &amp; Nigerian Remote Jobs
             </span>
@@ -52,7 +43,7 @@ export default async function Home() {
           <h1 className="text-[36px] sm:text-[56px] md:text-[72px] lg:text-[80px] font-semibold tracking-tight text-[#1d1d1f] leading-[1.08] mb-6">
             Find your next
             <br className="hidden sm:block" />
-            <span className="text-[#0066cc]"> remote career.</span>
+            <span className="text-[#e02424]"> remote career.</span>
           </h1>
 
           {/* Subtitle */}
@@ -66,7 +57,7 @@ export default async function Home() {
             method="GET"
             className="max-w-2xl mx-auto mb-8 px-2"
           >
-            <div className="bg-white border border-[#d2d2d7] rounded-full p-1.5 flex items-center shadow-[0_2px_14px_rgba(0,0,0,0.04)] focus-within:ring-4 focus-within:ring-blue-100 focus-within:border-[#0066cc] transition-all">
+            <div className="bg-white border border-[#d2d2d7] rounded-full p-1.5 flex items-center shadow-[0_2px_14px_rgba(0,0,0,0.04)] focus-within:ring-4 focus-within:ring-red-100 focus-within:border-[#e02424] transition-all">
               <div className="pl-3 sm:pl-4 pr-2 sm:pr-3 text-[#86868b]">
                 <Search className="w-5 h-5" />
               </div>
@@ -78,7 +69,7 @@ export default async function Home() {
               />
               <button
                 type="submit"
-                className="bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium px-5 sm:px-7 py-2.5 sm:py-3 rounded-full transition-colors text-[13px] sm:text-[15px] whitespace-nowrap"
+                className="bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-5 sm:px-7 py-2.5 sm:py-3 rounded-full transition-colors text-[13px] sm:text-[15px] whitespace-nowrap cursor-pointer shadow-sm"
               >
                 Search
               </button>
@@ -91,7 +82,7 @@ export default async function Home() {
               <Link
                 key={label}
                 href={href}
-                className="inline-flex items-center gap-1.5 bg-white border border-[#d2d2d7] rounded-full px-3.5 py-1.5 sm:px-4 sm:py-2 text-[12px] sm:text-[13px] font-medium text-[#1d1d1f] hover:border-[#0066cc] hover:text-[#0066cc] transition-colors shadow-sm"
+                className="inline-flex items-center gap-1.5 bg-white border border-[#d2d2d7] rounded-full px-3.5 py-1.5 sm:px-4 sm:py-2 text-[12px] sm:text-[13px] font-medium text-[#1d1d1f] hover:border-[#e02424] hover:text-[#e02424] transition-colors shadow-sm"
               >
                 <span>{label}</span>
               </Link>
@@ -110,7 +101,7 @@ export default async function Home() {
                 <h2 className="text-[20px] sm:text-[26px] font-semibold text-[#1d1d1f] tracking-tight">
                   Verified Remote Opportunities
                 </h2>
-                <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                <span className="bg-red-50 text-[#e02424] border border-red-200 text-[11px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                   Live Feed
                 </span>
               </div>
@@ -120,7 +111,7 @@ export default async function Home() {
             </div>
             <Link
               href="/jobs"
-              className="text-[13px] sm:text-[14px] font-medium text-[#0066cc] hover:underline flex items-center gap-1"
+              className="text-[13px] sm:text-[14px] font-semibold text-[#e02424] hover:underline flex items-center gap-1"
             >
               Browse all ({jobs.length}) <ChevronRight className="w-4 h-4" />
             </Link>
@@ -152,7 +143,7 @@ export default async function Home() {
                       )}
 
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-[16px] sm:text-[19px] font-semibold text-[#1d1d1f] group-hover:text-[#0066cc] transition-colors leading-snug mb-1">
+                        <h3 className="text-[16px] sm:text-[19px] font-semibold text-[#1d1d1f] group-hover:text-[#e02424] transition-colors leading-snug mb-1">
                           {job.title}
                         </h3>
                         <p className="text-[13px] sm:text-[14px] font-medium text-[#86868b] mb-3">
@@ -170,7 +161,7 @@ export default async function Home() {
                             {job.employment_type}
                           </span>
                           {job.category && (
-                            <span className="inline-flex items-center text-[11px] sm:text-[12px] font-medium text-[#0066cc] bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">
+                            <span className="inline-flex items-center text-[11px] sm:text-[12px] font-semibold text-[#e02424] bg-red-50 px-2.5 py-1 rounded-md border border-red-100">
                               {job.category}
                             </span>
                           )}
@@ -184,7 +175,7 @@ export default async function Home() {
                     </div>
 
                     {/* Right: chevron button */}
-                    <div className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-[#f5f5f7] text-[#86868b] group-hover:bg-[#0066cc] group-hover:text-white transition-colors shrink-0 self-center">
+                    <div className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-[#f5f5f7] text-[#86868b] group-hover:bg-[#e02424] group-hover:text-white transition-colors shrink-0 self-center">
                       <ChevronRight className="w-4 h-4" />
                     </div>
                   </div>
@@ -235,10 +226,10 @@ export default async function Home() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
-              href="/premium/waitlist"
-              className="w-full sm:w-auto inline-flex items-center justify-center bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium px-8 py-3.5 rounded-full transition-colors text-[15px]"
+              href="/premium"
+              className="w-full sm:w-auto inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm"
             >
-              Join Founding Waitlist
+              Join Founding Members
               <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
             <Link
@@ -290,7 +281,7 @@ export default async function Home() {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-[#d2d2d7]/60 shadow-sm">
-                    <Icon className="w-5 h-5 text-[#0066cc]" />
+                    <Icon className="w-5 h-5 text-[#e02424]" />
                   </div>
                   <span className="text-[13px] font-bold text-[#86868b] tracking-wider">
                     {step}

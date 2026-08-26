@@ -6,7 +6,7 @@ import {
 
 const categories = [
   { name: 'Design', icon: Palette, color: 'bg-purple-50 text-purple-600' },
-  { name: 'Engineering', icon: Code, color: 'bg-blue-50 text-blue-600' },
+  { name: 'Engineering', icon: Code, color: 'bg-red-50 text-red-600' },
   { name: 'Marketing', icon: Megaphone, color: 'bg-orange-50 text-orange-600' },
   { name: 'Product', icon: Package, color: 'bg-indigo-50 text-indigo-600' },
   { name: 'Sales', icon: DollarSign, color: 'bg-green-50 text-green-600' },

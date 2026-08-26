@@ -9,8 +9,6 @@ import {
   Briefcase,
   ShieldCheck,
   Heart,
-  Sparkles,
-  ArrowRight,
   ArrowLeft,
 } from '@/components/icons'
 
@@ -77,7 +75,7 @@ export default function PremiumPage() {
           <h1 className="text-[36px] sm:text-[56px] md:text-[68px] font-semibold tracking-tight text-[#1d1d1f] leading-[1.08] mb-6">
             Accelerate your remote
             <br className="hidden sm:block" />
-            <span className="text-[#0066cc]"> career trajectory.</span>
+            <span className="text-[#e02424]"> career trajectory.</span>
           </h1>
 
           <p className="text-[16px] sm:text-[19px] md:text-[21px] text-[#86868b] max-w-2xl mx-auto font-normal mb-10 leading-relaxed px-2">
@@ -90,7 +88,7 @@ export default function PremiumPage() {
               planTier="founding_member"
               planName="Founding Member (20% OFF)"
               label="Upgrade Now with Paystack (₦4,000 / mo)"
-              className="bg-[#0066cc] hover:bg-[#0077ed] text-white w-full sm:w-auto"
+              className="bg-[#e02424] hover:bg-[#c81e1e] text-white w-full sm:w-auto"
             />
             <Link
               href="/premium/waitlist"
@@ -121,7 +119,7 @@ export default function PremiumPage() {
                 className="bg-white border border-[#d2d2d7]/70 rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col justify-between"
               >
                 <div>
-                  <div className="w-11 h-11 bg-blue-50 text-[#0066cc] rounded-xl flex items-center justify-center mb-5 border border-blue-100">
+                  <div className="w-11 h-11 bg-red-50 text-[#e02424] rounded-xl flex items-center justify-center mb-5 border border-red-100">
                     <Icon className="w-5 h-5" />
                   </div>
                   <h3 className="text-[18px] font-semibold text-[#1d1d1f] mb-2">
@@ -228,7 +226,7 @@ export default function PremiumPage() {
               planTier="founding_member"
               planName="Founding Member"
               label="Pay ₦4,000 with Paystack"
-              className="bg-[#0066cc] hover:bg-[#0077ed] text-white w-full shadow-lg"
+              className="bg-[#e02424] hover:bg-[#c81e1e] text-white w-full shadow-lg"
             />
           </div>
         </div>

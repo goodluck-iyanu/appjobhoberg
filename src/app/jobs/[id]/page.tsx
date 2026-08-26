@@ -39,7 +39,10 @@ export default async function JobDetails({
   }
 
   // Check if description is HTML or plain text
-  const isHtml = job.description.includes('<p>') || job.description.includes('<div>') || job.description.includes('<br>')
+  const isHtml =
+    job.description.includes('<p>') ||
+    job.description.includes('<div>') ||
+    job.description.includes('<br>')
 
   return (
     <div className="flex-1 bg-[#f5f5f7] py-8 sm:py-14">
@@ -47,7 +50,7 @@ export default async function JobDetails({
         {/* Back Link */}
         <Link
           href="/jobs"
-          className="inline-flex items-center text-[14px] font-medium text-[#0066cc] hover:underline mb-6 sm:mb-8"
+          className="inline-flex items-center text-[14px] font-semibold text-[#e02424] hover:underline mb-6 sm:mb-8"
         >
           <ArrowLeft className="w-4 h-4 mr-1.5" />
           Back to all jobs
@@ -88,7 +91,7 @@ export default async function JobDetails({
                     href={job.apply_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium px-6 py-3 rounded-full transition-colors text-[15px] shadow-sm"
+                    className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-6 py-3 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer"
                   >
                     Apply on Official Site
                     <ExternalLink className="w-4 h-4 ml-2" />
@@ -96,7 +99,7 @@ export default async function JobDetails({
                 ) : (
                   <Link
                     href="/login"
-                    className="inline-flex items-center justify-center bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium px-6 py-3 rounded-full transition-colors text-[15px] shadow-sm"
+                    className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-6 py-3 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer"
                   >
                     Sign in to Apply
                   </Link>
@@ -157,7 +160,7 @@ export default async function JobDetails({
 
             {job.salary_range && (
               <div className="bg-[#f5f5f7] rounded-2xl p-5 sm:p-6 flex items-center gap-4">
-                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-[#0066cc] shadow-sm border border-[#d2d2d7]/40">
+                <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-[#e02424] shadow-sm border border-[#d2d2d7]/40">
                   <DollarSign className="w-6 h-6" />
                 </div>
                 <div>
@@ -184,7 +187,7 @@ export default async function JobDetails({
                   href={job.apply_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm"
+                  className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer"
                 >
                   Proceed to Application
                   <ExternalLink className="w-4 h-4 ml-2" />
@@ -192,7 +195,7 @@ export default async function JobDetails({
               ) : (
                 <Link
                   href="/login"
-                  className="inline-flex items-center justify-center bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm"
+                  className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer"
                 >
                   Create Account / Sign in to Apply
                 </Link>
@@ -202,7 +205,7 @@ export default async function JobDetails({
 
           {/* Footer Security Notice */}
           <div className="bg-[#fafafc] p-6 sm:p-8 border-t border-black/[0.04] flex items-start gap-3.5 text-[13px] text-[#86868b] leading-relaxed">
-            <ShieldCheck className="w-5 h-5 text-[#0066cc] shrink-0 mt-0.5" />
+            <ShieldCheck className="w-5 h-5 text-[#e02424] shrink-0 mt-0.5" />
             <p>
               Hoberg Jobs verifies legitimate employers. Never share financial
               details or pay any fees for job applications.

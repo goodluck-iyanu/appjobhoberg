@@ -71,7 +71,7 @@ export default async function JobsPage({
           </div>
           <button
             type="submit"
-            className="bg-[#0066cc] hover:bg-[#0077ed] text-white font-medium px-6 py-2.5 rounded-xl transition-colors text-[14px] sm:text-[15px]"
+            className="bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-6 py-2.5 rounded-xl transition-colors text-[14px] sm:text-[15px] cursor-pointer shadow-sm"
           >
             Search
           </button>
@@ -85,8 +85,8 @@ export default async function JobsPage({
               href={chip.href}
               className={`shrink-0 text-[12px] sm:text-[13px] font-medium px-3.5 py-1.5 rounded-full transition-colors ${
                 chip.active
-                  ? 'bg-[#1d1d1f] text-white'
-                  : 'bg-white border border-[#d2d2d7] text-[#1d1d1f] hover:border-[#0066cc]'
+                  ? 'bg-[#e02424] text-white'
+                  : 'bg-white border border-[#d2d2d7] text-[#1d1d1f] hover:border-[#e02424] hover:text-[#e02424]'
               }`}
             >
               {chip.label}
@@ -106,7 +106,7 @@ export default async function JobsPage({
             </p>
             <Link
               href="/jobs"
-              className="inline-flex items-center text-[14px] font-medium text-[#0066cc] hover:underline"
+              className="inline-flex items-center text-[14px] font-semibold text-[#e02424] hover:underline"
             >
               Show all remote jobs
             </Link>
@@ -135,7 +135,7 @@ export default async function JobsPage({
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-[16px] sm:text-[18px] font-semibold text-[#1d1d1f] group-hover:text-[#0066cc] transition-colors leading-snug mb-0.5">
+                        <h3 className="text-[16px] sm:text-[18px] font-semibold text-[#1d1d1f] group-hover:text-[#e02424] transition-colors leading-snug mb-0.5">
                           {job.title}
                         </h3>
                         <p className="text-[13px] sm:text-[14px] font-medium text-[#86868b] mb-2.5">
@@ -152,7 +152,7 @@ export default async function JobsPage({
                             {job.employment_type}
                           </span>
                           {job.category && (
-                            <span className="inline-flex items-center text-[11px] sm:text-[12px] font-medium text-[#0066cc] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                            <span className="inline-flex items-center text-[11px] sm:text-[12px] font-semibold text-[#e02424] bg-red-50 px-2 py-0.5 rounded-md border border-red-100">
                               {job.category}
                             </span>
                           )}
@@ -165,7 +165,7 @@ export default async function JobsPage({
                       </div>
                     </div>
 
-                    <div className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full bg-[#f5f5f7] text-[#86868b] group-hover:bg-[#0066cc] group-hover:text-white transition-colors shrink-0 self-center">
+                    <div className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full bg-[#f5f5f7] text-[#86868b] group-hover:bg-[#e02424] group-hover:text-white transition-colors shrink-0 self-center">
                       <ChevronRight className="w-4 h-4" />
                     </div>
                   </div>

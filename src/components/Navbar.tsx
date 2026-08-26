@@ -102,7 +102,7 @@ export default async function Navbar() {
               <Link
                 href="/signup"
                 className="inline-flex text-[13px] font-medium text-white
-                           bg-[#0066cc] hover:bg-[#0077ed] px-4 py-1.5 rounded-full
+                           bg-[#e02424] hover:bg-[#c81e1e] px-4 py-1.5 rounded-full
                            transition-colors duration-200"
               >
                 Sign up
