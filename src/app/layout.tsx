@@ -155,8 +155,11 @@ export default function RootLayout({
             {/* Bottom bar */}
             <div className="border-t border-black/[0.04] py-5 flex flex-col sm:flex-row justify-between items-center gap-3">
               <p className="text-[11px] text-[#86868b]">
-                Copyright &copy; {new Date().getFullYear()} Hoberg Inc. All
-                rights reserved.
+                Copyright &copy; {new Date().getFullYear()} Hoberg Jobs. Built by{' '}
+                <a href="https://hoberg.com.ng" target="_blank" rel="noopener noreferrer" className="text-[#0066cc] hover:underline">
+                  Hoberg Digital Agency
+                </a>
+                . All rights reserved.
               </p>
               <div className="flex gap-5 text-[11px]">
                 <Link
