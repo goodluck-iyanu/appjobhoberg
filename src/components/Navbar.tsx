@@ -30,17 +30,10 @@ export default async function Navbar() {
     <header className="sticky top-0 z-50 glass-nav border-b border-black/[0.04]">
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div
-            className="w-7 h-7 bg-[#1d1d1f] rounded-lg flex items-center justify-center
-                        transition-transform duration-200 group-hover:scale-105"
-          >
-            <span className="font-bold text-[14px] leading-none text-white">
-              H
-            </span>
-          </div>
-          <span className="font-semibold text-[15px] tracking-tight text-[#1d1d1f]">
-            Hoberg Jobs
+        <Link href="/" className="flex items-center group">
+          <span className="font-bold text-[18px] tracking-tight">
+            <span className="text-[#e02424]">Hoberg</span>
+            <span className="text-[#1d1d1f] ml-1">Jobs</span>
           </span>
         </Link>
 

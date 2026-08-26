@@ -71,13 +71,11 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
               className="flex items-center justify-between px-5 py-4 border-b border-gray-100"
               style={{ backgroundColor: '#ffffff' }}
             >
-              <Link href="/" onClick={close} className="flex items-center gap-2.5">
-                <div className="w-8 h-8 bg-[#1d1d1f] rounded-xl flex items-center justify-center shadow-sm">
-                  <span className="font-bold text-sm text-white">H</span>
-                </div>
+              <Link href="/" onClick={close} className="flex items-center">
                 <div>
-                  <span className="font-bold text-[16px] text-[#1d1d1f] block leading-tight">
-                    Hoberg Jobs
+                  <span className="font-bold text-[18px] tracking-tight block leading-tight">
+                    <span className="text-[#e02424]">Hoberg</span>
+                    <span className="text-[#1d1d1f] ml-1">Jobs</span>
                   </span>
                   <span className="text-[11px] text-[#86868b] block">Remote Careers</span>
                 </div>

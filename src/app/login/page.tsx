@@ -35,14 +35,14 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center w-14 h-14 bg-[#1d1d1f] rounded-3xl mb-5 shadow-sm hover:scale-105 transition-transform"
-          >
-            <span className="font-bold text-2xl text-white">H</span>
+          <Link href="/" className="inline-block mb-4 hover:opacity-90 transition-opacity">
+            <span className="font-bold text-3xl tracking-tight">
+              <span className="text-[#e02424]">Hoberg</span>
+              <span className="text-[#1d1d1f] ml-1.5">Jobs</span>
+            </span>
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1d1d1f]">
-            Welcome to Hoberg Jobs
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1d1d1f]">
+            Welcome Back
           </h1>
           <p className="text-[#86868b] text-[15px] mt-2 max-w-sm mx-auto">
             Sign in or create your account instantly with your Google account.
