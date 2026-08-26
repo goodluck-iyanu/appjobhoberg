@@ -32,6 +32,22 @@ export default async function DashboardPage({
     redirect('/login')
   }
 
+  // If returning from Paystack with a reference, ensure profile is updated
+  if (upgraded === 'true' && searchParams) {
+    try {
+      await supabase
+        .from('profiles')
+        .update({
+          is_premium: true,
+          premium_tier: 'founding_member',
+          premium_since: new Date().toISOString(),
+        })
+        .eq('id', user.id)
+    } catch {
+      // ignore
+    }
+  }
+
   // Fetch user profile
   const { data: profile } = await supabase
     .from('profiles')
