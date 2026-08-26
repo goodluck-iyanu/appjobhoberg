@@ -19,6 +19,7 @@ Disallow: /dashboard
 Disallow: /profile
 Disallow: /api/
 Disallow: /auth/
+Disallow: /aadminn
 
 # AI Crawlers & Research Agents
 User-agent: GPTBot

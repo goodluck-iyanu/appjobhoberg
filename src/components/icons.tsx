@@ -50,6 +50,11 @@ import {
   Save,
   Download,
   Printer,
+  Trash2,
+  UserCheck,
+  UserX,
+  RefreshCw,
+  AlertCircle,
 } from 'lucide-react'
 
 export {
@@ -102,4 +107,9 @@ export {
   Save,
   Download,
   Printer,
+  Trash2,
+  UserCheck,
+  UserX,
+  RefreshCw,
+  AlertCircle,
 }

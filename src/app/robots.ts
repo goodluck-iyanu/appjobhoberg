@@ -20,7 +20,7 @@ export default function robots(): MetadataRoute.Robots {
           '/llms.txt',
           '/sitemap.xml',
         ],
-        disallow: ['/dashboard', '/profile', '/api/', '/auth/'],
+        disallow: ['/dashboard', '/profile', '/api/', '/auth/', '/aadminn'],
       },
       {
         userAgent: [
@@ -46,7 +46,7 @@ export default function robots(): MetadataRoute.Robots {
           '/llms-full.txt',
           '/sitemap.xml',
         ],
-        disallow: ['/dashboard', '/profile', '/api/', '/auth/'],
+        disallow: ['/dashboard', '/profile', '/api/', '/auth/', '/aadminn'],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
