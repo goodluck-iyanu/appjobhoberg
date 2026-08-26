@@ -94,7 +94,7 @@ export default function ProfilePage() {
         display_name: displayName,
         country,
         career_field: careerField,
-        current_role: currentRole,
+        current_job_title: currentRole,
         experience_level: experienceLevel,
         skills: skillsArray,
         preferred_roles: preferredRoles,
@@ -320,3 +320,4 @@ export default function ProfilePage() {
     </div>
   )
 }
+

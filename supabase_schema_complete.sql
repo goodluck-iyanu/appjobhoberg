@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     country TEXT,
     avatar_url TEXT,
     career_field TEXT,
-    current_role TEXT,
+    current_job_title TEXT,
     experience_level TEXT,
     skills TEXT[] DEFAULT '{}',
     preferred_roles TEXT,
@@ -22,7 +22,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     portfolio_url TEXT,
     cv_url TEXT,
     is_premium BOOLEAN DEFAULT false,
-    premium_since TIMESTAMP WITH TIME ZONE
+    premium_tier TEXT DEFAULT 'free', -- 'free', 'founding_member', 'premium'
+    premium_since TIMESTAMP WITH TIME ZONE,
+    paystack_customer_code TEXT,
+    paystack_subscription_code TEXT
 );
 
 -- 2. Create the JOBS table
@@ -40,7 +43,7 @@ CREATE TABLE IF NOT EXISTS public.jobs (
     description TEXT NOT NULL,
     requirements TEXT,
     apply_url TEXT NOT NULL,
-    status TEXT DEFAULT 'open', -- 'open' or 'closed'
+    status TEXT DEFAULT 'open',
     source TEXT DEFAULT 'internal'
 );
 
@@ -67,7 +70,7 @@ CREATE TABLE IF NOT EXISTS public.applications (
     job_id UUID REFERENCES public.jobs(id) ON DELETE SET NULL,
     job_title TEXT NOT NULL,
     company_name TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'Applied', -- 'Saved', 'Preparing', 'Applied', 'Interview', 'Offer', 'Closed'
+    status TEXT NOT NULL DEFAULT 'Applied',
     notes TEXT
 );
 
@@ -83,11 +86,22 @@ CREATE TABLE IF NOT EXISTS public.waitlist (
     discount_tier TEXT DEFAULT 'Founding Member (20% OFF)'
 );
 
+-- 6. Create PAYMENTS / TRANSACTIONS log table
+CREATE TABLE IF NOT EXISTS public.payments (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    reference TEXT NOT NULL UNIQUE,
+    amount NUMERIC NOT NULL,
+    currency TEXT DEFAULT 'NGN',
+    status TEXT NOT NULL, -- 'success', 'failed'
+    plan_tier TEXT DEFAULT 'founding_member'
+);
+
 -- ====================================================================
 -- AUTOMATIC PROFILE CREATION TRIGGER ON SIGNUP
 -- ====================================================================
 
--- Function to handle new user registration automatically
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -102,98 +116,69 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger that fires when any user signs up (via Google or Email)
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ====================================================================
--- ROW LEVEL SECURITY (RLS) POLICIES — MANDATORY DEFENSE
+-- ROW LEVEL SECURITY (RLS) POLICIES
 -- ====================================================================
 
--- Enable RLS on all tables
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.saved_jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.applications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.waitlist ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 
 -- ── PROFILES POLICIES ──
--- Users can read their own profile
-CREATE POLICY "Users can read own profile"
-    ON public.profiles FOR SELECT
-    TO authenticated
-    USING (auth.uid() = id);
+DROP POLICY IF EXISTS "Users can read own profile" ON public.profiles;
+CREATE POLICY "Users can read own profile" ON public.profiles FOR SELECT TO authenticated USING (auth.uid() = id);
 
--- Users can update their own profile
-CREATE POLICY "Users can update own profile"
-    ON public.profiles FOR UPDATE
-    TO authenticated
-    USING (auth.uid() = id)
-    WITH CHECK (auth.uid() = id);
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 
--- Users can insert their own profile
-CREATE POLICY "Users can insert own profile"
-    ON public.profiles FOR INSERT
-    TO authenticated
-    WITH CHECK (auth.uid() = id);
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT TO authenticated WITH CHECK (auth.uid() = id);
 
 -- ── JOBS POLICIES ──
--- Anyone (public or authenticated) can view open jobs
-CREATE POLICY "Public can view open jobs"
-    ON public.jobs FOR SELECT
-    TO public
-    USING (status = 'open');
+DROP POLICY IF EXISTS "Public can view open jobs" ON public.jobs;
+CREATE POLICY "Public can view open jobs" ON public.jobs FOR SELECT TO public USING (status = 'open');
 
--- Only service role can modify jobs
-CREATE POLICY "Service role can modify jobs"
-    ON public.jobs FOR ALL
-    TO service_role
-    USING (true)
-    WITH CHECK (true);
+DROP POLICY IF EXISTS "Service role can modify jobs" ON public.jobs;
+CREATE POLICY "Service role can modify jobs" ON public.jobs FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- ── SAVED JOBS POLICIES ──
-CREATE POLICY "Users can view own saved jobs"
-    ON public.saved_jobs FOR SELECT
-    TO authenticated
-    USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can view own saved jobs" ON public.saved_jobs;
+CREATE POLICY "Users can view own saved jobs" ON public.saved_jobs FOR SELECT TO authenticated USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert own saved jobs"
-    ON public.saved_jobs FOR INSERT
-    TO authenticated
-    WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own saved jobs" ON public.saved_jobs;
+CREATE POLICY "Users can insert own saved jobs" ON public.saved_jobs FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete own saved jobs"
-    ON public.saved_jobs FOR DELETE
-    TO authenticated
-    USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own saved jobs" ON public.saved_jobs;
+CREATE POLICY "Users can delete own saved jobs" ON public.saved_jobs FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 -- ── APPLICATIONS POLICIES ──
-CREATE POLICY "Users can view own applications"
-    ON public.applications FOR SELECT
-    TO authenticated
-    USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can view own applications" ON public.applications;
+CREATE POLICY "Users can view own applications" ON public.applications FOR SELECT TO authenticated USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert own applications"
-    ON public.applications FOR INSERT
-    TO authenticated
-    WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own applications" ON public.applications;
+CREATE POLICY "Users can insert own applications" ON public.applications FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update own applications"
-    ON public.applications FOR UPDATE
-    TO authenticated
-    USING (auth.uid() = user_id)
-    WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can update own applications" ON public.applications;
+CREATE POLICY "Users can update own applications" ON public.applications FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete own applications"
-    ON public.applications FOR DELETE
-    TO authenticated
-    USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own applications" ON public.applications;
+CREATE POLICY "Users can delete own applications" ON public.applications FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 -- ── WAITLIST POLICIES ──
--- Anyone can join the waitlist
-CREATE POLICY "Anyone can join waitlist"
-    ON public.waitlist FOR INSERT
-    TO public
-    WITH CHECK (true);
+DROP POLICY IF EXISTS "Anyone can join waitlist" ON public.waitlist;
+CREATE POLICY "Anyone can join waitlist" ON public.waitlist FOR INSERT TO public WITH CHECK (true);
+
+-- ── PAYMENTS POLICIES ──
+DROP POLICY IF EXISTS "Users can view own payments" ON public.payments;
+CREATE POLICY "Users can view own payments" ON public.payments FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can record own payments" ON public.payments;
+CREATE POLICY "Users can record own payments" ON public.payments FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
