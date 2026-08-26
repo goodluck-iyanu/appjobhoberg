@@ -179,7 +179,14 @@ export default function ProfilePage() {
       updatePayload.submitted_at = new Date().toISOString()
     }
 
-    const { error } = await supabase.from('profiles').upsert(updatePayload)
+    let { error } = await supabase.from('profiles').upsert(updatePayload)
+
+    // Fallback: If 'full_name' or other specific column is not yet in Supabase schema cache
+    if (error && error.message?.includes('full_name')) {
+      delete updatePayload.full_name
+      const retryResult = await supabase.from('profiles').upsert(updatePayload)
+      error = retryResult.error
+    }
 
     if (error) {
       throw error
