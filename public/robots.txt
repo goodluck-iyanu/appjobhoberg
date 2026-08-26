@@ -1,11 +1,26 @@
+# ==========================================
+# Robots.txt for Hoberg Jobs (https://jobs.hoberg.com.ng)
+# Operated by Hoberg Digital Agency (https://hoberg.com.ng)
+# ==========================================
+
 User-agent: *
 Allow: /
+Allow: /jobs
+Allow: /categories
+Allow: /premium
+Allow: /premium/waitlist
+Allow: /signup
+Allow: /login
+Allow: /privacy_policy
+Allow: /terms_of_service
+Allow: /llms.txt
+Allow: /sitemap.xml
 Disallow: /dashboard
 Disallow: /profile
 Disallow: /api/
 Disallow: /auth/
 
-# AI Crawlers
+# AI Crawlers & Research Agents
 User-agent: GPTBot
 Allow: /
 
@@ -24,5 +39,8 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://jobs.hoberg.com.ng/sitemap.xml
+User-agent: Applebot-Extended
+Allow: /
 
+# Sitemaps & Context
+Sitemap: https://jobs.hoberg.com.ng/sitemap.xml

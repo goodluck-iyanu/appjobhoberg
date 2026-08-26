@@ -7,16 +7,48 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: '/',
+        allow: [
+          '/',
+          '/jobs',
+          '/categories',
+          '/premium',
+          '/premium/waitlist',
+          '/signup',
+          '/login',
+          '/privacy_policy',
+          '/terms_of_service',
+          '/llms.txt',
+          '/sitemap.xml',
+        ],
         disallow: ['/dashboard', '/profile', '/api/', '/auth/'],
       },
       {
-        userAgent: ['GPTBot', 'ChatGPT-User', 'Google-Extended', 'PerplexityBot', 'ClaudeBot', 'anthropic-ai'],
-        allow: ['/', '/jobs', '/categories', '/premium', '/llms.txt'],
+        userAgent: [
+          'GPTBot',
+          'ChatGPT-User',
+          'Google-Extended',
+          'PerplexityBot',
+          'ClaudeBot',
+          'anthropic-ai',
+          'Applebot-Extended',
+        ],
+        allow: [
+          '/',
+          '/jobs',
+          '/categories',
+          '/premium',
+          '/premium/waitlist',
+          '/signup',
+          '/login',
+          '/privacy_policy',
+          '/terms_of_service',
+          '/llms.txt',
+          '/llms-full.txt',
+          '/sitemap.xml',
+        ],
         disallow: ['/dashboard', '/profile', '/api/', '/auth/'],
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
   }
 }
-

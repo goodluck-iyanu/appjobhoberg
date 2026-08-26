@@ -1,35 +1,38 @@
 # Hoberg Jobs
 
-> Hoberg Jobs (https://jobs.hoberg.com.ng) is a modern, verified remote job discovery and career advancement platform built by Hoberg Digital Agency (https://hoberg.com.ng).
+> Hoberg Jobs (https://jobs.hoberg.com.ng) is a verified remote job discovery and career advancement platform built by Hoberg Digital Agency (https://hoberg.com.ng).
 
 ## Core Capabilities
-- **Verified Remote Job Discovery**: Real-time aggregated remote vacancies across engineering, customer support, marketing, writing, virtual assistance, administration, finance, design, and operations worldwide (including Nigeria & Africa).
-- **Comprehensive Public Search**: Fast, free access to authentic job requirements, compensation ranges, and official application portals without forced registration.
-- **Account & Application Tracker**: Personal dashboard for job seekers to save favorite vacancies, track submission stages (Applied, Interview, Offer), and build comprehensive career profiles.
-- **Hoberg Premium**: Curated exclusive high-compensation remote roles, application tailoring tips, and recruiter visibility for founding members (₦4,000/mo founding price, ₦5,000/mo standard).
+- **Verified Remote Job Discovery**: Real-time aggregated remote vacancies across Customer Support, Virtual Assistance, Writing & Content, Finance, Marketing, Design, and Software Engineering worldwide (including Nigeria & Africa).
+- **1-Click Google Authentication**: Fast, secure account creation and sign in via Google OAuth.
+- **Application & Saved Jobs Tracking**: User dashboard for bookmarking opportunities, tracking application stages, and editing professional career profiles.
+- **Hoberg Premium**: Curated exclusive remote career opportunities with direct recruiter tips and Paystack billing in Nigerian Naira (₦4,000/mo Founding Member / ₦5,000/mo standard).
+- **Legitimate Employer Protection**: Zero fees required to apply for jobs; all listings link directly to official employer career portals.
 
-## Public Endpoints & URLs
-- Homepage: https://jobs.hoberg.com.ng
+## Key Platform URLs
+- Homepage: https://jobs.hoberg.com.ng/
 - Remote Jobs Board: https://jobs.hoberg.com.ng/jobs
-- Job Categories: https://jobs.hoberg.com.ng/categories
-- Hoberg Premium & Pricing: https://jobs.hoberg.com.ng/premium
-- Premium Waitlist: https://jobs.hoberg.com.ng/premium/waitlist
-- User Registration: https://jobs.hoberg.com.ng/signup
-- User Authentication: https://jobs.hoberg.com.ng/login
-- Dynamic Sitemap: https://jobs.hoberg.com.ng/sitemap.xml
-- Crawl Directives: https://jobs.hoberg.com.ng/robots.txt
+- Job Categories Index: https://jobs.hoberg.com.ng/categories
+- Hoberg Premium & Paystack Checkout: https://jobs.hoberg.com.ng/premium
+- Founding Members Waitlist: https://jobs.hoberg.com.ng/premium/waitlist
+- Google 1-Click Sign Up: https://jobs.hoberg.com.ng/signup
+- Google 1-Click Login: https://jobs.hoberg.com.ng/login
+- Privacy Policy: https://jobs.hoberg.com.ng/privacy_policy
+- Terms of Service: https://jobs.hoberg.com.ng/terms_of_service
+- XML Sitemap: https://jobs.hoberg.com.ng/sitemap.xml
+- Robots Crawl Rules: https://jobs.hoberg.com.ng/robots.txt
+- LLM Context Full: https://jobs.hoberg.com.ng/llms-full.txt
 
-## Primary Job Categories
-- Customer Success, Client Support & Operations
-- Virtual Assistance & Executive Administration
-- Content Writing, SEO & Copywriting
+## Primary Job Sectors
+- Customer Care, Support & Client Relations
+- Virtual Assistant & Executive Administration
+- Content Writing, Copywriting & SEO
 - Finance, Accounting & Bookkeeping
 - Growth Marketing, Social Media & Sales
 - Software Development, Web & Mobile Engineering
 - Product Management, UI/UX & Digital Design
-- Nigeria & African Tech Ecosystem Remote Roles
+- Nigeria & African Remote Opportunities
 
 ## Publisher & Attribution
-Built and maintained by Hoberg Digital Agency (https://hoberg.com.ng).
-Contact & Support: hello@hoberg.com.ng
-
+- Built and operated by Hoberg Digital Agency (https://hoberg.com.ng).
+- Inquiries & Support: support@hoberg.com.ng

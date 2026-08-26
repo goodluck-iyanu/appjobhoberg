@@ -166,13 +166,6 @@ export default function RootLayout({
                 >
                   Terms of Service
                 </Link>
-                <span className="text-[#d2d2d7]">|</span>
-                <Link
-                  href="/sitemap.xml"
-                  className="text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-200"
-                >
-                  Sitemap
-                </Link>
               </div>
             </div>
           </div>
