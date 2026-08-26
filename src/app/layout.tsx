@@ -123,16 +123,16 @@ export default function RootLayout({
                 <div className="space-y-2">
                   <p className="font-semibold text-[#1d1d1f]">Legal</p>
                   <Link
-                    href="#"
+                    href="/privacy_policy"
                     className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-200"
                   >
                     Privacy Policy
                   </Link>
                   <Link
-                    href="#"
+                    href="/terms_of_service"
                     className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-200"
                   >
-                    Terms of Use
+                    Terms of Service
                   </Link>
                 </div>
               </div>
@@ -154,21 +154,21 @@ export default function RootLayout({
               </p>
               <div className="flex gap-5 text-[11px]">
                 <Link
-                  href="#"
+                  href="/privacy_policy"
                   className="text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-200"
                 >
-                  Privacy
+                  Privacy Policy
                 </Link>
                 <span className="text-[#d2d2d7]">|</span>
                 <Link
-                  href="#"
+                  href="/terms_of_service"
                   className="text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-200"
                 >
-                  Terms
+                  Terms of Service
                 </Link>
                 <span className="text-[#d2d2d7]">|</span>
                 <Link
-                  href="#"
+                  href="/sitemap.xml"
                   className="text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-200"
                 >
                   Sitemap

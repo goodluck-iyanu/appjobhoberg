@@ -103,8 +103,15 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <p className="text-[11px] text-[#86868b] text-center mt-6 leading-relaxed">
-            By signing in with Google, you agree to our Terms of Service and Privacy Policy.
+          <p className="text-[12px] text-[#86868b] text-center mt-6 leading-relaxed">
+            By signing in with Google, you agree to our{' '}
+            <Link href="/terms_of_service" className="text-[#e02424] font-semibold hover:underline">
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link href="/privacy_policy" className="text-[#e02424] font-semibold hover:underline">
+              Privacy Policy
+            </Link>.
           </p>
         </div>
 

@@ -48,6 +48,8 @@ import {
   Database,
   Server,
   Save,
+  Download,
+  Printer,
 } from 'lucide-react'
 
 export {
@@ -98,4 +100,6 @@ export {
   Database,
   Server,
   Save,
+  Download,
+  Printer,
 }
