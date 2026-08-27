@@ -55,6 +55,10 @@ import {
   UserX,
   RefreshCw,
   AlertCircle,
+  Github,
+  Linkedin,
+  Twitter,
+  MessageCircle,
 } from 'lucide-react'
 
 export {
@@ -112,4 +116,8 @@ export {
   UserX,
   RefreshCw,
   AlertCircle,
+  Github,
+  Linkedin,
+  Twitter,
+  MessageCircle,
 }

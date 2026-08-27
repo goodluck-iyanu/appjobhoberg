@@ -16,7 +16,14 @@ import {
   Clock,
   ExternalLink,
   Crown,
+  Linkedin,
+  Github,
+  Twitter,
+  MessageCircle,
+  AlertCircle,
+  MapPin,
 } from '@/components/icons'
+import { COUNTRIES_DATA, isValidLinkedInUrl, isValidUrl } from '@/utils/locations'
 
 export default function ProfilePage() {
   const supabase = createClient()
@@ -28,8 +35,9 @@ export default function ProfilePage() {
 
   // Profile fields
   const [fullName, setFullName] = useState('')
-  const [country, setCountry] = useState('')
-  const [city, setCity] = useState('')
+  const [country, setCountry] = useState('Nigeria')
+  const [city, setCity] = useState('Lagos (Ikeja, Lekki, Victoria Island, Yaba)')
+  const [customCity, setCustomCity] = useState('')
   const [careerField, setCareerField] = useState('Customer Support')
   const [desiredRoles, setDesiredRoles] = useState('')
   const [userStatus, setUserStatus] = useState<'student' | 'graduate' | 'professional'>('professional')
@@ -41,6 +49,8 @@ export default function ProfilePage() {
   const [skills, setSkills] = useState('')
   const [resumeUrl, setResumeUrl] = useState('')
   const [linkedinUrl, setLinkedinUrl] = useState('')
+  const [twitterUrl, setTwitterUrl] = useState('')
+  const [whatsappNumber, setWhatsappNumber] = useState('')
   const [githubUrl, setGithubUrl] = useState('')
   const [portfolioUrl, setPortfolioUrl] = useState('')
   const [jobTypePreference, setJobTypePreference] = useState('Full-time Remote')
@@ -49,6 +59,21 @@ export default function ProfilePage() {
   // Review Status
   const [reviewStatus, setReviewStatus] = useState<'draft' | 'under_review' | 'approved' | 'rejected'>('draft')
   const [reviewNotes, setReviewNotes] = useState<string | null>(null)
+
+  // Available cities based on selected country
+  const currentCountryObj = useMemo(() => {
+    return COUNTRIES_DATA.find((c) => c.name.toLowerCase() === country.toLowerCase()) || COUNTRIES_DATA[0]
+  }, [country])
+
+  // Handle country change: automatically switch city list to matching country
+  const handleCountryChange = (selectedCountryName: string) => {
+    setCountry(selectedCountryName)
+    const countryData = COUNTRIES_DATA.find((c) => c.name.toLowerCase() === selectedCountryName.toLowerCase())
+    if (countryData && countryData.cities.length > 0) {
+      setCity(countryData.cities[0])
+      setCustomCity('')
+    }
+  }
 
   useEffect(() => {
     async function loadProfile() {
@@ -69,8 +94,20 @@ export default function ProfilePage() {
 
       if (profile) {
         setFullName(profile.full_name || profile.display_name || user.user_metadata?.full_name || '')
-        setCountry(profile.country || '')
-        setCity(profile.city || '')
+        const loadedCountry = profile.country || 'Nigeria'
+        setCountry(loadedCountry)
+        
+        const matchedCountry = COUNTRIES_DATA.find((c) => c.name.toLowerCase() === loadedCountry.toLowerCase())
+        const loadedCity = profile.city || (matchedCountry ? matchedCountry.cities[0] : 'Lagos (Ikeja, Lekki, Victoria Island, Yaba)')
+        
+        if (matchedCountry && matchedCountry.cities.includes(loadedCity)) {
+          setCity(loadedCity)
+          setCustomCity('')
+        } else {
+          setCity('Other')
+          setCustomCity(loadedCity)
+        }
+
         setCareerField(profile.career_field || 'Customer Support')
         setDesiredRoles(profile.desired_roles || profile.preferred_roles || '')
         setUserStatus(profile.user_status || 'professional')
@@ -86,6 +123,8 @@ export default function ProfilePage() {
         )
         setResumeUrl(profile.resume_url || '')
         setLinkedinUrl(profile.linkedin_url || '')
+        setTwitterUrl(profile.twitter_url || '')
+        setWhatsappNumber(profile.whatsapp_number || '')
         setGithubUrl(profile.github_url || '')
         setPortfolioUrl(profile.portfolio_url || '')
         setJobTypePreference(profile.job_type_preference || 'Full-time Remote')
@@ -102,26 +141,40 @@ export default function ProfilePage() {
     loadProfile()
   }, [])
 
+  // Smart Validation Checks
+  const isLinkedInValid = useMemo(() => {
+    if (!linkedinUrl.trim()) return false
+    return isValidLinkedInUrl(linkedinUrl)
+  }, [linkedinUrl])
+
+  const effectiveCity = useMemo(() => {
+    if (city === 'Other' || city.startsWith('Other')) {
+      return customCity.trim() || city
+    }
+    return city
+  }, [city, customCity])
+
   // Dynamic Profile Completion Calculation
   const completionPercentage = useMemo(() => {
     const checks = [
       Boolean(fullName.trim()),
       Boolean(country.trim()),
-      Boolean(city.trim()),
+      Boolean(effectiveCity.trim()),
       Boolean(careerField.trim()),
       Boolean(desiredRoles.trim()),
       Boolean(userStatus),
       Boolean(institution.trim() || educationLevel),
       Boolean(skills.trim()),
       Boolean(resumeUrl.trim()),
-      Boolean(linkedinUrl.trim() || portfolioUrl.trim() || githubUrl.trim()),
+      Boolean(isLinkedInValid),
+      Boolean(portfolioUrl.trim() || githubUrl.trim() || twitterUrl.trim() || whatsappNumber.trim()),
     ]
     const filledCount = checks.filter(Boolean).length
     return Math.round((filledCount / checks.length) * 100)
   }, [
     fullName,
     country,
-    city,
+    effectiveCity,
     careerField,
     desiredRoles,
     userStatus,
@@ -129,9 +182,11 @@ export default function ProfilePage() {
     educationLevel,
     skills,
     resumeUrl,
-    linkedinUrl,
+    isLinkedInValid,
     portfolioUrl,
     githubUrl,
+    twitterUrl,
+    whatsappNumber,
   ])
 
   const saveProfileData = async (targetStatus?: 'draft' | 'under_review') => {
@@ -155,7 +210,7 @@ export default function ProfilePage() {
       full_name: fullName,
       display_name: fullName,
       country,
-      city,
+      city: effectiveCity,
       career_field: careerField,
       desired_roles: desiredRoles,
       user_status: userStatus,
@@ -167,6 +222,8 @@ export default function ProfilePage() {
       skills: skillsArray,
       resume_url: resumeUrl,
       linkedin_url: linkedinUrl,
+      twitter_url: twitterUrl,
+      whatsapp_number: whatsappNumber,
       github_url: githubUrl,
       portfolio_url: portfolioUrl,
       job_type_preference: jobTypePreference,
@@ -213,10 +270,19 @@ export default function ProfilePage() {
   }
 
   const handleSubmitForReview = async () => {
-    if (!fullName.trim() || !country.trim() || !careerField || !skills.trim() || !resumeUrl.trim()) {
+    if (!fullName.trim() || !country.trim() || !effectiveCity.trim() || !careerField || !skills.trim() || !resumeUrl.trim()) {
       setMsg({
         type: 'error',
-        text: 'Please complete all required fields (Full Name, Country, Career, Skills, and CV Link) before submitting for review.',
+        text: 'Please complete all required fields (Full Name, Country, City, Career, Skills, and CV Link) before submitting for review.',
+      })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+
+    if (linkedinUrl.trim() && !isLinkedInValid) {
+      setMsg({
+        type: 'error',
+        text: 'Please enter a valid LinkedIn Profile URL (e.g. https://linkedin.com/in/yourname) before submitting.',
       })
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
@@ -340,7 +406,7 @@ export default function ProfilePage() {
                 Professional Career Profile
               </h1>
               <p className="text-[14px] text-[#86868b] mt-1">
-                Complete your details to unlock verified remote job applications.
+                Complete your verified details to unlock remote job applications.
               </p>
             </div>
 
@@ -390,7 +456,7 @@ export default function ProfilePage() {
           )}
 
           <form onSubmit={handleSaveDraft} className="space-y-8">
-            {/* 1. Personal & Location */}
+            {/* 1. Personal & Dynamic Cascading Location */}
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-6 h-6 rounded-full bg-red-50 text-[#e02424] flex items-center justify-center text-xs font-bold">
@@ -416,33 +482,59 @@ export default function ProfilePage() {
                   />
                 </div>
 
+                {/* Country Dropdown */}
                 <div>
                   <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5">
                     Country of Residence <span className="text-[#e02424]">*</span>
                   </label>
-                  <input
-                    type="text"
-                    required
+                  <select
                     value={country}
-                    onChange={(e) => setCountry(e.target.value)}
-                    placeholder="e.g. Nigeria, United Kingdom, USA"
-                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
-                  />
+                    onChange={(e) => handleCountryChange(e.target.value)}
+                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all cursor-pointer font-medium"
+                  >
+                    {COUNTRIES_DATA.map((c) => (
+                      <option key={c.code} value={c.name}>
+                        {c.flag} {c.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
+                {/* Cascading City / State Dropdown */}
                 <div>
                   <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5">
-                    City / State <span className="text-[#e02424]">*</span>
+                    City / State in {country} <span className="text-[#e02424]">*</span>
                   </label>
-                  <input
-                    type="text"
-                    required
+                  <select
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    placeholder="e.g. Lagos, Abuja, London"
-                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
-                  />
+                    className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all cursor-pointer font-medium"
+                  >
+                    {currentCountryObj.cities.map((cty, idx) => (
+                      <option key={idx} value={cty}>
+                        📍 {cty}
+                      </option>
+                    ))}
+                    <option value="Other">✏️ Other City (Type manually)</option>
+                  </select>
                 </div>
+
+                {/* Custom City text input if "Other" is selected */}
+                {(city === 'Other' || city.startsWith('Other')) && (
+                  <div className="sm:col-span-2 bg-[#f5f5f7]/60 p-3.5 rounded-2xl border border-dashed border-gray-300">
+                    <label className="block text-[12px] font-semibold text-[#1d1d1f] mb-1">
+                      Specify Your City / Town Name:
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={customCity}
+                      onChange={(e) => setCustomCity(e.target.value)}
+                      placeholder={`e.g. City Name, State in ${country}`}
+                      className="w-full bg-white border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -495,7 +587,7 @@ export default function ProfilePage() {
                     <select
                       value={careerField}
                       onChange={(e) => setCareerField(e.target.value)}
-                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
+                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all cursor-pointer font-medium"
                     >
                       <option value="Customer Support">Customer Support &amp; Client Relations</option>
                       <option value="Admin & Virtual Assistant">Virtual Assistant &amp; Administration</option>
@@ -516,7 +608,7 @@ export default function ProfilePage() {
                     <select
                       value={experienceYears}
                       onChange={(e) => setExperienceYears(e.target.value)}
-                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
+                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all cursor-pointer font-medium"
                     >
                       <option value="Entry-Level">Entry-Level (0 - 1 year)</option>
                       <option value="1-2 years">Junior (1 - 2 years)</option>
@@ -536,7 +628,7 @@ export default function ProfilePage() {
                     required
                     value={desiredRoles}
                     onChange={(e) => setDesiredRoles(e.target.value)}
-                    placeholder="e.g. Remote Customer Support Specialist, Virtual Executive Assistant"
+                    placeholder="e.g. Remote Customer Support Specialist, Virtual Executive Assistant, Frontend Dev"
                     className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
                   />
                 </div>
@@ -549,7 +641,7 @@ export default function ProfilePage() {
                     <select
                       value={jobTypePreference}
                       onChange={(e) => setJobTypePreference(e.target.value)}
-                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
+                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all cursor-pointer font-medium"
                     >
                       <option value="Full-time Remote">Full-time Remote</option>
                       <option value="Part-time Remote">Part-time Remote</option>
@@ -596,7 +688,7 @@ export default function ProfilePage() {
                     <select
                       value={educationLevel}
                       onChange={(e) => setEducationLevel(e.target.value)}
-                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
+                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all cursor-pointer font-medium"
                     >
                       <option value="Bachelor's Degree">Bachelor&apos;s Degree</option>
                       <option value="Master's / Postgraduate">Master&apos;s / Postgraduate</option>
@@ -641,7 +733,7 @@ export default function ProfilePage() {
                     rows={3}
                     value={experienceSummary}
                     onChange={(e) => setExperienceSummary(e.target.value)}
-                    placeholder="Briefly describe your career background, past responsibilities, or proudest accomplishments..."
+                    placeholder="Briefly describe your career background, key responsibilities, or proudest accomplishments..."
                     className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl p-3 text-[14px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
                   />
                 </div>
@@ -650,18 +742,18 @@ export default function ProfilePage() {
 
             <hr className="border-[#d2d2d7]/40" />
 
-            {/* 4. Skills & Verification Artifacts */}
+            {/* 4. Skills, CV & Verified Socials */}
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-6 h-6 rounded-full bg-red-50 text-[#e02424] flex items-center justify-center text-xs font-bold">
                   4
                 </div>
                 <h2 className="text-[15px] font-bold uppercase tracking-wider text-[#1d1d1f]">
-                  Skills, CV &amp; Online Portfolio
+                  Skills, CV &amp; Professional Socials
                 </h2>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
                   <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5">
                     Key Professional Skills (comma separated) <span className="text-[#e02424]">*</span>
@@ -671,7 +763,7 @@ export default function ProfilePage() {
                     required
                     value={skills}
                     onChange={(e) => setSkills(e.target.value)}
-                    placeholder="e.g. Zendesk, Google Docs, Customer Service, Excel, Copywriting, React"
+                    placeholder="e.g. Zendesk, Google Workspace, Customer Communication, SEO, Excel, React"
                     className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
                   />
                 </div>
@@ -693,48 +785,116 @@ export default function ProfilePage() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5">
-                      LinkedIn Profile URL
+                {/* Smart LinkedIn Verification Field */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[13px] font-semibold text-[#1d1d1f] flex items-center gap-1.5">
+                      <Linkedin className="w-4 h-4 text-[#0077b5]" />
+                      <span>LinkedIn Profile URL</span>
                     </label>
-                    <input
-                      type="url"
-                      value={linkedinUrl}
-                      onChange={(e) => setLinkedinUrl(e.target.value)}
-                      placeholder="https://linkedin.com/in/yourname"
-                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
-                    />
+                    {linkedinUrl.trim() && (
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                        isLinkedInValid
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-amber-50 text-amber-800 border border-amber-200'
+                      }`}>
+                        {isLinkedInValid ? '✅ Verified Format' : '⚠️ Enter Full URL'}
+                      </span>
+                    )}
                   </div>
-
-                  <div>
-                    <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5">
-                      Portfolio / Personal Website URL
-                    </label>
-                    <input
-                      type="url"
-                      value={portfolioUrl}
-                      onChange={(e) => setPortfolioUrl(e.target.value)}
-                      placeholder="https://yourportfolio.com"
-                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
-                    />
-                  </div>
+                  <input
+                    type="url"
+                    value={linkedinUrl}
+                    onChange={(e) => setLinkedinUrl(e.target.value)}
+                    placeholder="https://linkedin.com/in/yourprofile"
+                    className={`w-full bg-[#f5f5f7] border rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white transition-all ${
+                      linkedinUrl.trim() && !isLinkedInValid
+                        ? 'border-amber-400 focus:ring-2 focus:ring-amber-400/20 focus:border-amber-500'
+                        : linkedinUrl.trim() && isLinkedInValid
+                        ? 'border-emerald-400 focus:ring-2 focus:ring-emerald-400/20 focus:border-emerald-500'
+                        : 'border-[#d2d2d7]/60 focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]'
+                    }`}
+                  />
+                  {linkedinUrl.trim() && !isLinkedInValid && (
+                    <p className="text-[11px] text-amber-700 mt-1">
+                      Must start with <strong>https://linkedin.com/in/</strong> or <strong>https://www.linkedin.com/in/</strong>
+                    </p>
+                  )}
                 </div>
 
-                {careerField.includes('Engineering') || careerField.includes('Tech') ? (
-                  <div>
-                    <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5">
-                      GitHub Profile URL (Recommended for Tech)
-                    </label>
-                    <input
-                      type="url"
-                      value={githubUrl}
-                      onChange={(e) => setGithubUrl(e.target.value)}
-                      placeholder="https://github.com/yourusername"
-                      className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
-                    />
+                {/* Optional Socials Section */}
+                <div className="bg-[#f5f5f7]/70 border border-[#d2d2d7]/60 rounded-2xl p-4 sm:p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-[13px] font-bold uppercase tracking-wider text-[#1d1d1f]">
+                      Optional Additional Socials
+                    </h3>
+                    <span className="text-[11px] text-[#86868b] bg-white px-2 py-0.5 rounded-md border border-gray-200">
+                      Optional
+                    </span>
                   </div>
-                ) : null}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Twitter / X */}
+                    <div>
+                      <label className="block text-[12px] font-semibold text-[#1d1d1f] mb-1 flex items-center gap-1.5">
+                        <Twitter className="w-3.5 h-3.5 text-gray-700" />
+                        <span>Twitter / X Profile</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={twitterUrl}
+                        onChange={(e) => setTwitterUrl(e.target.value)}
+                        placeholder="https://x.com/yourhandle or @handle"
+                        className="w-full bg-white border border-[#d2d2d7]/60 rounded-xl px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]"
+                      />
+                    </div>
+
+                    {/* WhatsApp */}
+                    <div>
+                      <label className="block text-[12px] font-semibold text-[#1d1d1f] mb-1 flex items-center gap-1.5">
+                        <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>WhatsApp Number / Link</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={whatsappNumber}
+                        onChange={(e) => setWhatsappNumber(e.target.value)}
+                        placeholder="e.g. +234 801 234 5678"
+                        className="w-full bg-white border border-[#d2d2d7]/60 rounded-xl px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]"
+                      />
+                    </div>
+
+                    {/* GitHub */}
+                    <div>
+                      <label className="block text-[12px] font-semibold text-[#1d1d1f] mb-1 flex items-center gap-1.5">
+                        <Github className="w-3.5 h-3.5 text-purple-700" />
+                        <span>GitHub Profile (Recommended for Tech)</span>
+                      </label>
+                      <input
+                        type="url"
+                        value={githubUrl}
+                        onChange={(e) => setGithubUrl(e.target.value)}
+                        placeholder="https://github.com/yourusername"
+                        className="w-full bg-white border border-[#d2d2d7]/60 rounded-xl px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]"
+                      />
+                    </div>
+
+                    {/* Portfolio */}
+                    <div>
+                      <label className="block text-[12px] font-semibold text-[#1d1d1f] mb-1 flex items-center gap-1.5">
+                        <Globe className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Personal Portfolio / Blog</span>
+                      </label>
+                      <input
+                        type="url"
+                        value={portfolioUrl}
+                        onChange={(e) => setPortfolioUrl(e.target.value)}
+                        placeholder="https://yourportfolio.com"
+                        className="w-full bg-white border border-[#d2d2d7]/60 rounded-xl px-3 py-2 text-[14px] outline-none focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -756,13 +916,13 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {country.trim() && city.trim() ? (
+                  {country.trim() && effectiveCity.trim() ? (
                     <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
                   ) : (
                     <span className="w-4 h-4 rounded-full border border-gray-300 inline-block shrink-0" />
                   )}
-                  <span className={country.trim() && city.trim() ? 'text-[#1d1d1f] font-medium' : 'text-[#86868b]'}>
-                    Country &amp; City filled
+                  <span className={country.trim() && effectiveCity.trim() ? 'text-[#1d1d1f] font-medium' : 'text-[#86868b]'}>
+                    Country &amp; City selected ({country})
                   </span>
                 </div>
 
@@ -800,21 +960,27 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {linkedinUrl.trim() || portfolioUrl.trim() || githubUrl.trim() ? (
+                  {isLinkedInValid ? (
                     <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
-                  ) : (
+                  ) : linkedinUrl.trim() ? (
                     <span className="text-amber-500 text-xs shrink-0 font-bold">⚠️</span>
+                  ) : (
+                    <span className="text-gray-400 text-xs shrink-0 font-bold">⚪</span>
                   )}
                   <span
                     className={
-                      linkedinUrl.trim() || portfolioUrl.trim() || githubUrl.trim()
+                      isLinkedInValid
                         ? 'text-[#1d1d1f] font-medium'
-                        : 'text-amber-700 font-medium'
+                        : linkedinUrl.trim()
+                        ? 'text-amber-700 font-medium'
+                        : 'text-[#86868b]'
                     }
                   >
-                    {linkedinUrl.trim() || portfolioUrl.trim() || githubUrl.trim()
-                      ? 'Portfolio / Links added'
-                      : 'Portfolio recommended'}
+                    {isLinkedInValid
+                      ? 'LinkedIn profile verified'
+                      : linkedinUrl.trim()
+                      ? 'Invalid LinkedIn format'
+                      : 'LinkedIn recommended'}
                   </span>
                 </div>
               </div>

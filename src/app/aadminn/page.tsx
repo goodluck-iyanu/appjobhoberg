@@ -46,6 +46,8 @@ interface UserProfile {
   skills?: string[] | string
   resume_url?: string
   linkedin_url?: string
+  twitter_url?: string
+  whatsapp_number?: string
   github_url?: string
   portfolio_url?: string
   job_type_preference?: string
@@ -859,21 +861,49 @@ export default function AdminPortalPage() {
               <div className="flex flex-wrap gap-3 text-[13px]">
                 {inspectUser.linkedin_url && (
                   <a
-                    href={inspectUser.linkedin_url}
+                    href={inspectUser.linkedin_url.startsWith('http') ? inspectUser.linkedin_url : `https://${inspectUser.linkedin_url}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-[#27272a] hover:bg-[#3f3f46] text-blue-400 px-3.5 py-1.5 rounded-xl border border-white/10 inline-flex items-center gap-1"
+                    className="bg-[#27272a] hover:bg-[#3f3f46] text-blue-400 px-3.5 py-1.5 rounded-xl border border-white/10 inline-flex items-center gap-1.5"
                   >
                     <span>LinkedIn</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 )}
-                {inspectUser.portfolio_url && (
+                {inspectUser.twitter_url && (
                   <a
-                    href={inspectUser.portfolio_url}
+                    href={
+                      inspectUser.twitter_url.startsWith('http')
+                        ? inspectUser.twitter_url
+                        : inspectUser.twitter_url.startsWith('@')
+                        ? `https://x.com/${inspectUser.twitter_url.substring(1)}`
+                        : `https://x.com/${inspectUser.twitter_url}`
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-[#27272a] hover:bg-[#3f3f46] text-emerald-400 px-3.5 py-1.5 rounded-xl border border-white/10 inline-flex items-center gap-1"
+                    className="bg-[#27272a] hover:bg-[#3f3f46] text-gray-300 px-3.5 py-1.5 rounded-xl border border-white/10 inline-flex items-center gap-1.5"
+                  >
+                    <span>Twitter / X</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                {inspectUser.whatsapp_number && (
+                  <a
+                    href={`https://wa.me/${inspectUser.whatsapp_number.replace(/[^0-9]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#27272a] hover:bg-[#3f3f46] text-emerald-400 px-3.5 py-1.5 rounded-xl border border-white/10 inline-flex items-center gap-1.5"
+                  >
+                    <span>WhatsApp</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                {inspectUser.portfolio_url && (
+                  <a
+                    href={inspectUser.portfolio_url.startsWith('http') ? inspectUser.portfolio_url : `https://${inspectUser.portfolio_url}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#27272a] hover:bg-[#3f3f46] text-emerald-400 px-3.5 py-1.5 rounded-xl border border-white/10 inline-flex items-center gap-1.5"
                   >
                     <span>Portfolio</span>
                     <ExternalLink className="w-3 h-3" />
@@ -881,10 +911,10 @@ export default function AdminPortalPage() {
                 )}
                 {inspectUser.github_url && (
                   <a
-                    href={inspectUser.github_url}
+                    href={inspectUser.github_url.startsWith('http') ? inspectUser.github_url : `https://${inspectUser.github_url}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-[#27272a] hover:bg-[#3f3f46] text-purple-400 px-3.5 py-1.5 rounded-xl border border-white/10 inline-flex items-center gap-1"
+                    className="bg-[#27272a] hover:bg-[#3f3f46] text-purple-400 px-3.5 py-1.5 rounded-xl border border-white/10 inline-flex items-center gap-1.5"
                   >
                     <span>GitHub</span>
                     <ExternalLink className="w-3 h-3" />
