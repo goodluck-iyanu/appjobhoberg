@@ -17,6 +17,7 @@ import {
   Lock,
 } from '@/components/icons'
 import ApplySection from '@/components/ApplySection'
+import ApplyHeaderButton from '@/components/ApplyHeaderButton'
 
 export default async function JobDetails({
   params,
@@ -146,50 +147,12 @@ export default async function JobDetails({
 
               {/* Apply button desktop / mobile - Gated by Auth, Review Status, & 3-Monthly Limit */}
               <div className="shrink-0 flex flex-col items-stretch sm:items-end">
-                {!user ? (
-                  <>
-                    <Link
-                      href="/login"
-                      className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-6 py-3 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer"
-                    >
-                      Sign in with Google to Apply
-                    </Link>
-                    <p className="text-[12px] text-[#86868b] mt-2 text-center sm:text-right">
-                      Account &amp; profile verification required
-                    </p>
-                  </>
-                ) : !isPremium && reviewStatus === 'under_review' ? (
-                  <Link
-                    href="/profile"
-                    className="inline-flex items-center justify-center bg-amber-50 border border-amber-300 text-amber-900 font-semibold px-5 py-2.5 rounded-full transition-colors text-[14px] shadow-sm"
-                  >
-                    <Clock className="w-4 h-4 mr-2 text-amber-700" />
-                    <span>Profile Under Review</span>
-                  </Link>
-                ) : !isPremium && reviewStatus !== 'approved' ? (
-                  <Link
-                    href="/profile"
-                    className="inline-flex items-center justify-center bg-[#1d1d1f] hover:bg-black text-white font-semibold px-6 py-3 rounded-full transition-colors text-[14px] shadow-sm"
-                  >
-                    <span>Complete Profile to Apply</span>
-                  </Link>
-                ) : isLimitReached ? (
-                  <Link
-                    href="/premium"
-                    className="inline-flex items-center justify-center bg-gradient-to-r from-amber-500 to-[#e02424] text-white font-bold px-6 py-3 rounded-full transition-all text-[14px] shadow-md gap-1.5"
-                  >
-                    <Crown className="w-4 h-4 text-amber-200" />
-                    <span>Upgrade (Limit Reached: 3/3)</span>
-                  </Link>
-                ) : (
-                  <a
-                    href="#apply-section"
-                    className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-6 py-3 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer gap-2"
-                  >
-                    <span>Apply on Official Site</span>
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                )}
+                <ApplyHeaderButton 
+                  user={user ? { id: user.id } : null}
+                  reviewStatus={reviewStatus}
+                  isPremium={isPremium}
+                  monthlyCount={monthlyCount}
+                />
               </div>
             </div>
 
