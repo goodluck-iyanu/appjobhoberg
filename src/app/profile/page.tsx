@@ -1074,9 +1074,9 @@ export default function ProfilePage() {
                     </p>
                   </div>
 
-                  {app.apply_url && (
+                  {(app.apply_url || app.notes) && (
                     <a
-                      href={app.apply_url}
+                      href={app.apply_url || app.notes}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 text-[13px] text-[#e02424] hover:underline font-semibold shrink-0"

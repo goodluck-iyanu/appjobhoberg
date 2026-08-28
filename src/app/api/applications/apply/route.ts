@@ -27,21 +27,21 @@ export async function POST(req: NextRequest) {
 
     const adminSupabase = createAdminClient()
 
-    // 1. Fetch user's profile
-    let { data: profile } = await adminSupabase
+    // 1. Fetch user's profile using authenticated supabase client
+    let { data: profile } = await supabase
       .from('profiles')
-      .select('review_status, is_premium, full_name, email')
+      .select('id, review_status, is_premium, full_name, display_name')
       .eq('id', user.id)
       .maybeSingle()
 
     // If profile doesn't exist, create an approved profile
     if (!profile) {
-      const { data: newProfile } = await adminSupabase
+      const { data: newProfile } = await supabase
         .from('profiles')
         .insert({
           id: user.id,
-          email: user.email,
           full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+          display_name: user.user_metadata?.full_name || user.email?.split('@')[0],
           review_status: 'approved',
           created_at: new Date().toISOString(),
         })
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     // Ensure candidate is approved unless explicitly banned/rejected
     if (profile?.review_status !== 'rejected' && profile?.review_status !== 'approved') {
-      await adminSupabase
+      await supabase
         .from('profiles')
         .update({ review_status: 'approved' })
         .eq('id', user.id)
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     const now = new Date()
     const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
 
-    const { data: monthlyApps } = await adminSupabase
+    const { data: monthlyApps } = await supabase
       .from('applications')
       .select('id, created_at')
       .eq('user_id', user.id)
@@ -88,17 +88,21 @@ export async function POST(req: NextRequest) {
 
     // 4. Record application in database with server UTC timestamp
     const serverTimestamp = new Date().toISOString()
-    try {
-      await adminSupabase.from('applications').insert({
-        user_id: user.id,
-        job_id: jobId,
-        job_title: jobTitle || 'Remote Position',
-        company_name: companyName || 'Company',
-        apply_url: applyUrl,
-        created_at: serverTimestamp,
-      })
-    } catch (e) {
-      console.error('Applications logging note:', e)
+    const appPayload = {
+      user_id: user.id,
+      job_id: jobId,
+      job_title: jobTitle || 'Remote Position',
+      company_name: companyName || 'Company',
+      status: 'submitted',
+      notes: applyUrl,
+      created_at: serverTimestamp,
+    }
+
+    // Try insert with authenticated supabase client first (respects auth.uid() RLS), fallback to admin client
+    let insertResult = await supabase.from('applications').insert(appPayload).select()
+    if (insertResult.error) {
+      console.warn('Authenticated insert note, trying admin insert:', insertResult.error.message)
+      await adminSupabase.from('applications').insert(appPayload)
     }
 
     const newCount = monthlyCount + 1

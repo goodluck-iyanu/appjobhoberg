@@ -53,18 +53,17 @@ export default async function DashboardPage({
   const adminSupabase = createAdminClient()
 
   // Fetch current user profile
-  let { data: profile } = await adminSupabase
+  let { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .maybeSingle()
 
   if (!profile) {
-    const { data: newProf } = await adminSupabase
+    const { data: newProf } = await supabase
       .from('profiles')
       .insert({
         id: user.id,
-        email: user.email,
         full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
         display_name: user.user_metadata?.full_name || user.email?.split('@')[0],
         review_status: 'draft',
@@ -76,11 +75,22 @@ export default async function DashboardPage({
   }
 
   // Fetch all user applications
-  const { data: applications } = await adminSupabase
+  let { data: applications } = await supabase
     .from('applications')
     .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
+
+  if (!applications || applications.length === 0) {
+    const { data: adminApps } = await adminSupabase
+      .from('applications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+    if (adminApps && adminApps.length > 0) {
+      applications = adminApps
+    }
+  }
 
   const displayName =
     profile?.full_name ||
@@ -337,12 +347,12 @@ export default async function DashboardPage({
                     <h4 className="font-bold text-[15px] text-[#1d1d1f]">{app.job_title}</h4>
                     <p className="text-[13px] text-[#86868b]">{app.company_name} &bull; Applied on {new Date(app.created_at).toLocaleDateString()}</p>
                   </div>
-                  {app.apply_url && (
+                  {(app.apply_url || app.notes) && (
                     <a
-                      href={app.apply_url}
+                      href={app.apply_url || app.notes}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-[13px] text-[#e02424] hover:underline font-semibold"
+                      className="inline-flex items-center gap-1.5 text-[13px] text-[#e02424] hover:underline font-semibold shrink-0"
                     >
                       <span>Revisit Portal</span>
                       <ExternalLink className="w-3.5 h-3.5" />
