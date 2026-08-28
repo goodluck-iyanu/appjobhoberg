@@ -12,7 +12,8 @@ export interface AuthLogEntry {
 }
 
 /**
- * Log an authentication event (login or logout) for audit & security tracking
+ * Log an authentication event (login or logout) for audit & security tracking.
+ * Strictly uses server-authoritative UTC time (cannot be spoofed by client device clocks).
  */
 export async function logAuthActivity({
   userId,
@@ -31,8 +32,9 @@ export async function logAuthActivity({
 }) {
   try {
     const supabase = createAdminClient()
+    const serverTimestamp = new Date().toISOString()
 
-    // 1. Insert into auth_logs table
+    // 1. Insert into auth_logs table with authoritative server timestamp
     await supabase.from('auth_logs').insert({
       user_id: userId,
       user_email: userEmail,
@@ -40,7 +42,7 @@ export async function logAuthActivity({
       event_type: eventType,
       ip_address: ipAddress || 'Unknown IP',
       user_agent: userAgent || 'Browser',
-      created_at: new Date().toISOString(),
+      created_at: serverTimestamp,
     })
 
     // 2. Update user's last_active timestamp in profiles
@@ -48,16 +50,16 @@ export async function logAuthActivity({
       await supabase
         .from('profiles')
         .update({
-          last_login_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          last_login_at: serverTimestamp,
+          updated_at: serverTimestamp,
         })
         .eq('id', userId)
     } else if (eventType === 'logout') {
       await supabase
         .from('profiles')
         .update({
-          last_logout_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          last_logout_at: serverTimestamp,
+          updated_at: serverTimestamp,
         })
         .eq('id', userId)
     }
@@ -66,4 +68,3 @@ export async function logAuthActivity({
     console.error('Failed to log auth activity:', err)
   }
 }
-

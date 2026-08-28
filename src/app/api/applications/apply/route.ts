@@ -56,10 +56,9 @@ export async function POST(req: NextRequest) {
 
     const isPremium = Boolean(profile.is_premium)
 
-    // 2. Count applications in the current calendar month
-    const startOfMonth = new Date()
-    startOfMonth.setDate(1)
-    startOfMonth.setHours(0, 0, 0, 0)
+    // 2. Authoritative UTC server calendar month start (cannot be bypassed by user clock changes)
+    const now = new Date()
+    const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
 
     const { data: monthlyApps, error: appsError } = await adminSupabase
       .from('applications')
@@ -82,14 +81,15 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 4. Record the application
+    // 4. Record the application with authoritative server UTC timestamp
+    const serverTimestamp = new Date().toISOString()
     const { error: insertError } = await adminSupabase.from('applications').insert({
       user_id: user.id,
       job_id: jobId,
       job_title: jobTitle || 'Remote Position',
       company_name: companyName || 'Company',
       apply_url: applyUrl,
-      created_at: new Date().toISOString(),
+      created_at: serverTimestamp,
     })
 
     if (insertError) {
@@ -105,6 +105,7 @@ export async function POST(req: NextRequest) {
       isPremium,
       monthlyCount: newCount,
       remaining,
+      serverTime: serverTimestamp,
     })
   } catch (err: any) {
     return NextResponse.json(
@@ -113,4 +114,3 @@ export async function POST(req: NextRequest) {
     )
   }
 }
-

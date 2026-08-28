@@ -90,6 +90,28 @@ interface Metrics {
   totalAuthLogs?: number
 }
 
+function formatServerTimestamp(isoString?: string | null) {
+  if (!isoString) return 'Never'
+  try {
+    const d = new Date(isoString)
+    if (isNaN(d.getTime())) return 'Invalid date'
+    return (
+      new Intl.DateTimeFormat('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+        timeZone: 'Africa/Lagos',
+      }).format(d) + ' (WAT)'
+    )
+  } catch {
+    return isoString
+  }
+}
+
 export default function AdminPortalPage() {
   // Auth state
   const [authChecking, setAuthChecking] = useState(true)
@@ -695,7 +717,7 @@ export default function AdminPortalPage() {
 
                         {/* Timestamp */}
                         <td className="py-3.5 px-5 text-right text-xs text-gray-400 whitespace-nowrap">
-                          {log.created_at ? new Date(log.created_at).toLocaleString() : 'Just now'}
+                          {formatServerTimestamp(log.created_at)}
                         </td>
                       </tr>
                     ))
@@ -1088,22 +1110,20 @@ export default function AdminPortalPage() {
                   <div className="p-2.5 rounded-xl bg-[#27272a] border border-white/5">
                     <span className="text-[10px] uppercase font-bold text-gray-400 block">Last Sign In</span>
                     <span className="text-[12px] font-semibold text-emerald-400 block truncate">
-                      {inspectUser.last_login_at
-                        ? new Date(inspectUser.last_login_at).toLocaleString()
-                        : candidateLogs.find((l) => l.event_type === 'login')?.created_at
-                        ? new Date(candidateLogs.find((l) => l.event_type === 'login')!.created_at).toLocaleString()
-                        : 'No login logged'}
+                      {formatServerTimestamp(
+                        inspectUser.last_login_at ||
+                          candidateLogs.find((l) => l.event_type === 'login')?.created_at
+                      )}
                     </span>
                   </div>
 
                   <div className="p-2.5 rounded-xl bg-[#27272a] border border-white/5">
                     <span className="text-[10px] uppercase font-bold text-gray-400 block">Last Sign Out</span>
                     <span className="text-[12px] font-semibold text-gray-300 block truncate">
-                      {inspectUser.last_logout_at
-                        ? new Date(inspectUser.last_logout_at).toLocaleString()
-                        : candidateLogs.find((l) => l.event_type === 'logout')?.created_at
-                        ? new Date(candidateLogs.find((l) => l.event_type === 'logout')!.created_at).toLocaleString()
-                        : 'No signout logged'}
+                      {formatServerTimestamp(
+                        inspectUser.last_logout_at ||
+                          candidateLogs.find((l) => l.event_type === 'logout')?.created_at
+                      )}
                     </span>
                   </div>
 
@@ -1149,7 +1169,7 @@ export default function AdminPortalPage() {
                               : '🌐 Web Browser'}
                           </span>
                           <span className="text-gray-400 whitespace-nowrap">
-                            {clog.created_at ? new Date(clog.created_at).toLocaleString() : 'Just now'}
+                            {formatServerTimestamp(clog.created_at)}
                           </span>
                         </div>
                       </div>
