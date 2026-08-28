@@ -129,6 +129,7 @@ export default function AdminPortalPage() {
   // Dashboard state
   const [users, setUsers] = useState<UserProfile[]>([])
   const [authLogs, setAuthLogs] = useState<AuthLog[]>([])
+  const [applications, setApplications] = useState<any[]>([])
   const [metrics, setMetrics] = useState<Metrics>({
     totalUsers: 0,
     underReview: 0,
@@ -183,6 +184,7 @@ export default function AdminPortalPage() {
       if (data.success) {
         setUsers(data.users || [])
         setAuthLogs(data.authLogs || [])
+        setApplications(data.applications || [])
         setMetrics(data.metrics)
         if (data.authLogsError || data.applicationsError) {
           setDashboardError(`Table Notice: ${data.authLogsError || ''} ${data.applicationsError || ''}. Please ensure RLS policies allow admin read.`)
