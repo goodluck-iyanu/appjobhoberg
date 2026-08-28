@@ -90,7 +90,7 @@ export default function ProfilePage() {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
       if (profile) {
         setFullName(profile.full_name || profile.display_name || user.user_metadata?.full_name || '')

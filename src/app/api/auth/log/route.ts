@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 import { logAuthActivity } from '@/utils/activity'
 
 export async function POST(req: NextRequest) {
@@ -16,6 +17,29 @@ export async function POST(req: NextRequest) {
     const forwardedFor = req.headers.get('x-forwarded-for')
     const ipAddress = forwardedFor ? forwardedFor.split(',')[0].trim() : 'Direct IP'
     const userAgent = req.headers.get('user-agent') || 'Browser'
+
+    // Auto-create/ensure profile row exists in database
+    try {
+      const adminSupabase = createAdminClient()
+      const { data: existingProfile } = await adminSupabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .maybeSingle()
+
+      if (!existingProfile) {
+        await adminSupabase.from('profiles').insert({
+          id: userId,
+          email: userEmail,
+          full_name: userName || userEmail.split('@')[0],
+          display_name: userName || userEmail.split('@')[0],
+          review_status: 'draft',
+          created_at: new Date().toISOString(),
+        })
+      }
+    } catch (e) {
+      console.error('Profile sync notice:', e)
+    }
 
     await logAuthActivity({
       userId,
@@ -35,4 +59,3 @@ export async function POST(req: NextRequest) {
     )
   }
 }
-

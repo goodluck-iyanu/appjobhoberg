@@ -48,30 +48,53 @@ export default async function JobDetails({
     if (user) {
       const adminSupabase = createAdminClient()
 
-      // Fetch profile
-      const { data: profile } = await adminSupabase
-        .from('profiles')
-        .select('review_status, is_premium')
-        .eq('id', user.id)
-        .single()
+      // Fetch or auto-create profile
+      try {
+        let { data: profile } = await adminSupabase
+          .from('profiles')
+          .select('review_status, is_premium')
+          .eq('id', user.id)
+          .maybeSingle()
 
-      if (profile) {
-        reviewStatus = profile.review_status || 'draft'
-        isPremium = Boolean(profile.is_premium)
+        if (!profile) {
+          const { data: newProf } = await adminSupabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              email: user.email,
+              full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+              display_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+              review_status: 'draft',
+              created_at: new Date().toISOString(),
+            })
+            .select('review_status, is_premium')
+            .maybeSingle()
+          profile = newProf
+        }
+
+        if (profile) {
+          reviewStatus = (profile.review_status as any) || 'draft'
+          isPremium = Boolean(profile.is_premium)
+        }
+      } catch (err) {
+        console.error('Profile fetch note in job details:', err)
       }
 
       // Count applications made this month
-      const startOfMonth = new Date()
-      startOfMonth.setDate(1)
-      startOfMonth.setHours(0, 0, 0, 0)
+      try {
+        const now = new Date()
+        const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
 
-      const { data: monthlyApps } = await adminSupabase
-        .from('applications')
-        .select('id, created_at')
-        .eq('user_id', user.id)
-        .gte('created_at', startOfMonth.toISOString())
+        const { data: monthlyApps } = await adminSupabase
+          .from('applications')
+          .select('id, created_at')
+          .eq('user_id', user.id)
+          .gte('created_at', startOfMonth.toISOString())
 
-      monthlyCount = (monthlyApps || []).length
+        monthlyCount = (monthlyApps || []).length
+      } catch (err) {
+        console.error('Applications count note in job details:', err)
+      }
     }
   } catch {
     user = null

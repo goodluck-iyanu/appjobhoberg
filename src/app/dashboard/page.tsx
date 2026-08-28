@@ -53,11 +53,27 @@ export default async function DashboardPage({
   const adminSupabase = createAdminClient()
 
   // Fetch current user profile
-  const { data: profile } = await adminSupabase
+  let { data: profile } = await adminSupabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
+
+  if (!profile) {
+    const { data: newProf } = await adminSupabase
+      .from('profiles')
+      .insert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+        display_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+        review_status: 'draft',
+        created_at: new Date().toISOString(),
+      })
+      .select('*')
+      .maybeSingle()
+    profile = newProf
+  }
 
   // Fetch all user applications
   const { data: applications } = await adminSupabase
