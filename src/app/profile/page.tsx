@@ -61,6 +61,7 @@ export default function ProfilePage() {
   // Review Status
   const [reviewStatus, setReviewStatus] = useState<'draft' | 'under_review' | 'approved' | 'rejected'>('draft')
   const [reviewNotes, setReviewNotes] = useState<string | null>(null)
+  const [applications, setApplications] = useState<any[]>([])
 
   // Available cities based on selected country
   const currentCountryObj = useMemo(() => {
@@ -135,6 +136,21 @@ export default function ProfilePage() {
         setReviewNotes(profile.review_notes || null)
       } else {
         setFullName(user.user_metadata?.full_name || '')
+      }
+
+      // Fetch user's submitted job applications
+      try {
+        const { data: apps } = await supabase
+          .from('applications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+
+        if (apps) {
+          setApplications(apps)
+        }
+      } catch (err) {
+        console.error('Applications load note:', err)
       }
 
       setLoading(false)
@@ -1012,6 +1028,77 @@ export default function ProfilePage() {
               </button>
             </div>
           </form>
+        </div>
+
+        {/* ─── My Job Applications History ─── */}
+        <div className="mt-8 bg-white border border-[#d2d2d7]/70 rounded-3xl p-6 sm:p-8 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                <h3 className="text-[17px] font-bold text-[#1d1d1f]">
+                  My Job Applications History
+                </h3>
+              </div>
+              <p className="text-[13px] text-[#86868b]">
+                Real-time record of all official remote opportunities you applied for via Hoberg Jobs.
+              </p>
+            </div>
+
+            <span className="text-[12px] font-bold text-gray-700 bg-gray-100 px-3 py-1 rounded-full shrink-0 self-start sm:self-auto">
+              {applications.length} {applications.length === 1 ? 'Application' : 'Applications'} Logged
+            </span>
+          </div>
+
+          {applications.length > 0 ? (
+            <div className="divide-y divide-gray-100">
+              {applications.map((app: any) => (
+                <div
+                  key={app.id}
+                  className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50/50 transition-colors rounded-xl px-2 -mx-2"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-[15px] text-[#1d1d1f]">{app.job_title}</h4>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">
+                        ✅ Logged &amp; Forwarded
+                      </span>
+                    </div>
+                    <p className="text-[13px] text-[#86868b] mt-0.5">
+                      {app.company_name} &bull; Applied on{' '}
+                      {new Date(app.created_at).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </p>
+                  </div>
+
+                  {app.apply_url && (
+                    <a
+                      href={app.apply_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[13px] text-[#e02424] hover:underline font-semibold shrink-0"
+                    >
+                      <span>Revisit Application Portal</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-8 text-center text-[#86868b] bg-[#f5f5f7] rounded-2xl">
+              <p className="text-[14px]">You haven&apos;t applied for any remote positions yet.</p>
+              <Link
+                href="/jobs"
+                className="text-[13px] font-bold text-[#e02424] hover:underline mt-2 inline-block"
+              >
+                Browse latest remote jobs &rarr;
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

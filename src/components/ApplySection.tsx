@@ -53,20 +53,14 @@ export default function ApplySection({
     setLoading(true)
     setErrorMsg(null)
 
-    // 1. Immediately open official application portal in new tab
-    try {
-      window.open(job.apply_url, '_blank', 'noopener,noreferrer')
-      setApplied(true)
-      toast.success(
-        'Opening Official Application Portal',
-        `Redirecting to application for ${job.title} at ${job.company_name}...`
-      )
-    } catch (e) {
-      console.error('Window open note:', e)
-    }
+    // Trigger saving feedback toast
+    toast.info(
+      'Recording to Your Profile...',
+      `Logging application for ${job.title} at ${job.company_name}...`
+    )
 
-    // 2. Record application in backend
     try {
+      // 1. Record application in backend database
       const res = await fetch('/api/applications/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -80,18 +74,33 @@ export default function ApplySection({
 
       const data = await res.json()
 
+      // 2. Smooth animation delay (1.2s) so the candidate clearly sees the loading & saving progress
+      await new Promise((resolve) => setTimeout(resolve, 1200))
+
       if (data.success) {
+        setApplied(true)
         if (!isPremium && typeof data.monthlyCount === 'number') {
           setMonthlyCount(data.monthlyCount)
         } else if (!isPremium) {
           setMonthlyCount((prev) => prev + 1)
         }
+
+        toast.success(
+          'Application Saved to Profile! 🚀',
+          `Opening official ${job.company_name} portal in a new tab...`
+        )
+
+        // Open official employer portal in a new tab
+        window.open(job.apply_url, '_blank', 'noopener,noreferrer')
       } else if (data.limitReached) {
         setMonthlyCount(3)
         toast.warning('Monthly Limit Reached', 'You have used all 3 free applications for this month.')
+      } else {
+        // Fallback open
+        window.open(job.apply_url, '_blank', 'noopener,noreferrer')
       }
     } catch {
-      // Direct apply already opened
+      window.open(job.apply_url, '_blank', 'noopener,noreferrer')
     } finally {
       setLoading(false)
     }
@@ -226,10 +235,25 @@ export default function ApplySection({
         type="button"
         onClick={handleApplyClick}
         disabled={loading}
-        className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] active:bg-[#991b1b] text-white font-bold px-8 py-4 rounded-full transition-all text-[15px] shadow-md hover:shadow-lg disabled:opacity-60 cursor-pointer gap-2"
+        className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] active:bg-[#991b1b] text-white font-bold px-8 py-4 rounded-full transition-all text-[15px] shadow-md hover:shadow-lg disabled:opacity-85 cursor-pointer gap-2.5"
       >
-        <span>{loading ? 'Opening Application Portal...' : 'Apply on Official Site'}</span>
-        <ExternalLink className="w-4 h-4" />
+        {loading ? (
+          <>
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <span>Saving to profile &amp; opening portal...</span>
+          </>
+        ) : applied ? (
+          <>
+            <CheckCircle className="w-4 h-4 text-emerald-300" />
+            <span>Application Recorded &bull; Re-open Portal</span>
+            <ExternalLink className="w-4 h-4" />
+          </>
+        ) : (
+          <>
+            <span>Apply on Official Site</span>
+            <ExternalLink className="w-4 h-4" />
+          </>
+        )}
       </button>
 
       {/* Application Usage Counter Pill */}
