@@ -26,6 +26,10 @@ import {
   Building2,
   ArrowRight,
   X,
+  Linkedin,
+  Twitter,
+  MessageCircle,
+  Github,
 } from '@/components/icons'
 
 interface UserProfile {
@@ -56,9 +60,22 @@ interface UserProfile {
   review_notes?: string
   is_premium?: boolean
   premium_tier?: string
+  last_login_at?: string
+  last_logout_at?: string
   created_at?: string
   submitted_at?: string
   reviewed_at?: string
+}
+
+interface AuthLog {
+  id: string
+  user_id: string
+  user_email: string
+  user_name?: string
+  event_type: 'login' | 'logout'
+  ip_address?: string
+  user_agent?: string
+  created_at: string
 }
 
 interface Metrics {
@@ -70,6 +87,7 @@ interface Metrics {
   premiumUsers: number
   freeUsers: number
   estimatedRevenue: number
+  totalAuthLogs?: number
 }
 
 export default function AdminPortalPage() {
@@ -84,6 +102,7 @@ export default function AdminPortalPage() {
 
   // Dashboard state
   const [users, setUsers] = useState<UserProfile[]>([])
+  const [authLogs, setAuthLogs] = useState<AuthLog[]>([])
   const [metrics, setMetrics] = useState<Metrics>({
     totalUsers: 0,
     underReview: 0,
@@ -93,12 +112,14 @@ export default function AdminPortalPage() {
     premiumUsers: 0,
     freeUsers: 0,
     estimatedRevenue: 0,
+    totalAuthLogs: 0,
   })
   const [dataLoading, setDataLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterTab, setFilterTab] = useState<'all' | 'under_review' | 'approved' | 'draft' | 'premium'>('all')
+  const [filterTab, setFilterTab] = useState<'all' | 'under_review' | 'approved' | 'draft' | 'premium' | 'logs'>('all')
   const [autoSync, setAutoSync] = useState(true)
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
+  const [dashboardError, setDashboardError] = useState<string | null>(null)
 
   // Modals
   const [inspectUser, setInspectUser] = useState<UserProfile | null>(null)
@@ -127,9 +148,7 @@ export default function AdminPortalPage() {
     checkAuth()
   }, [checkAuth])
 
-  const [dashboardError, setDashboardError] = useState<string | null>(null)
-
-  // Fetch users & metrics
+  // Fetch users, metrics & security audit logs
   const fetchDashboardData = useCallback(async (silent = false) => {
     if (!silent) setDataLoading(true)
     try {
@@ -137,6 +156,7 @@ export default function AdminPortalPage() {
       const data = await res.json()
       if (data.success) {
         setUsers(data.users || [])
+        setAuthLogs(data.authLogs || [])
         setMetrics(data.metrics)
         setDashboardError(null)
       } else {
@@ -222,7 +242,7 @@ export default function AdminPortalPage() {
         // Refresh dataset
         await fetchDashboardData(true)
 
-        // Close any active modal
+        // Close or update any active modal
         if (inspectUser?.id === userId) {
           const updatedUser = users.find((u) => u.id === userId)
           if (updatedUser && action !== 'delete') {
@@ -279,6 +299,28 @@ export default function AdminPortalPage() {
       return true
     })
   }, [users, filterTab, searchTerm])
+
+  // Filtered auth logs
+  const filteredLogs = useMemo(() => {
+    if (!searchTerm.trim()) return authLogs
+    const q = searchTerm.toLowerCase()
+    return authLogs.filter(
+      (l) =>
+        (l.user_email || '').toLowerCase().includes(q) ||
+        (l.user_name || '').toLowerCase().includes(q) ||
+        (l.ip_address || '').toLowerCase().includes(q) ||
+        (l.user_agent || '').toLowerCase().includes(q) ||
+        (l.event_type || '').toLowerCase().includes(q)
+    )
+  }, [authLogs, searchTerm])
+
+  // Candidate specific logs for modal
+  const candidateLogs = useMemo(() => {
+    if (!inspectUser) return []
+    return authLogs.filter(
+      (l) => l.user_id === inspectUser.id || l.user_email?.toLowerCase() === inspectUser.email?.toLowerCase()
+    )
+  }, [authLogs, inspectUser])
 
   if (authChecking) {
     return (
@@ -402,7 +444,7 @@ export default function AdminPortalPage() {
               </span>
             </div>
             <p className="text-gray-400 text-[13px] mt-1">
-              Live Candidate Verification &bull; Platform Revenue &bull; User Controls
+              Live Candidate Verification &bull; Security Audit &bull; Revenue Analytics
             </p>
           </div>
 
@@ -449,7 +491,7 @@ export default function AdminPortalPage() {
               <h4 className="font-bold text-red-200 text-sm">Database Sync Note:</h4>
               <p className="text-red-300 text-xs mt-0.5">{dashboardError}</p>
               <p className="text-gray-400 text-xs mt-2">
-                Make sure you have run the Supabase RLS policy query in your Supabase SQL editor so the admin dashboard can read candidates.
+                Make sure you have run the Supabase RLS policy query in your Supabase SQL editor so the admin dashboard can read candidates and security logs.
               </p>
             </div>
           </div>
@@ -458,7 +500,12 @@ export default function AdminPortalPage() {
         {/* 5 Real-Time KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {/* Total Candidates */}
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-5 shadow-sm">
+          <div
+            onClick={() => setFilterTab('all')}
+            className={`bg-[#18181b] border rounded-2xl p-5 shadow-sm cursor-pointer transition-all ${
+              filterTab === 'all' ? 'border-blue-400 bg-blue-950/20' : 'border-white/10 hover:border-blue-400'
+            }`}
+          >
             <div className="flex items-center justify-between text-gray-400 mb-2">
               <span className="text-[12px] uppercase font-bold tracking-wider">Total Users</span>
               <Users className="w-4 h-4 text-blue-400" />
@@ -512,16 +559,21 @@ export default function AdminPortalPage() {
             <p className="text-[11px] text-gray-400 mt-1">{metrics.freeUsers} on free tier</p>
           </div>
 
-          {/* Estimated Revenue */}
-          <div className="bg-[#18181b] border border-white/10 rounded-2xl p-5 shadow-sm bg-gradient-to-br from-[#18181b] to-red-950/30">
+          {/* Security & Audit Events */}
+          <div
+            onClick={() => setFilterTab('logs')}
+            className={`bg-[#18181b] border rounded-2xl p-5 shadow-sm cursor-pointer transition-all ${
+              filterTab === 'logs' ? 'border-red-400 bg-red-950/30' : 'border-white/10 hover:border-red-400'
+            }`}
+          >
             <div className="flex items-center justify-between text-[#e02424] mb-2">
-              <span className="text-[12px] uppercase font-bold tracking-wider">Total Revenue</span>
-              <DollarSign className="w-4 h-4 text-[#e02424]" />
+              <span className="text-[12px] uppercase font-bold tracking-wider">Auth Events</span>
+              <Lock className="w-4 h-4 text-[#e02424]" />
             </div>
             <div className="text-3xl font-black text-white">
-              ₦{metrics.estimatedRevenue.toLocaleString()}
+              {authLogs.length}
             </div>
-            <p className="text-[11px] text-gray-400 mt-1">From Paystack upgrades</p>
+            <p className="text-[11px] text-gray-400 mt-1">🔐 Login &amp; Logout logs</p>
           </div>
         </div>
 
@@ -536,6 +588,7 @@ export default function AdminPortalPage() {
                 { id: 'approved', label: `🟢 Approved (${metrics.approved})` },
                 { id: 'draft', label: `⚪ Incomplete / Draft (${metrics.draft})` },
                 { id: 'premium', label: `👑 Premium (${metrics.premiumUsers})` },
+                { id: 'logs', label: `🔐 Login/Logout Audit (${authLogs.length})` },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -558,162 +611,244 @@ export default function AdminPortalPage() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search name, email, skills, country..."
+                placeholder={filterTab === 'logs' ? 'Search email, IP, event...' : 'Search name, email, skills...'}
                 className="w-full bg-[#27272a] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-[13px] text-white placeholder-gray-500 outline-none focus:border-[#e02424] transition-all"
               />
             </div>
           </div>
         </div>
 
-        {/* Candidates Table */}
-        <div className="bg-[#18181b] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-white/10 bg-[#27272a]/60 text-[12px] font-bold uppercase tracking-wider text-gray-400">
-                  <th className="py-4 px-5">Candidate</th>
-                  <th className="py-4 px-5">Career &amp; Location</th>
-                  <th className="py-4 px-5">Review Status</th>
-                  <th className="py-4 px-5">Tier</th>
-                  <th className="py-4 px-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 text-[14px]">
-                {filteredUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="py-16 text-center text-gray-500">
-                      No candidates found matching the current filter or search criteria.
-                    </td>
+        {/* ---------------------------------------------------- */}
+        {/* VIEW 1: SECURITY & AUTHENTICATION AUDIT LOGS */}
+        {/* ---------------------------------------------------- */}
+        {filterTab === 'logs' ? (
+          <div className="bg-[#18181b] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
+            <div className="p-5 border-b border-white/10 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-lg text-white">User Authentication &amp; Activity Log</h3>
+                <p className="text-xs text-gray-400 mt-0.5">Live tracking of all login and logout events with IP and device footprints</p>
+              </div>
+              <span className="bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-[11px] font-bold px-3 py-1 rounded-full">
+                🟢 Live Audit Active
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-white/10 bg-[#27272a]/60 text-[12px] font-bold uppercase tracking-wider text-gray-400">
+                    <th className="py-4 px-5">Event</th>
+                    <th className="py-4 px-5">User Account</th>
+                    <th className="py-4 px-5">IP Address</th>
+                    <th className="py-4 px-5">Browser &amp; Device</th>
+                    <th className="py-4 px-5 text-right">Timestamp</th>
                   </tr>
-                ) : (
-                  filteredUsers.map((u) => {
-                    const candidateName = u.full_name || u.display_name || 'Job Seeker'
-                    const candidateEmail = u.email || 'Google User'
-                    const status = u.review_status || 'draft'
-                    const isLoading = actionLoadingId === u.id
-
-                    return (
-                      <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
-                        {/* Candidate */}
-                        <td className="py-4 px-5">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-[#27272a] border border-white/10 flex items-center justify-center font-bold text-gray-300 shrink-0">
-                              {candidateName.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <button
-                                onClick={() => setInspectUser(u)}
-                                className="font-bold text-white hover:text-[#e02424] transition-colors text-left block"
-                              >
-                                {candidateName}
-                              </button>
-                              <span className="text-[12px] text-gray-400 block">{candidateEmail}</span>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Career & Location */}
-                        <td className="py-4 px-5">
-                          <div className="font-medium text-gray-200">{u.career_field || 'Not specified'}</div>
-                          <div className="text-[12px] text-gray-400">
-                            {[u.city, u.country].filter(Boolean).join(', ') || 'Remote'}
-                          </div>
-                        </td>
-
-                        {/* Review Status Badge */}
-                        <td className="py-4 px-5">
-                          {status === 'approved' ? (
-                            <span className="inline-flex items-center gap-1 bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-[12px] font-bold px-2.5 py-1 rounded-full">
-                              <CheckCircle className="w-3.5 h-3.5" />
-                              Approved
-                            </span>
-                          ) : status === 'under_review' ? (
-                            <span className="inline-flex items-center gap-1 bg-amber-950/60 border border-amber-500/40 text-amber-400 text-[12px] font-bold px-2.5 py-1 rounded-full animate-pulse">
-                              <Clock className="w-3.5 h-3.5" />
-                              Under Review
-                            </span>
-                          ) : status === 'rejected' ? (
-                            <span className="inline-flex items-center gap-1 bg-red-950/60 border border-red-500/40 text-red-400 text-[12px] font-bold px-2.5 py-1 rounded-full">
-                              <AlertCircle className="w-3.5 h-3.5" />
-                              Rejected
+                </thead>
+                <tbody className="divide-y divide-white/5 text-[13px]">
+                  {filteredLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-16 text-center text-gray-500">
+                        No authentication logs recorded yet. Events will appear here in real-time as users log in and sign out.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredLogs.map((log, idx) => (
+                      <tr key={log.id || idx} className="hover:bg-white/[0.02] transition-colors">
+                        {/* Event */}
+                        <td className="py-3.5 px-5">
+                          {log.event_type === 'login' ? (
+                            <span className="inline-flex items-center gap-1.5 bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                              LOGGED IN
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 bg-gray-800 text-gray-400 text-[12px] font-medium px-2.5 py-1 rounded-full">
-                              Draft
+                            <span className="inline-flex items-center gap-1.5 bg-gray-800 border border-gray-700 text-gray-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                              <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                              LOGGED OUT
                             </span>
                           )}
                         </td>
 
-                        {/* Membership Tier */}
-                        <td className="py-4 px-5">
-                          {u.is_premium ? (
-                            <span className="inline-flex items-center gap-1 bg-amber-400/20 text-amber-300 text-[12px] font-bold px-2.5 py-1 rounded-full border border-amber-400/30">
-                              <Crown className="w-3 h-3" />
-                              Pro Founding
-                            </span>
-                          ) : (
-                            <span className="text-[12px] text-gray-400">Free Tier</span>
-                          )}
+                        {/* User Account */}
+                        <td className="py-3.5 px-5">
+                          <div className="font-semibold text-white">{log.user_name || 'Job Seeker'}</div>
+                          <div className="text-xs text-gray-400">{log.user_email}</div>
                         </td>
 
-                        {/* Actions */}
-                        <td className="py-4 px-5 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            {/* Inspect */}
-                            <button
-                              onClick={() => setInspectUser(u)}
-                              className="bg-[#27272a] hover:bg-[#3f3f46] text-gray-200 p-2 rounded-xl text-[12px] font-semibold transition-colors cursor-pointer"
-                              title="Inspect Full Profile"
-                            >
-                              Inspect
-                            </button>
+                        {/* IP Address */}
+                        <td className="py-3.5 px-5 font-mono text-xs text-gray-300">
+                          {log.ip_address || 'Direct'}
+                        </td>
 
-                            {/* 1-Click Approve */}
-                            {status !== 'approved' && (
-                              <button
-                                onClick={() => performAction(u.id, 'approve')}
-                                disabled={isLoading}
-                                className="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-xl text-[12px] font-bold transition-colors cursor-pointer"
-                                title="Approve Candidate"
-                              >
-                                <UserCheck className="w-4 h-4" />
-                              </button>
-                            )}
+                        {/* Browser & Device */}
+                        <td className="py-3.5 px-5 text-xs text-gray-400 max-w-xs truncate">
+                          {log.user_agent || 'Web Browser'}
+                        </td>
 
-                            {/* Reject / Request Changes */}
-                            {status !== 'rejected' && (
-                              <button
-                                onClick={() => {
-                                  setRejectModalUser(u)
-                                  setRejectNotes(u.review_notes || '')
-                                }}
-                                disabled={isLoading}
-                                className="bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 border border-amber-500/40 p-2 rounded-xl text-[12px] font-semibold transition-colors cursor-pointer"
-                                title="Reject or Request Changes"
-                              >
-                                <UserX className="w-4 h-4" />
-                              </button>
-                            )}
-
-                            {/* Delete User */}
-                            <button
-                              onClick={() => setDeleteConfirmUser(u)}
-                              disabled={isLoading}
-                              className="bg-red-950/40 hover:bg-red-900 text-red-400 p-2 rounded-xl text-[12px] transition-colors cursor-pointer"
-                              title="Delete User"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                        {/* Timestamp */}
+                        <td className="py-3.5 px-5 text-right text-xs text-gray-400 whitespace-nowrap">
+                          {log.created_at ? new Date(log.created_at).toLocaleString() : 'Just now'}
                         </td>
                       </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* ---------------------------------------------------- */
+          /* VIEW 2: CANDIDATES MANAGEMENT TABLE */
+          /* ---------------------------------------------------- */
+          <div className="bg-[#18181b] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-white/10 bg-[#27272a]/60 text-[12px] font-bold uppercase tracking-wider text-gray-400">
+                    <th className="py-4 px-5">Candidate</th>
+                    <th className="py-4 px-5">Career &amp; Location</th>
+                    <th className="py-4 px-5">Review Status</th>
+                    <th className="py-4 px-5">Tier</th>
+                    <th className="py-4 px-5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-[14px]">
+                  {filteredUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-16 text-center text-gray-500">
+                        No candidates found matching the current filter or search criteria.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredUsers.map((u) => {
+                      const candidateName = u.full_name || u.display_name || 'Job Seeker'
+                      const candidateEmail = u.email || 'Google User'
+                      const status = u.review_status || 'draft'
+                      const isLoading = actionLoadingId === u.id
+
+                      return (
+                        <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
+                          {/* Candidate */}
+                          <td className="py-4 px-5">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-2xl bg-[#27272a] border border-white/10 flex items-center justify-center font-bold text-gray-300 shrink-0">
+                                {candidateName.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <button
+                                  onClick={() => setInspectUser(u)}
+                                  className="font-bold text-white hover:text-[#e02424] transition-colors text-left block cursor-pointer"
+                                >
+                                  {candidateName}
+                                </button>
+                                <span className="text-[12px] text-gray-400 block">{candidateEmail}</span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Career & Location */}
+                          <td className="py-4 px-5">
+                            <div className="font-medium text-gray-200">{u.career_field || 'Not specified'}</div>
+                            <div className="text-[12px] text-gray-400">
+                              {[u.city, u.country].filter(Boolean).join(', ') || 'Remote'}
+                            </div>
+                          </td>
+
+                          {/* Review Status Badge */}
+                          <td className="py-4 px-5">
+                            {status === 'approved' ? (
+                              <span className="inline-flex items-center gap-1 bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-[12px] font-bold px-2.5 py-1 rounded-full">
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                Approved
+                              </span>
+                            ) : status === 'under_review' ? (
+                              <span className="inline-flex items-center gap-1 bg-amber-950/60 border border-amber-500/40 text-amber-400 text-[12px] font-bold px-2.5 py-1 rounded-full animate-pulse">
+                                <Clock className="w-3.5 h-3.5" />
+                                Under Review
+                              </span>
+                            ) : status === 'rejected' ? (
+                              <span className="inline-flex items-center gap-1 bg-red-950/60 border border-red-500/40 text-red-400 text-[12px] font-bold px-2.5 py-1 rounded-full">
+                                <AlertCircle className="w-3.5 h-3.5" />
+                                Rejected
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 bg-gray-800 text-gray-400 text-[12px] font-medium px-2.5 py-1 rounded-full">
+                                Draft
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Membership Tier */}
+                          <td className="py-4 px-5">
+                            {u.is_premium ? (
+                              <span className="inline-flex items-center gap-1 bg-amber-400/20 text-amber-300 text-[12px] font-bold px-2.5 py-1 rounded-full border border-amber-400/30">
+                                <Crown className="w-3 h-3" />
+                                Pro Founding
+                              </span>
+                            ) : (
+                              <span className="text-[12px] text-gray-400">Free Tier</span>
+                            )}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-4 px-5 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {/* Inspect */}
+                              <button
+                                onClick={() => setInspectUser(u)}
+                                className="bg-[#27272a] hover:bg-[#3f3f46] text-gray-200 p-2 rounded-xl text-[12px] font-semibold transition-colors cursor-pointer"
+                                title="Inspect Full Profile"
+                              >
+                                Inspect
+                              </button>
+
+                              {/* 1-Click Approve */}
+                              {status !== 'approved' && (
+                                <button
+                                  onClick={() => performAction(u.id, 'approve')}
+                                  disabled={isLoading}
+                                  className="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-xl text-[12px] font-bold transition-colors cursor-pointer"
+                                  title="Approve Candidate"
+                                >
+                                  <UserCheck className="w-4 h-4" />
+                                </button>
+                              )}
+
+                              {/* Reject / Request Changes */}
+                              {status !== 'rejected' && (
+                                <button
+                                  onClick={() => {
+                                    setRejectModalUser(u)
+                                    setRejectNotes(u.review_notes || '')
+                                  }}
+                                  disabled={isLoading}
+                                  className="bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 border border-amber-500/40 p-2 rounded-xl text-[12px] font-semibold transition-colors cursor-pointer"
+                                  title="Reject or Request Changes"
+                                >
+                                  <UserX className="w-4 h-4" />
+                                </button>
+                              )}
+
+                              {/* Delete User */}
+                              <button
+                                onClick={() => setDeleteConfirmUser(u)}
+                                disabled={isLoading}
+                                className="bg-red-950/40 hover:bg-red-900 text-red-400 p-2 rounded-xl text-[12px] transition-colors cursor-pointer"
+                                title="Delete User"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ---------------------------------------------------- */}
@@ -866,6 +1001,7 @@ export default function AdminPortalPage() {
                     rel="noopener noreferrer"
                     className="bg-[#27272a] hover:bg-[#3f3f46] text-blue-400 px-3.5 py-1.5 rounded-xl border border-white/10 inline-flex items-center gap-1.5"
                   >
+                    <Linkedin className="w-3.5 h-3.5" />
                     <span>LinkedIn</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
@@ -883,6 +1019,7 @@ export default function AdminPortalPage() {
                     rel="noopener noreferrer"
                     className="bg-[#27272a] hover:bg-[#3f3f46] text-gray-300 px-3.5 py-1.5 rounded-xl border border-white/10 inline-flex items-center gap-1.5"
                   >
+                    <Twitter className="w-3.5 h-3.5" />
                     <span>Twitter / X</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
@@ -894,6 +1031,7 @@ export default function AdminPortalPage() {
                     rel="noopener noreferrer"
                     className="bg-[#27272a] hover:bg-[#3f3f46] text-emerald-400 px-3.5 py-1.5 rounded-xl border border-white/10 inline-flex items-center gap-1.5"
                   >
+                    <MessageCircle className="w-3.5 h-3.5" />
                     <span>WhatsApp</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
@@ -916,9 +1054,42 @@ export default function AdminPortalPage() {
                     rel="noopener noreferrer"
                     className="bg-[#27272a] hover:bg-[#3f3f46] text-purple-400 px-3.5 py-1.5 rounded-xl border border-white/10 inline-flex items-center gap-1.5"
                   >
+                    <Github className="w-3.5 h-3.5" />
                     <span>GitHub</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
+                )}
+              </div>
+
+              {/* Candidate Specific Login/Logout Audit Trail */}
+              <div className="p-4 rounded-2xl bg-[#27272a] border border-white/10">
+                <span className="text-[12px] font-bold uppercase tracking-wider text-gray-400 block mb-2">
+                  Candidate Login / Logout Activity ({candidateLogs.length})
+                </span>
+                {candidateLogs.length > 0 ? (
+                  <div className="space-y-2 max-h-36 overflow-y-auto text-xs">
+                    {candidateLogs.map((clog, idx) => (
+                      <div key={clog.id || idx} className="flex items-center justify-between py-1 border-b border-white/5">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              clog.event_type === 'login'
+                                ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-gray-800 text-gray-400'
+                            }`}
+                          >
+                            {clog.event_type.toUpperCase()}
+                          </span>
+                          <span className="text-gray-300 font-mono text-[11px]">{clog.ip_address || 'IP'}</span>
+                        </div>
+                        <span className="text-gray-400">
+                          {clog.created_at ? new Date(clog.created_at).toLocaleString() : 'Recent'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">No previous session logs recorded for this user.</p>
                 )}
               </div>
             </div>
@@ -1053,4 +1224,3 @@ export default function AdminPortalPage() {
     </div>
   )
 }
-

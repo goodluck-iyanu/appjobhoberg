@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Globe,
 } from '@/components/icons'
+import SignOutButton from '@/components/SignOutButton'
 
 interface MobileMenuProps {
   userEmail?: string | null
@@ -167,22 +168,6 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
                 <ArrowRight className="w-4 h-4 text-[#86868b]" />
               </Link>
 
-              {userEmail && (
-                <Link
-                  href="/profile"
-                  onClick={close}
-                  className="flex items-center justify-between p-3.5 rounded-2xl bg-[#f5f5f7] hover:bg-[#ebebed] text-[#1d1d1f] transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                      <ShieldCheck className="w-4 h-4" />
-                    </div>
-                    <span className="font-semibold text-[15px]">My Career Profile</span>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-[#86868b]" />
-                </Link>
-              )}
-
               <Link
                 href="/premium"
                 onClick={close}
@@ -221,15 +206,11 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
                     <span>Open Dashboard</span>
                   </Link>
 
-                  <form action="/auth/signout" method="POST">
-                    <button
-                      type="submit"
-                      onClick={close}
-                      className="flex items-center justify-center w-full py-2.5 rounded-full text-[13px] font-medium text-[#86868b] hover:text-[#1d1d1f] hover:bg-[#f5f5f7] transition-colors cursor-pointer"
-                    >
-                      Sign Out
-                    </button>
-                  </form>
+                  <SignOutButton
+                    variant="mobile"
+                    onSignedOut={close}
+                    className="flex items-center justify-center w-full py-2.5 rounded-full text-[13px] font-medium text-[#86868b] hover:text-[#1d1d1f] hover:bg-[#f5f5f7] transition-colors cursor-pointer"
+                  />
                 </>
               ) : (
                 <>

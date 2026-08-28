@@ -15,7 +15,7 @@ export async function GET() {
   try {
     const supabase = createAdminClient()
 
-    // Fetch all user profiles
+    // 1. Fetch all user profiles
     const { data: profiles, error } = await supabase
       .from('profiles')
       .select('*')
@@ -27,7 +27,20 @@ export async function GET() {
 
     const users = profiles || []
 
-    // Calculate live overview metrics
+    // 2. Fetch recent authentication audit logs (logins & logouts)
+    let authLogs: any[] = []
+    try {
+      const { data: logs } = await supabase
+        .from('auth_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100)
+      authLogs = logs || []
+    } catch {
+      authLogs = []
+    }
+
+    // 3. Calculate live overview metrics
     const totalUsers = users.length
     const underReview = users.filter((u) => u.review_status === 'under_review').length
     const approved = users.filter((u) => u.review_status === 'approved').length
@@ -50,11 +63,12 @@ export async function GET() {
         premiumUsers,
         freeUsers,
         estimatedRevenue,
+        totalAuthLogs: authLogs.length,
       },
       users,
+      authLogs,
     })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Failed to fetch users' }, { status: 500 })
   }
 }
-

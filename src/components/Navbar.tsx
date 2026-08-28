@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 import MobileMenu from '@/components/MobileMenu'
+import SignOutButton from '@/components/SignOutButton'
 import { Crown } from '@/components/icons'
 
 export default async function Navbar() {
@@ -74,14 +75,7 @@ export default async function Navbar() {
                 {isPremium && <Crown className="w-3.5 h-3.5 text-amber-500" />}
                 <span>Dashboard</span>
               </Link>
-              <form action="/auth/signout" method="POST">
-                <button
-                  type="submit"
-                  className="text-[13px] font-medium text-[#86868b] hover:text-[#1d1d1f] transition-colors"
-                >
-                  Log out
-                </button>
-              </form>
+              <SignOutButton />
             </div>
           ) : (
             <div className="hidden md:flex items-center gap-3">
