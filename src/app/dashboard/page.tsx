@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 import {
   Crown,
   Briefcase,
@@ -11,6 +12,8 @@ import {
   ShieldCheck,
   Clock,
   ExternalLink,
+  Sparkles,
+  Lock,
 } from '@/components/icons'
 
 export default async function DashboardPage({
@@ -32,7 +35,8 @@ export default async function DashboardPage({
   // If returning from Paystack with a reference, ensure profile is updated
   if (upgraded === 'true') {
     try {
-      await supabase
+      const adminSupabase = createAdminClient()
+      await adminSupabase
         .from('profiles')
         .update({
           is_premium: true,
@@ -46,28 +50,44 @@ export default async function DashboardPage({
     }
   }
 
+  const adminSupabase = createAdminClient()
+
   // Fetch current user profile
-  const { data: profile } = await supabase
+  const { data: profile } = await adminSupabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  // Fetch user applications
-  const { data: applications } = await supabase
+  // Fetch all user applications
+  const { data: applications } = await adminSupabase
     .from('applications')
     .select('*')
     .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
 
   const displayName =
     profile?.full_name ||
     profile?.display_name ||
     user.user_metadata?.full_name ||
     user.email?.split('@')[0] ||
-    'User'
+    'Job Seeker'
 
   const isPremium = profile?.is_premium || upgraded === 'true'
   const reviewStatus: 'draft' | 'under_review' | 'approved' | 'rejected' = profile?.review_status || 'draft'
+
+  // Calculate monthly application usage
+  const startOfMonth = new Date()
+  startOfMonth.setDate(1)
+  startOfMonth.setHours(0, 0, 0, 0)
+
+  const monthlyApps = (applications || []).filter((app: any) => {
+    return new Date(app.created_at) >= startOfMonth
+  })
+  const monthlyCount = monthlyApps.length
+  const freeLimit = 3
+  const remainingApps = isPremium ? 'Unlimited' : Math.max(0, freeLimit - monthlyCount)
+  const isLimitReached = !isPremium && monthlyCount >= freeLimit
 
   return (
     <div className="flex-1 bg-[#f5f5f7] py-10 sm:py-16">
@@ -79,7 +99,7 @@ export default async function DashboardPage({
               <Crown className="w-7 h-7 text-amber-200 shrink-0" />
               <div>
                 <h3 className="font-bold text-[16px]">🎉 Welcome to Hoberg Premium!</h3>
-                <p className="text-[13px] text-white/90">Your account has been upgraded to Founding Member status.</p>
+                <p className="text-[13px] text-white/90">Your account has been upgraded to Founding Member status with Unlimited Applications.</p>
               </div>
             </div>
           </div>
@@ -98,61 +118,108 @@ export default async function DashboardPage({
             <div>
               <div className="flex items-center gap-2 mb-2 flex-wrap">
                 {isPremium ? (
-                  <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-800 border border-amber-300 text-[12px] font-bold px-3 py-1 rounded-full">
-                    <Crown className="w-3.5 h-3.5 text-amber-500" />
-                    Premium Member
+                  <span className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 border border-amber-300 text-[12px] font-bold px-3 py-1 rounded-full">
+                    <Crown className="w-3.5 h-3.5 text-amber-700" />
+                    Pro Founding Member &bull; Unlimited Applications
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 bg-gray-100 text-[#1d1d1f] text-[12px] font-semibold px-3 py-1 rounded-full">
-                    Free Account
+                  <span className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-700 text-[12px] font-medium px-3 py-1 rounded-full">
+                    Free Tier &bull; 3 Monthly Applications
                   </span>
                 )}
 
                 {reviewStatus === 'approved' ? (
-                  <span className="inline-flex items-center gap-1 text-[12px] font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    <CheckCircle className="w-3 h-3" />
-                    Verified &amp; Approved
+                  <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[12px] font-bold px-3 py-1 rounded-full">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    Verified Candidate
                   </span>
                 ) : reviewStatus === 'under_review' ? (
-                  <span className="inline-flex items-center gap-1 text-[12px] font-medium text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                    <Clock className="w-3 h-3 text-amber-600" />
-                    Under Review
+                  <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[12px] font-bold px-3 py-1 rounded-full">
+                    <Clock className="w-3.5 h-3.5 text-amber-600" />
+                    Profile Under Review
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-[12px] font-medium text-red-700 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200">
-                    Action Required
+                  <span className="inline-flex items-center gap-1 bg-red-100 text-[#e02424] text-[12px] font-bold px-3 py-1 rounded-full">
+                    Profile Verification Needed
                   </span>
                 )}
               </div>
 
-              <h1 className="text-[26px] sm:text-[34px] font-bold text-[#1d1d1f] tracking-tight">
-                Welcome, {displayName}!
+              <h1 className="text-[26px] sm:text-[32px] font-bold text-[#1d1d1f] tracking-tight">
+                Welcome back, {displayName}
               </h1>
-              <p className="text-[14px] sm:text-[15px] text-[#86868b] mt-1">
-                {user.email} &bull; {profile?.career_field || 'Remote Professional'}
+              <p className="text-[15px] text-[#86868b] mt-1">
+                Manage your verified career profile and track all submitted job applications.
               </p>
             </div>
 
             <div className="flex items-center gap-3">
               <Link
                 href="/profile"
-                className="bg-[#1d1d1f] hover:bg-[#2d2d30] text-white text-[14px] font-semibold px-5 py-2.5 rounded-full transition-colors"
+                className="bg-[#1d1d1f] hover:bg-black text-white font-semibold text-[14px] px-5 py-2.5 rounded-full transition-colors shrink-0 shadow-sm"
               >
                 Edit Profile
               </Link>
-              <form action="/auth/signout" method="POST">
-                <button
-                  type="submit"
-                  className="bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] text-[14px] font-medium px-4 py-2.5 rounded-full border border-[#d2d2d7]/60 transition-colors cursor-pointer"
-                >
-                  Sign Out
-                </button>
-              </form>
             </div>
           </div>
         </div>
 
-        {/* Profile Review Status Banner */}
+        {/* Monthly Application Allowance Card */}
+        <div className="bg-white border border-[#d2d2d7]/70 rounded-3xl p-6 sm:p-8 mb-8 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div>
+              <span className="text-[12px] font-bold uppercase tracking-wider text-[#86868b]">
+                Monthly Application Limit
+              </span>
+              <h3 className="text-[18px] sm:text-[20px] font-bold text-[#1d1d1f]">
+                {isPremium ? (
+                  <span className="text-amber-600 flex items-center gap-1.5">
+                    <Crown className="w-5 h-5" /> Unlimited Applications Active
+                  </span>
+                ) : (
+                  <span>
+                    {monthlyCount} of 3 free applications used this month
+                  </span>
+                )}
+              </h3>
+            </div>
+
+            {!isPremium && (
+              <Link
+                href="/premium"
+                className={`inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-2 rounded-full transition-all shadow-sm ${
+                  isLimitReached
+                    ? 'bg-gradient-to-r from-amber-500 to-[#e02424] text-white hover:opacity-95'
+                    : 'bg-red-50 text-[#e02424] hover:bg-red-100 border border-red-200'
+                }`}
+              >
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                <span>{isLimitReached ? 'Upgrade for Unlimited' : 'Get Unlimited for ₦4,000'}</span>
+              </Link>
+            )}
+          </div>
+
+          {/* Progress Bar for Free users */}
+          {!isPremium && (
+            <div>
+              <div className="w-full bg-[#f5f5f7] h-3 rounded-full overflow-hidden mb-2 border border-gray-100">
+                <div
+                  className={`h-full transition-all duration-500 rounded-full ${
+                    isLimitReached ? 'bg-[#e02424]' : monthlyCount >= 2 ? 'bg-amber-500' : 'bg-emerald-500'
+                  }`}
+                  style={{ width: `${Math.min(100, (monthlyCount / 3) * 100)}%` }}
+                />
+              </div>
+              <p className="text-[12px] text-[#86868b]">
+                {isLimitReached
+                  ? '⚠️ You have used your 3 free applications for this month. Upgrade to Premium to unlock more.'
+                  : `${remainingApps} free application(s) remaining for this calendar month.`}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Verification Status Card */}
         {reviewStatus === 'under_review' ? (
           <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 sm:p-7 mb-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
             <div className="flex items-start gap-4">
@@ -160,22 +227,22 @@ export default async function DashboardPage({
                 <Clock className="w-6 h-6" />
               </div>
               <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-200/80 text-amber-900 text-[11px] font-bold uppercase tracking-wider mb-1">
-                  🟡 Profile Under Review
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-900 text-[11px] font-bold uppercase tracking-wider mb-1">
+                  🟡 Under Review
                 </div>
                 <h3 className="font-bold text-[16px] text-amber-950">
-                  Our team is reviewing your professional profile
+                  Profile is currently being reviewed by Hoberg
                 </h3>
                 <p className="text-[13px] text-amber-800/90 mt-0.5 leading-relaxed">
-                  Usually reviewed <strong className="text-amber-950">within 24 hours</strong>. Once approved, you can apply directly to all remote job openings.
+                  Expected review turnaround: <strong className="text-amber-950">within 24 hours</strong>. We will notify you once approved.
                 </p>
               </div>
             </div>
             <Link
               href="/profile"
-              className="bg-white hover:bg-gray-50 text-[#1d1d1f] font-semibold text-[13px] px-5 py-2.5 rounded-full border border-gray-300 transition-colors shrink-0 shadow-sm"
+              className="bg-white hover:bg-amber-100/60 text-amber-900 font-semibold text-[13px] px-5 py-2.5 rounded-full border border-amber-300 transition-colors shrink-0 shadow-sm"
             >
-              View Profile Status
+              Check Status
             </Link>
           </div>
         ) : reviewStatus === 'approved' ? (
@@ -230,123 +297,53 @@ export default async function DashboardPage({
           </div>
         )}
 
-        {/* Premium Upgrade Banner if not premium */}
-        {!isPremium && (
-          <div className="bg-gradient-to-r from-[#1d1d1f] to-[#2e2e33] text-white p-6 sm:p-8 rounded-3xl mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-md border border-white/10">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-amber-400/20 rounded-2xl flex items-center justify-center shrink-0 border border-amber-400/30 text-amber-300">
-                <Crown className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-[18px] text-white">Upgrade to Founding Member (20% OFF)</h3>
-                <p className="text-[14px] text-white/70 mt-0.5">Unlock curated premium remote opportunities and direct recruiter tips with Paystack.</p>
-              </div>
+        {/* Application History */}
+        <div className="bg-white border border-[#d2d2d7]/70 rounded-3xl p-6 sm:p-8 mb-8 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-[18px] font-bold text-[#1d1d1f]">Submitted Applications</h2>
+              <p className="text-[13px] text-[#86868b]">All opportunities you have applied to via Hoberg Jobs</p>
             </div>
             <Link
-              href="/premium"
-              className="bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold text-[14px] px-6 py-3 rounded-full transition-colors shrink-0 shadow-sm"
+              href="/jobs"
+              className="text-[13px] font-semibold text-[#e02424] hover:underline inline-flex items-center gap-1"
             >
-              Upgrade for ₦4,000
-            </Link>
-          </div>
-        )}
-
-        {/* Profile Stats / Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-          <div className="bg-white border border-[#d2d2d7]/70 rounded-2xl p-6 shadow-sm">
-            <div className="w-10 h-10 bg-red-50 text-[#e02424] rounded-xl flex items-center justify-center mb-4">
-              <Briefcase className="w-5 h-5" />
-            </div>
-            <h3 className="text-[16px] font-semibold text-[#1d1d1f] mb-1">Career Profile</h3>
-            <p className="text-[13px] text-[#86868b] mb-4">
-              {profile?.career_field ? `Field: ${profile.career_field}` : 'Add your career field and skills for verification.'}
-            </p>
-            <Link href="/profile" className="text-[13px] font-semibold text-[#e02424] hover:underline inline-flex items-center">
-              Update details <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              <span>Explore more jobs</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <div className="bg-white border border-[#d2d2d7]/70 rounded-2xl p-6 shadow-sm">
-            <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4">
-              <Bookmark className="w-5 h-5" />
-            </div>
-            <h3 className="text-[16px] font-semibold text-[#1d1d1f] mb-1">Saved Roles</h3>
-            <p className="text-[13px] text-[#86868b] mb-4">
-              Bookmark interesting opportunities while browsing to review later.
-            </p>
-            <Link href="/jobs" className="text-[13px] font-semibold text-[#e02424] hover:underline inline-flex items-center">
-              Find more jobs <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </Link>
-          </div>
-
-          <div className="bg-white border border-[#d2d2d7]/70 rounded-2xl p-6 shadow-sm">
-            <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4">
-              <FileText className="w-5 h-5" />
-            </div>
-            <h3 className="text-[16px] font-semibold text-[#1d1d1f] mb-1">Applications</h3>
-            <p className="text-[13px] text-[#86868b] mb-4">
-              {applications && applications.length > 0 ? `${applications.length} active application(s)` : 'Track all roles you have applied for in one place.'}
-            </p>
-            <Link href="/jobs" className="text-[13px] font-semibold text-[#e02424] hover:underline inline-flex items-center">
-              Explore openings <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Curated Opportunities for Premium Users */}
-        {isPremium && (
-          <div className="bg-white border border-amber-200/80 rounded-3xl p-6 sm:p-8 mb-8 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 bg-amber-100 text-amber-800 rounded-lg flex items-center justify-center">
-                  <Crown className="w-4 h-4" />
-                </div>
-                <div>
-                  <h2 className="text-[18px] font-bold text-[#1d1d1f]">Curated Premium Opportunities</h2>
-                  <p className="text-[13px] text-[#86868b]">Exclusive high-compensation remote positions selected by Hoberg</p>
-                </div>
-              </div>
-              <span className="bg-amber-100 text-amber-800 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                PRO Feed
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              {[
-                {
-                  title: 'Executive Remote Operations Lead ($90,000 - $120,000/yr)',
-                  company: 'Global Talent Partners',
-                  loc: 'Worldwide / Africa Eligible',
-                  tips: 'Application tip: Highlight process automation and cross-functional leadership in your intro.',
-                },
-                {
-                  title: 'Senior Fintech Product Manager ($110,000 - $145,000/yr)',
-                  company: 'Apex Horizon Payments',
-                  loc: 'Remote (US / UK / Nigeria)',
-                  tips: 'Application tip: Emphasize API payment integrations and compliance track record.',
-                }
-              ].map((pJob, idx) => (
-                <div key={idx} className="bg-[#fafafc] border border-gray-200/70 p-4 sm:p-5 rounded-2xl hover:border-amber-400 transition-colors">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h4 className="font-bold text-[16px] text-[#1d1d1f]">{pJob.title}</h4>
-                      <p className="text-[13px] text-[#86868b] mt-0.5">{pJob.company} &bull; {pJob.loc}</p>
-                      <p className="text-[12px] text-amber-700 bg-amber-50 border border-amber-200/60 px-3 py-1.5 rounded-lg mt-3 inline-block">
-                        💡 {pJob.tips}
-                      </p>
-                    </div>
-                    <Link
-                      href="/jobs"
-                      className="bg-[#e02424] text-white text-[13px] font-semibold px-4 py-2 rounded-full hover:bg-[#c81e1e] transition-colors shrink-0 cursor-pointer"
-                    >
-                      Apply
-                    </Link>
+          {applications && applications.length > 0 ? (
+            <div className="divide-y divide-gray-100">
+              {applications.map((app: any) => (
+                <div key={app.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h4 className="font-bold text-[15px] text-[#1d1d1f]">{app.job_title}</h4>
+                    <p className="text-[13px] text-[#86868b]">{app.company_name} &bull; Applied on {new Date(app.created_at).toLocaleDateString()}</p>
                   </div>
+                  {app.apply_url && (
+                    <a
+                      href={app.apply_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-[13px] text-[#e02424] hover:underline font-semibold"
+                    >
+                      <span>Revisit Portal</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="py-10 text-center text-[#86868b]">
+              <p className="text-[14px]">You haven&apos;t submitted any applications yet.</p>
+              <Link href="/jobs" className="text-[13px] font-bold text-[#e02424] hover:underline mt-2 inline-block">
+                Start browsing remote jobs &rarr;
+              </Link>
+            </div>
+          )}
+        </div>
 
         {/* Explore Latest Jobs CTA */}
         <div className="bg-gradient-to-r from-[#e02424] to-[#b91c1c] rounded-3xl p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
