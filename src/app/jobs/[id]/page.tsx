@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { createAdminClient } from '@/utils/supabase/admin'
 import { fetchJobById } from '@/utils/jobs'
 import {
   MapPin,
@@ -46,22 +45,19 @@ export default async function JobDetails({
     user = authUser
 
     if (user) {
-      const adminSupabase = createAdminClient()
-
       // Fetch or auto-create profile
       try {
-        let { data: profile } = await adminSupabase
+        let { data: profile } = await supabase
           .from('profiles')
           .select('review_status, is_premium')
           .eq('id', user.id)
           .maybeSingle()
 
         if (!profile) {
-          const { data: newProf } = await adminSupabase
+          const { data: newProf } = await supabase
             .from('profiles')
             .insert({
               id: user.id,
-              email: user.email,
               full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
               display_name: user.user_metadata?.full_name || user.email?.split('@')[0],
               review_status: 'draft',
@@ -85,7 +81,7 @@ export default async function JobDetails({
         const now = new Date()
         const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
 
-        const { data: monthlyApps } = await adminSupabase
+        const { data: monthlyApps } = await supabase
           .from('applications')
           .select('id, created_at')
           .eq('user_id', user.id)
