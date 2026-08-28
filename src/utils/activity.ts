@@ -66,3 +66,4 @@ export async function logAuthActivity({
     console.error('Failed to log auth activity:', err)
   }
 }
+

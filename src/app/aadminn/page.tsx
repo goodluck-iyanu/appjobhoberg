@@ -1062,34 +1062,95 @@ export default function AdminPortalPage() {
               </div>
 
               {/* Candidate Specific Login/Logout Audit Trail */}
-              <div className="p-4 rounded-2xl bg-[#27272a] border border-white/10">
-                <span className="text-[12px] font-bold uppercase tracking-wider text-gray-400 block mb-2">
-                  Candidate Login / Logout Activity ({candidateLogs.length})
-                </span>
+              <div className="p-5 rounded-2xl bg-[#202023] border border-white/10 space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-[#e02424]" />
+                    <span className="text-[13px] font-bold text-white uppercase tracking-wider">
+                      User Login &amp; Logout History ({candidateLogs.length})
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-medium text-gray-400">
+                    Real-time Security Footprint
+                  </span>
+                </div>
+
+                {/* Quick Status Stats */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                  <div className="p-2.5 rounded-xl bg-[#27272a] border border-white/5">
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Last Sign In</span>
+                    <span className="text-[12px] font-semibold text-emerald-400 block truncate">
+                      {inspectUser.last_login_at
+                        ? new Date(inspectUser.last_login_at).toLocaleString()
+                        : candidateLogs.find((l) => l.event_type === 'login')?.created_at
+                        ? new Date(candidateLogs.find((l) => l.event_type === 'login')!.created_at).toLocaleString()
+                        : 'No login logged'}
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-[#27272a] border border-white/5">
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Last Sign Out</span>
+                    <span className="text-[12px] font-semibold text-gray-300 block truncate">
+                      {inspectUser.last_logout_at
+                        ? new Date(inspectUser.last_logout_at).toLocaleString()
+                        : candidateLogs.find((l) => l.event_type === 'logout')?.created_at
+                        ? new Date(candidateLogs.find((l) => l.event_type === 'logout')!.created_at).toLocaleString()
+                        : 'No signout logged'}
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-[#27272a] border border-white/5 col-span-2 sm:col-span-1">
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block">Total Recorded</span>
+                    <span className="text-[12px] font-bold text-white block">
+                      {candidateLogs.length} Events
+                    </span>
+                  </div>
+                </div>
+
+                {/* Detailed Event Log List */}
                 {candidateLogs.length > 0 ? (
-                  <div className="space-y-2 max-h-36 overflow-y-auto text-xs">
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1 text-xs divide-y divide-white/5">
                     {candidateLogs.map((clog, idx) => (
-                      <div key={clog.id || idx} className="flex items-center justify-between py-1 border-b border-white/5">
-                        <div className="flex items-center gap-2">
+                      <div key={clog.id || idx} className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                        <div className="flex items-center gap-2.5">
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
                               clog.event_type === 'login'
-                                ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-gray-800 text-gray-400'
+                                ? 'bg-emerald-950/70 text-emerald-400 border border-emerald-500/40'
+                                : 'bg-gray-800 text-gray-300 border border-gray-700'
                             }`}
                           >
-                            {clog.event_type.toUpperCase()}
+                            {clog.event_type === 'login' ? '🟢 LOGGED IN' : '⚪ LOGGED OUT'}
                           </span>
-                          <span className="text-gray-300 font-mono text-[11px]">{clog.ip_address || 'IP'}</span>
+
+                          <span className="text-gray-300 font-mono text-[11px] bg-black/30 px-2 py-0.5 rounded border border-white/5">
+                            {clog.ip_address || 'Direct IP'}
+                          </span>
                         </div>
-                        <span className="text-gray-400">
-                          {clog.created_at ? new Date(clog.created_at).toLocaleString() : 'Recent'}
-                        </span>
+
+                        <div className="flex items-center justify-between sm:justify-end gap-3 text-gray-400 text-[11px]">
+                          <span className="truncate max-w-[140px] text-gray-400" title={clog.user_agent}>
+                            {clog.user_agent?.includes('iPhone')
+                              ? '📱 iPhone Safari'
+                              : clog.user_agent?.includes('Android')
+                              ? '📱 Android Chrome'
+                              : clog.user_agent?.includes('Mac')
+                              ? '💻 Mac Desktop'
+                              : clog.user_agent?.includes('Windows')
+                              ? '💻 Windows PC'
+                              : '🌐 Web Browser'}
+                          </span>
+                          <span className="text-gray-400 whitespace-nowrap">
+                            {clog.created_at ? new Date(clog.created_at).toLocaleString() : 'Just now'}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-500">No previous session logs recorded for this user.</p>
+                  <p className="text-xs text-gray-500 py-1">
+                    No login/logout history recorded yet for this candidate. Future logins and logouts will automatically be captured here.
+                  </p>
                 )}
               </div>
             </div>

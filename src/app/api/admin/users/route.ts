@@ -34,7 +34,7 @@ export async function GET() {
         .from('auth_logs')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(100)
+        .limit(500)
       authLogs = logs || []
     } catch {
       authLogs = []
