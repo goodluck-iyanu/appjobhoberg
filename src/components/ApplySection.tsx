@@ -53,6 +53,19 @@ export default function ApplySection({
     setLoading(true)
     setErrorMsg(null)
 
+    // 1. Immediately open official application portal in new tab
+    try {
+      window.open(job.apply_url, '_blank', 'noopener,noreferrer')
+      setApplied(true)
+      toast.success(
+        'Opening Official Application Portal',
+        `Redirecting to application for ${job.title} at ${job.company_name}...`
+      )
+    } catch (e) {
+      console.error('Window open note:', e)
+    }
+
+    // 2. Record application in backend
     try {
       const res = await fetch('/api/applications/apply', {
         method: 'POST',
@@ -68,33 +81,17 @@ export default function ApplySection({
       const data = await res.json()
 
       if (data.success) {
-        setApplied(true)
-        if (!isPremium) {
+        if (!isPremium && typeof data.monthlyCount === 'number') {
+          setMonthlyCount(data.monthlyCount)
+        } else if (!isPremium) {
           setMonthlyCount((prev) => prev + 1)
         }
-        toast.success(
-          'Redirecting to Official Application',
-          `Opening application portal for ${job.title} at ${job.company_name}...`
-        )
-        // Open official employer portal in a new tab
-        window.open(job.apply_url, '_blank', 'noopener,noreferrer')
-      } else {
-        if (data.limitReached) {
-          setMonthlyCount(3)
-          toast.warning('Limit Reached', 'You have used all 3 free applications for this month.')
-        } else if (data.needsApproval) {
-          toast.warning(
-            'Verification Required',
-            data.error || 'Your profile must be approved before applying.'
-          )
-        } else {
-          toast.error('Application Error', data.error || 'Failed to initiate application.')
-        }
-        setErrorMsg(data.error || 'Failed to initiate application.')
+      } else if (data.limitReached) {
+        setMonthlyCount(3)
+        toast.warning('Monthly Limit Reached', 'You have used all 3 free applications for this month.')
       }
     } catch {
-      toast.info('Opening Application', 'Opening direct employer page...')
-      window.open(job.apply_url, '_blank', 'noopener,noreferrer')
+      // Direct apply already opened
     } finally {
       setLoading(false)
     }

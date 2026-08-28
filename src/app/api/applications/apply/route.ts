@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { success: false, error: 'You must be signed in to apply.' },
+        { success: false, error: 'You must be signed in with Google to apply.' },
         { status: 401 }
       )
     }
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       .eq('id', user.id)
       .maybeSingle()
 
-    // If profile doesn't exist, create an initial profile
+    // If profile doesn't exist, create an approved profile
     if (!profile) {
       const { data: newProfile } = await adminSupabase
         .from('profiles')
@@ -52,8 +52,8 @@ export async function POST(req: NextRequest) {
 
     const isPremium = Boolean(profile?.is_premium)
 
-    // If user is a Premium member, ensure profile is marked approved with VIP instant access
-    if (isPremium && profile?.review_status !== 'approved') {
+    // Ensure candidate is approved unless explicitly banned/rejected
+    if (profile?.review_status !== 'rejected' && profile?.review_status !== 'approved') {
       await adminSupabase
         .from('profiles')
         .update({ review_status: 'approved' })
@@ -61,23 +61,7 @@ export async function POST(req: NextRequest) {
       if (profile) profile.review_status = 'approved'
     }
 
-    // For non-premium members, check review_status
-    if (!isPremium && profile?.review_status !== 'approved') {
-      return NextResponse.json(
-        {
-          success: false,
-          needsApproval: true,
-          reviewStatus: profile?.review_status || 'draft',
-          error:
-            profile?.review_status === 'under_review'
-              ? 'Your profile is currently under review by our team. Once approved, you can apply immediately.'
-              : 'Please complete your career profile and submit it for verification before applying.',
-        },
-        { status: 403 }
-      )
-    }
-
-    // 2. Count applications in the current calendar month using server UTC time
+    // 2. Count applications in current calendar month using server UTC time
     const now = new Date()
     const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
 
@@ -102,7 +86,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 4. Record application in database
+    // 4. Record application in database with server UTC timestamp
     const serverTimestamp = new Date().toISOString()
     try {
       await adminSupabase.from('applications').insert({
@@ -114,7 +98,7 @@ export async function POST(req: NextRequest) {
         created_at: serverTimestamp,
       })
     } catch (e) {
-      console.error('Applications table logging note:', e)
+      console.error('Applications logging note:', e)
     }
 
     const newCount = monthlyCount + 1
