@@ -367,6 +367,12 @@ export default function AdminPortalPage() {
 
   // Candidate specific applications for modal
   const candidateApplications = useMemo(() => {
+    if (!inspectUser) return []
+    return applications.filter((app) => app.user_id === inspectUser.id)
+  }, [applications, inspectUser])
+
+  if (authChecking) {
+    return (
       <div className="flex-1 bg-[#121214] text-white py-32 flex flex-col items-center justify-center">
         <div className="w-10 h-10 border-4 border-[#e02424] border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-gray-400 text-[14px]">Verifying secure session...</p>
