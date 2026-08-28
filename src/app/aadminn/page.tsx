@@ -30,7 +30,10 @@ import {
   Twitter,
   MessageCircle,
   Github,
+  Activity,
+  History,
 } from '@/components/icons'
+import { useToast } from '@/components/Toast'
 
 interface UserProfile {
   id: string
@@ -113,6 +116,7 @@ function formatServerTimestamp(isoString?: string | null) {
 }
 
 export default function AdminPortalPage() {
+  const toast = useToast()
   // Auth state
   const [authChecking, setAuthChecking] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
@@ -226,12 +230,15 @@ export default function AdminPortalPage() {
 
       if (data.success) {
         setAuthenticated(true)
+        toast.success('Admin Authenticated 🔐', 'Welcome to Hoberg Admin Command Center.')
         fetchDashboardData()
       } else {
         setLoginError(data.error || 'Invalid credentials')
+        toast.error('Login Failed', data.error || 'Invalid admin credentials')
       }
     } catch {
       setLoginError('Authentication service unreachable.')
+      toast.error('Network Error', 'Authentication service unreachable.')
     } finally {
       setLoginLoading(false)
     }
@@ -242,6 +249,7 @@ export default function AdminPortalPage() {
     await fetch('/api/admin/logout', { method: 'POST' })
     setAuthenticated(false)
     setLoginPassword('')
+    toast.info('Admin Signed Out', 'You have been logged out of the admin center.')
   }
 
   // Perform Admin Action (Approve, Reject, Toggle Premium, Delete)
@@ -281,13 +289,20 @@ export default function AdminPortalPage() {
             setInspectUser(null)
           }
         }
-        setRejectModalUser(null)
-        setDeleteConfirmUser(null)
+        if (action === 'approve') {
+          toast.success('Account Approved! 🟢', 'Candidate can now apply for jobs immediately.')
+        } else if (action === 'reject') {
+          toast.warning('Account Rejected', 'Candidate status updated.')
+        } else if (action === 'toggle_premium') {
+          toast.success('Membership Updated', 'Candidate premium access toggled.')
+        } else if (action === 'delete') {
+          toast.info('Candidate Removed', 'User profile deleted from platform.')
+        }
       } else {
-        alert(data.error || 'Action could not be completed.')
+        toast.error('Action Failed', data.error || 'Action could not be completed.')
       }
     } catch {
-      alert('Network error executing admin action.')
+      toast.error('Network Error', 'Network error executing admin action.')
     } finally {
       setActionLoadingId(null)
     }

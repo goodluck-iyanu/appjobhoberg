@@ -57,7 +57,11 @@ export async function GET(request: Request) {
         userAgent,
       })
 
-      return NextResponse.redirect(`${origin}${next}`)
+      const redirectUrl = next.includes('?')
+        ? `${origin}${next}&toast=login_success`
+        : `${origin}${next}?toast=login_success`
+
+      return NextResponse.redirect(redirectUrl)
     }
   }
 

@@ -24,9 +24,11 @@ import {
   MapPin,
 } from '@/components/icons'
 import { COUNTRIES_DATA, isValidLinkedInUrl, isValidUrl } from '@/utils/locations'
+import { useToast } from '@/components/Toast'
 
 export default function ProfilePage() {
   const supabase = createClient()
+  const toast = useToast()
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -190,63 +192,48 @@ export default function ProfilePage() {
   ])
 
   const saveProfileData = async (targetStatus?: 'draft' | 'under_review') => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      throw new Error('You must be signed in to update your profile.')
-    }
+    const nextStatus = targetStatus || reviewStatus
 
     const skillsArray = skills
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean)
 
-    const nextStatus = targetStatus || reviewStatus
-
-    const updatePayload: Record<string, any> = {
-      id: user.id,
-      full_name: fullName,
-      display_name: fullName,
+    const payload = {
+      fullName,
       country,
       city: effectiveCity,
-      career_field: careerField,
-      desired_roles: desiredRoles,
-      user_status: userStatus,
-      education_level: educationLevel,
+      careerField,
+      desiredRoles,
+      userStatus,
+      educationLevel,
       institution,
-      graduation_year: graduationYear,
-      experience_years: experienceYears,
-      experience_summary: experienceSummary,
+      graduationYear,
+      experienceYears,
+      experienceSummary,
       skills: skillsArray,
-      resume_url: resumeUrl,
-      linkedin_url: linkedinUrl,
-      twitter_url: twitterUrl,
-      whatsapp_number: whatsappNumber,
-      github_url: githubUrl,
-      portfolio_url: portfolioUrl,
-      job_type_preference: jobTypePreference,
-      expected_salary: expectedSalary,
-      review_status: nextStatus,
-      updated_at: new Date().toISOString(),
+      resumeUrl,
+      linkedinUrl,
+      twitterUrl,
+      whatsappNumber,
+      githubUrl,
+      portfolioUrl,
+      jobTypePreference,
+      expectedSalary,
+      reviewStatus: nextStatus,
+      targetStatus,
     }
 
-    if (targetStatus === 'under_review') {
-      updatePayload.submitted_at = new Date().toISOString()
-    }
+    const res = await fetch('/api/profile/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
 
-    let { error } = await supabase.from('profiles').upsert(updatePayload)
+    const data = await res.json()
 
-    // Fallback: If 'full_name' or other specific column is not yet in Supabase schema cache
-    if (error && error.message?.includes('full_name')) {
-      delete updatePayload.full_name
-      const retryResult = await supabase.from('profiles').upsert(updatePayload)
-      error = retryResult.error
-    }
-
-    if (error) {
-      throw error
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to save profile.')
     }
 
     if (targetStatus) {
@@ -260,10 +247,12 @@ export default function ProfilePage() {
     setMsg(null)
 
     try {
-      await saveProfileData()
-      setMsg({ type: 'success', text: 'Profile changes saved successfully!' })
+      await saveProfileData('draft')
+      setMsg({ type: 'success', text: 'Profile draft saved successfully!' })
+      toast.success('Draft Saved', 'Your profile details have been saved.')
     } catch (err: any) {
       setMsg({ type: 'error', text: err?.message || 'Failed to save changes.' })
+      toast.error('Save Failed', err?.message || 'Could not save profile.')
     } finally {
       setSaving(false)
     }
@@ -271,19 +260,17 @@ export default function ProfilePage() {
 
   const handleSubmitForReview = async () => {
     if (!fullName.trim() || !country.trim() || !effectiveCity.trim() || !careerField || !skills.trim() || !resumeUrl.trim()) {
-      setMsg({
-        type: 'error',
-        text: 'Please complete all required fields (Full Name, Country, City, Career, Skills, and CV Link) before submitting for review.',
-      })
+      const errorText = 'Please complete all required fields (Full Name, Country, City, Career, Skills, and CV Link) before submitting for review.'
+      setMsg({ type: 'error', text: errorText })
+      toast.warning('Incomplete Profile', errorText)
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
 
     if (linkedinUrl.trim() && !isLinkedInValid) {
-      setMsg({
-        type: 'error',
-        text: 'Please enter a valid LinkedIn Profile URL (e.g. https://linkedin.com/in/yourname) before submitting.',
-      })
+      const errorText = 'Please enter a valid LinkedIn Profile URL (e.g. https://linkedin.com/in/yourname) before submitting.'
+      setMsg({ type: 'error', text: errorText })
+      toast.warning('Invalid LinkedIn URL', errorText)
       window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
@@ -297,9 +284,11 @@ export default function ProfilePage() {
         type: 'success',
         text: '🎉 Profile submitted for review! Our team will review your application usually within 24 hours.',
       })
+      toast.success('Profile Submitted for Review! 🚀', 'Our team is reviewing your profile.')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (err: any) {
       setMsg({ type: 'error', text: err?.message || 'Failed to submit profile for review.' })
+      toast.error('Submission Failed', err?.message || 'Failed to submit profile for review.')
     } finally {
       setSubmitting(false)
     }

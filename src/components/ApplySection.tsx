@@ -29,6 +29,8 @@ interface ApplySectionProps {
   initialMonthlyCount: number
 }
 
+import { useToast } from '@/components/Toast'
+
 export default function ApplySection({
   job,
   user,
@@ -40,6 +42,7 @@ export default function ApplySection({
   const [loading, setLoading] = useState(false)
   const [applied, setApplied] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const toast = useToast()
 
   const isLimitReached = !isPremium && monthlyCount >= 3
 
@@ -69,15 +72,28 @@ export default function ApplySection({
         if (!isPremium) {
           setMonthlyCount((prev) => prev + 1)
         }
+        toast.success(
+          'Redirecting to Official Application',
+          `Opening application portal for ${job.title} at ${job.company_name}...`
+        )
         // Open official employer portal in a new tab
         window.open(job.apply_url, '_blank', 'noopener,noreferrer')
       } else {
         if (data.limitReached) {
           setMonthlyCount(3)
+          toast.warning('Limit Reached', 'You have used all 3 free applications for this month.')
+        } else if (data.needsApproval) {
+          toast.warning(
+            'Verification Required',
+            data.error || 'Your profile must be approved before applying.'
+          )
+        } else {
+          toast.error('Application Error', data.error || 'Failed to initiate application.')
         }
         setErrorMsg(data.error || 'Failed to initiate application.')
       }
     } catch {
+      toast.info('Opening Application', 'Opening direct employer page...')
       window.open(job.apply_url, '_blank', 'noopener,noreferrer')
     } finally {
       setLoading(false)
