@@ -24,9 +24,11 @@ import {
   MapPin,
 } from '@/components/icons'
 import { COUNTRIES_DATA, isValidLinkedInUrl, isValidUrl } from '@/utils/locations'
+import { useToast } from '@/components/Toast'
 
 export default function ProfilePage() {
   const supabase = createClient()
+  const toast = useToast()
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
