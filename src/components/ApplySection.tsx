@@ -50,8 +50,19 @@ export default function ApplySection({
     e.preventDefault()
     if (loading) return
 
-    // Open official employer portal in a new tab synchronously to bypass popup blockers
-    window.open(job.apply_url, '_blank', 'noopener,noreferrer')
+    // Open a blank loading tab synchronously to bypass popup blockers
+    const newWindow = window.open('about:blank', '_blank', 'noopener,noreferrer')
+    if (newWindow) {
+      newWindow.document.title = 'Verifying...'
+      newWindow.document.write(`
+        <div style="font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; color: #1d1d1f;">
+          <div style="width: 24px; height: 24px; border: 3px solid #e02424; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
+          <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+          <h2 style="margin: 0; font-size: 18px;">Verifying application limit...</h2>
+          <p style="color: #86868b; margin-top: 8px;">Preparing official portal for ${job.company_name}</p>
+        </div>
+      `)
+    }
 
     setLoading(true)
     setErrorMsg(null)
@@ -63,7 +74,7 @@ export default function ApplySection({
     )
 
     try {
-      // 1. Record application in backend database
+      // 1. Record application in backend database & verify limits securely
       const res = await fetch('/api/applications/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -77,10 +88,15 @@ export default function ApplySection({
 
       const data = await res.json()
 
-      // 2. Smooth animation delay (1.2s) so the candidate clearly sees the loading & saving progress
-      await new Promise((resolve) => setTimeout(resolve, 1200))
+      // 2. Smooth animation delay (0.8s) so the candidate clearly sees the loading & saving progress
+      await new Promise((resolve) => setTimeout(resolve, 800))
 
       if (data.success) {
+        // Validation passed! Navigate the popup to the actual employer portal
+        if (newWindow) {
+          newWindow.location.href = job.apply_url
+        }
+
         setApplied(true)
         if (!isPremium && typeof data.monthlyCount === 'number') {
           setMonthlyCount(data.monthlyCount)
@@ -89,15 +105,24 @@ export default function ApplySection({
         }
 
         toast.success(
-          'Application Saved to Profile! 🚀',
+          'Application Saved to Profile! ✅',
           `Your application for ${job.company_name} was successfully logged.`
         )
       } else if (data.limitReached) {
+        // Force close the popup because they have reached their limit
+        if (newWindow) newWindow.close()
+        
         setMonthlyCount(3)
         toast.warning('Monthly Limit Reached', 'You have used all 3 free applications for this month.')
+      } else {
+        // Unknown error, close popup
+        if (newWindow) newWindow.close()
+        toast.error('Error', data.error || 'Failed to process application.')
       }
     } catch {
-      // Silently fail on network error as the user is already on the new tab
+      // Network error, close popup to be safe
+      if (newWindow) newWindow.close()
+      toast.error('Network Error', 'Please check your connection and try again.')
     } finally {
       setLoading(false)
     }
