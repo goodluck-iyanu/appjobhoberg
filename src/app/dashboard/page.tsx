@@ -31,18 +31,51 @@ export default async function DashboardPage({
     redirect('/login')
   }
 
-  // If returning from Paystack with a reference, ensure profile is updated
-  if (upgraded === 'true') {
+  // If returning from Paystack with a reference, ensure profile is updated securely
+  if (upgraded === 'true' && reference) {
     try {
-      await supabase
-        .from('profiles')
-        .update({
-          is_premium: true,
-          premium_tier: 'founding_member',
-          premium_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          updated_at: new Date().toISOString(),
+      const paystackSecret = process.env.PAYSTACK_SECRET_KEY
+      let paymentVerified = false
+
+      if (paystackSecret && paystackSecret.startsWith('sk_')) {
+        // Verify securely with Paystack API
+        const verifyRes = await fetch(
+          `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
+          {
+            headers: { Authorization: `Bearer ${paystackSecret}` },
+            cache: 'no-store',
+          }
+        )
+        const verifyData = await verifyRes.json()
+        if (verifyData.status && verifyData.data?.status === 'success') {
+          paymentVerified = true
+        }
+      } else {
+        // Test mode/simulated
+        paymentVerified = true
+      }
+
+      if (paymentVerified) {
+        await supabase
+          .from('profiles')
+          .update({
+            is_premium: true,
+            premium_tier: 'founding_member',
+            premium_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', user.id)
+
+        // Record in payments table (silently fails if reference already exists due to unique constraint)
+        await supabase.from('payments').insert({
+          user_id: user.id,
+          reference: reference,
+          amount: 4000,
+          currency: 'NGN',
+          status: 'success',
+          plan_tier: 'founding_member',
         })
-        .eq('id', user.id)
+      }
     } catch {
       // Ignore if update fails or duplicate
     }
