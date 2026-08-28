@@ -791,6 +791,9 @@ export default function ProfilePage() {
                     <label className="text-[13px] font-semibold text-[#1d1d1f] flex items-center gap-1.5">
                       <Linkedin className="w-4 h-4 text-[#0077b5]" />
                       <span>LinkedIn Profile URL</span>
+                      <span className="text-[11px] font-normal text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60 ml-1">
+                        Optional &bull; Recommended
+                      </span>
                     </label>
                     {linkedinUrl.trim() && (
                       <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
@@ -806,7 +809,7 @@ export default function ProfilePage() {
                     type="url"
                     value={linkedinUrl}
                     onChange={(e) => setLinkedinUrl(e.target.value)}
-                    placeholder="https://linkedin.com/in/yourprofile"
+                    placeholder="https://linkedin.com/in/yourprofile (Optional / Recommended)"
                     className={`w-full bg-[#f5f5f7] border rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white transition-all ${
                       linkedinUrl.trim() && !isLinkedInValid
                         ? 'border-amber-400 focus:ring-2 focus:ring-amber-400/20 focus:border-amber-500'
@@ -815,9 +818,13 @@ export default function ProfilePage() {
                         : 'border-[#d2d2d7]/60 focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424]'
                     }`}
                   />
-                  {linkedinUrl.trim() && !isLinkedInValid && (
+                  {linkedinUrl.trim() && !isLinkedInValid ? (
                     <p className="text-[11px] text-amber-700 mt-1">
                       Must start with <strong>https://linkedin.com/in/</strong> or <strong>https://www.linkedin.com/in/</strong>
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-[#86868b] mt-1">
+                      Optional, but strongly recommended to speed up your Hoberg profile verification.
                     </p>
                   )}
                 </div>
@@ -965,7 +972,7 @@ export default function ProfilePage() {
                   ) : linkedinUrl.trim() ? (
                     <span className="text-amber-500 text-xs shrink-0 font-bold">⚠️</span>
                   ) : (
-                    <span className="text-gray-400 text-xs shrink-0 font-bold">⚪</span>
+                    <span className="w-4 h-4 rounded-full border border-gray-300 inline-block shrink-0" />
                   )}
                   <span
                     className={
@@ -979,8 +986,8 @@ export default function ProfilePage() {
                     {isLinkedInValid
                       ? 'LinkedIn profile verified'
                       : linkedinUrl.trim()
-                      ? 'Invalid LinkedIn format'
-                      : 'LinkedIn recommended'}
+                      ? 'LinkedIn format needs fixing'
+                      : 'LinkedIn link (Optional / Recommended)'}
                   </span>
                 </div>
               </div>
