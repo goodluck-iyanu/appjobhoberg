@@ -61,7 +61,7 @@ export default async function DashboardPage({
           .update({
             is_premium: true,
             premium_tier: 'founding_member',
-            premium_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            premium_since: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
           .eq('id', user.id)
