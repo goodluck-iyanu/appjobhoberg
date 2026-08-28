@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import AuthSessionLogger from '@/components/AuthSessionLogger'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -76,6 +77,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className={`${inter.className} min-h-screen flex flex-col`}>
+        {/* Real-time auth session logging */}
+        <AuthSessionLogger />
+
         {/* ─── Dynamic Navbar ─── */}
         <Navbar />
 

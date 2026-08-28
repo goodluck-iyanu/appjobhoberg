@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { LogOut, X, AlertCircle } from 'lucide-react'
+import { LogOut, X } from 'lucide-react'
 
 interface SignOutButtonProps {
   className?: string
@@ -22,12 +22,39 @@ export default function SignOutButton({
   const handleConfirmSignOut = async () => {
     setLoading(true)
     try {
-      // 1. Trigger server-side log & signout
-      await fetch('/auth/signout', { method: 'POST' })
-      // 2. Client-side sign out
+      // 1. Get current user info for audit logging
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (user) {
+        // 2. Call audit logging API
+        try {
+          await fetch('/api/auth/log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: user.id,
+              userEmail: user.email,
+              userName:
+                user.user_metadata?.full_name ||
+                user.user_metadata?.name ||
+                user.email?.split('@')[0],
+              eventType: 'logout',
+            }),
+          })
+        } catch (e) {
+          console.error('Failed to log logout event:', e)
+        }
+      }
+
+      // 3. Client & Server sign out
+      await fetch('/auth/signout', { method: 'POST' }).catch(() => {})
       await supabase.auth.signOut()
+
       if (onSignedOut) onSignedOut()
-      // 3. Redirect to login page
+
+      // 4. Redirect to login page
       window.location.href = '/login?signed_out=true'
     } catch {
       window.location.href = '/login'
@@ -116,4 +143,3 @@ export default function SignOutButton({
     </>
   )
 }
-

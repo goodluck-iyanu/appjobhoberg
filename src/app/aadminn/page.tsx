@@ -158,7 +158,11 @@ export default function AdminPortalPage() {
         setUsers(data.users || [])
         setAuthLogs(data.authLogs || [])
         setMetrics(data.metrics)
-        setDashboardError(null)
+        if (data.authLogsError) {
+          setDashboardError(`Security Table Notice: ${data.authLogsError}. Please run the auth_logs SQL in Supabase.`)
+        } else {
+          setDashboardError(null)
+        }
       } else {
         setDashboardError(data.error || 'Failed to load candidates from database.')
       }
@@ -317,9 +321,13 @@ export default function AdminPortalPage() {
   // Candidate specific logs for modal
   const candidateLogs = useMemo(() => {
     if (!inspectUser) return []
-    return authLogs.filter(
-      (l) => l.user_id === inspectUser.id || l.user_email?.toLowerCase() === inspectUser.email?.toLowerCase()
-    )
+    const targetId = inspectUser.id
+    const targetEmail = (inspectUser.email || '').toLowerCase().trim()
+    return authLogs.filter((l) => {
+      if (l.user_id && targetId && l.user_id === targetId) return true
+      if (l.user_email && targetEmail && l.user_email.toLowerCase().trim() === targetEmail) return true
+      return false
+    })
   }, [authLogs, inspectUser])
 
   if (authChecking) {
