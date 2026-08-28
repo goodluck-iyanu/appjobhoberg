@@ -162,7 +162,7 @@ export default async function JobDetails({
                       Account &amp; profile verification required
                     </p>
                   </>
-                ) : reviewStatus === 'under_review' ? (
+                ) : !isPremium && reviewStatus === 'under_review' ? (
                   <Link
                     href="/profile"
                     className="inline-flex items-center justify-center bg-amber-50 border border-amber-300 text-amber-900 font-semibold px-5 py-2.5 rounded-full transition-colors text-[14px] shadow-sm"
@@ -170,7 +170,7 @@ export default async function JobDetails({
                     <Clock className="w-4 h-4 mr-2 text-amber-700" />
                     <span>Profile Under Review</span>
                   </Link>
-                ) : reviewStatus !== 'approved' ? (
+                ) : !isPremium && reviewStatus !== 'approved' ? (
                   <Link
                     href="/profile"
                     className="inline-flex items-center justify-center bg-[#1d1d1f] hover:bg-black text-white font-semibold px-6 py-3 rounded-full transition-colors text-[14px] shadow-sm"

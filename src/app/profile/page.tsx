@@ -24,11 +24,9 @@ import {
   MapPin,
 } from '@/components/icons'
 import { COUNTRIES_DATA, isValidLinkedInUrl, isValidUrl } from '@/utils/locations'
-import { useToast } from '@/components/Toast'
 
 export default function ProfilePage() {
   const supabase = createClient()
-  const toast = useToast()
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -195,7 +193,6 @@ export default function ProfilePage() {
     const nextStatus = targetStatus || reviewStatus
 
     const skillsArray = skills
-      .split(',')
       .map((s) => s.trim())
       .filter(Boolean)
 
@@ -212,25 +209,16 @@ export default function ProfilePage() {
       experienceYears,
       experienceSummary,
       skills: skillsArray,
-      resumeUrl,
-      linkedinUrl,
       twitterUrl,
       whatsappNumber,
       githubUrl,
       portfolioUrl,
       jobTypePreference,
       expectedSalary,
-      reviewStatus: nextStatus,
-      targetStatus,
-    }
-
     const res = await fetch('/api/profile/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-    })
-
-    const data = await res.json()
 
     if (!data.success) {
       throw new Error(data.error || 'Failed to save profile.')
@@ -242,37 +230,19 @@ export default function ProfilePage() {
   }
 
   const handleSaveDraft = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-    setMsg(null)
-
-    try {
-      await saveProfileData('draft')
-      setMsg({ type: 'success', text: 'Profile draft saved successfully!' })
-      toast.success('Draft Saved', 'Your profile details have been saved.')
-    } catch (err: any) {
-      setMsg({ type: 'error', text: err?.message || 'Failed to save changes.' })
       toast.error('Save Failed', err?.message || 'Could not save profile.')
     } finally {
       setSaving(false)
     }
   }
-
-  const handleSubmitForReview = async () => {
-    if (!fullName.trim() || !country.trim() || !effectiveCity.trim() || !careerField || !skills.trim() || !resumeUrl.trim()) {
-      const errorText = 'Please complete all required fields (Full Name, Country, City, Career, Skills, and CV Link) before submitting for review.'
-      setMsg({ type: 'error', text: errorText })
       toast.warning('Incomplete Profile', errorText)
       window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
     }
 
     if (linkedinUrl.trim() && !isLinkedInValid) {
       const errorText = 'Please enter a valid LinkedIn Profile URL (e.g. https://linkedin.com/in/yourname) before submitting.'
       setMsg({ type: 'error', text: errorText })
       toast.warning('Invalid LinkedIn URL', errorText)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
     }
 
     setSubmitting(true)
@@ -292,12 +262,8 @@ export default function ProfilePage() {
     } finally {
       setSubmitting(false)
     }
-  }
-
-  if (loading) {
     return (
       <div className="flex-1 bg-[#f5f5f7] py-24 flex flex-col items-center justify-center">
-        <div className="w-10 h-10 border-4 border-[#e02424] border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-[#86868b] text-[15px] font-medium">Loading career profile...</p>
       </div>
     )
@@ -309,9 +275,6 @@ export default function ProfilePage() {
         {/* Top Back Link */}
         <Link
           href="/dashboard"
-          className="inline-flex items-center text-[13px] font-medium text-[#86868b] hover:text-[#1d1d1f] mb-6 transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 mr-1" />
           Back to Dashboard
         </Link>
 
@@ -321,9 +284,6 @@ export default function ProfilePage() {
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0">
                 <Clock className="w-5 h-5 text-amber-700" />
-              </div>
-              <div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-200/80 text-amber-900 text-[11px] font-bold uppercase tracking-wider mb-1.5">
                   🟡 Profile Under Review
                 </div>
                 <h2 className="text-[17px] font-bold text-amber-950">
@@ -337,11 +297,9 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {reviewStatus === 'approved' && (
           <div className="mb-8 p-6 bg-emerald-50/90 border border-emerald-200 rounded-3xl shadow-sm">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-5 h-5 text-emerald-700" />
               </div>
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-200/80 text-emerald-900 text-[11px] font-bold uppercase tracking-wider mb-1.5">

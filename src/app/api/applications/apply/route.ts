@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { success: false, error: 'You must be signed in with Google to apply.' },
+        { success: false, error: 'You must be signed in to apply.' },
         { status: 401 }
       )
     }
@@ -28,13 +28,13 @@ export async function POST(req: NextRequest) {
     const adminSupabase = createAdminClient()
 
     // 1. Fetch user's profile
-    let { data: profile, error: profileError } = await adminSupabase
+    let { data: profile } = await adminSupabase
       .from('profiles')
       .select('review_status, is_premium, full_name, email')
       .eq('id', user.id)
       .maybeSingle()
 
-    // If profile doesn't exist, create an initial draft profile
+    // If profile doesn't exist, create an initial profile
     if (!profile) {
       const { data: newProfile } = await adminSupabase
         .from('profiles')
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
           id: user.id,
           email: user.email,
           full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
-          review_status: 'draft',
+          review_status: 'approved',
           created_at: new Date().toISOString(),
         })
         .select()
@@ -50,7 +50,19 @@ export async function POST(req: NextRequest) {
       profile = newProfile
     }
 
-    if (profile?.review_status !== 'approved') {
+    const isPremium = Boolean(profile?.is_premium)
+
+    // If user is a Premium member, ensure profile is marked approved with VIP instant access
+    if (isPremium && profile?.review_status !== 'approved') {
+      await adminSupabase
+        .from('profiles')
+        .update({ review_status: 'approved' })
+        .eq('id', user.id)
+      if (profile) profile.review_status = 'approved'
+    }
+
+    // For non-premium members, check review_status
+    if (!isPremium && profile?.review_status !== 'approved') {
       return NextResponse.json(
         {
           success: false,
@@ -64,8 +76,6 @@ export async function POST(req: NextRequest) {
         { status: 403 }
       )
     }
-
-    const isPremium = Boolean(profile?.is_premium)
 
     // 2. Count applications in the current calendar month using server UTC time
     const now = new Date()
@@ -86,7 +96,7 @@ export async function POST(req: NextRequest) {
           success: false,
           limitReached: true,
           error:
-            "You have reached your monthly limit of 3 free applications. Upgrade to Premium for unlimited applications.",
+            'You have reached your monthly limit of 3 free applications. Upgrade to Premium for unlimited applications.',
         },
         { status: 429 }
       )

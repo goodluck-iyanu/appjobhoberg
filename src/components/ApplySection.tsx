@@ -120,8 +120,8 @@ export default function ApplySection({
     )
   }
 
-  // 2. Profile Under Review
-  if (reviewStatus === 'under_review') {
+  // 2. Profile Under Review (For free users)
+  if (!isPremium && reviewStatus === 'under_review') {
     return (
       <div className="bg-amber-50/90 border border-amber-200 rounded-3xl p-6 sm:p-8 text-center">
         <div className="w-12 h-12 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mx-auto mb-3">
@@ -143,8 +143,8 @@ export default function ApplySection({
     )
   }
 
-  // 3. Profile Not Submitted / Incomplete
-  if (reviewStatus !== 'approved') {
+  // 3. Profile Not Submitted / Incomplete (For free users)
+  if (!isPremium && reviewStatus !== 'approved') {
     return (
       <div className="bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-3xl p-6 sm:p-8 text-center">
         <div className="w-12 h-12 bg-gray-200 text-[#1d1d1f] rounded-2xl flex items-center justify-center mx-auto mb-3">
