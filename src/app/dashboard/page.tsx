@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { createAdminClient } from '@/utils/supabase/admin'
 import {
   Crown,
   Briefcase,
@@ -35,8 +34,7 @@ export default async function DashboardPage({
   // If returning from Paystack with a reference, ensure profile is updated
   if (upgraded === 'true') {
     try {
-      const adminSupabase = createAdminClient()
-      await adminSupabase
+      await supabase
         .from('profiles')
         .update({
           is_premium: true,
@@ -49,8 +47,6 @@ export default async function DashboardPage({
       // Ignore if update fails or duplicate
     }
   }
-
-  const adminSupabase = createAdminClient()
 
   // Fetch current user profile
   let { data: profile } = await supabase
@@ -80,17 +76,6 @@ export default async function DashboardPage({
     .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
-
-  if (!applications || applications.length === 0) {
-    const { data: adminApps } = await adminSupabase
-      .from('applications')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-    if (adminApps && adminApps.length > 0) {
-      applications = adminApps
-    }
-  }
 
   const displayName =
     profile?.full_name ||
