@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { createClient } from '@/utils/supabase/client'
 import {
   Menu,
   X,
@@ -9,6 +10,8 @@ import {
   Briefcase,
   Sparkles,
   ArrowRight,
+  ShieldCheck,
+  Globe,
 } from '@/components/icons'
 
 interface MobileMenuProps {
@@ -18,6 +21,8 @@ interface MobileMenuProps {
 
 export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [authLoading, setAuthLoading] = useState(false)
+  const supabase = createClient()
 
   const close = useCallback(() => setIsOpen(false), [])
 
@@ -40,13 +45,28 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
     return () => window.removeEventListener('keydown', handleKey)
   }, [isOpen, close])
 
+  const handleQuickGoogleSignIn = async () => {
+    setAuthLoading(true)
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+    } catch {
+      setAuthLoading(false)
+    }
+  }
+
   return (
     <div className="md:hidden">
-      {/* Hamburger button */}
+      {/* Hamburger toggle button */}
       <button
+        type="button"
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-center w-10 h-10 rounded-xl text-[#1d1d1f] hover:bg-black/5 active:bg-black/10 transition-colors"
-        aria-label="Open menu"
+        className="flex items-center justify-center w-10 h-10 rounded-xl text-[#1d1d1f] hover:bg-black/5 active:bg-black/10 transition-colors cursor-pointer"
+        aria-label="Open navigation menu"
       >
         <Menu className="w-6 h-6 text-[#1d1d1f]" />
       </button>
@@ -61,14 +81,14 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
             aria-hidden="true"
           />
 
-          {/* Menu Sheet (Solid 100% Opaque White Background) */}
+          {/* Menu Sheet (Solid Opaque White Background) */}
           <div
-            className="relative z-10 w-full max-w-[320px] sm:max-w-[360px] h-full flex flex-col shadow-2xl border-l border-gray-200"
+            className="relative z-10 w-full max-w-[320px] sm:max-w-[360px] h-full flex flex-col shadow-2xl border-l border-gray-200 bg-white"
             style={{ backgroundColor: '#ffffff' }}
           >
             {/* Top Sheet Header */}
             <div
-              className="flex items-center justify-between px-5 py-4 border-b border-gray-100"
+              className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white"
               style={{ backgroundColor: '#ffffff' }}
             >
               <Link href="/" onClick={close} className="flex items-center">
@@ -82,8 +102,9 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
               </Link>
 
               <button
+                type="button"
                 onClick={close}
-                className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-[#1d1d1f] transition-colors"
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-[#1d1d1f] transition-colors cursor-pointer"
                 aria-label="Close menu"
               >
                 <X className="w-5 h-5" />
@@ -170,7 +191,7 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
 
             {/* Bottom Action Buttons */}
             <div
-              className="p-4 border-t border-gray-100 space-y-2.5"
+              className="p-4 border-t border-gray-100 space-y-2.5 bg-white"
               style={{ backgroundColor: '#ffffff' }}
             >
               {userEmail ? (
@@ -178,7 +199,7 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
                   <Link
                     href="/dashboard"
                     onClick={close}
-                    className="flex items-center justify-center gap-2 w-full py-3.5 rounded-full text-[15px] font-semibold text-white bg-[#e02424] hover:bg-[#c81e1e] transition-colors shadow-sm"
+                    className="flex items-center justify-center gap-2 w-full py-3.5 rounded-full text-[15px] font-semibold text-white bg-[#e02424] hover:bg-[#c81e1e] transition-colors shadow-sm cursor-pointer"
                   >
                     {isPremium && <Crown className="w-4 h-4 text-amber-300" />}
                     <span>Open Dashboard</span>
@@ -188,7 +209,7 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
                     <button
                       type="submit"
                       onClick={close}
-                      className="flex items-center justify-center w-full py-2.5 rounded-full text-[13px] font-medium text-[#86868b] hover:text-[#1d1d1f] hover:bg-[#f5f5f7] transition-colors"
+                      className="flex items-center justify-center w-full py-2.5 rounded-full text-[13px] font-medium text-[#86868b] hover:text-[#1d1d1f] hover:bg-[#f5f5f7] transition-colors cursor-pointer"
                     >
                       Sign Out
                     </button>
@@ -196,21 +217,52 @@ export default function MobileMenu({ userEmail, isPremium }: MobileMenuProps) {
                 </>
               ) : (
                 <>
-                  <Link
-                    href="/signup"
-                    onClick={close}
-                    className="flex items-center justify-center w-full py-3.5 rounded-full text-[15px] font-semibold text-white bg-[#e02424] hover:bg-[#c81e1e] transition-colors shadow-sm"
+                  {/* Quick Google 1-Click Button */}
+                  <button
+                    type="button"
+                    onClick={handleQuickGoogleSignIn}
+                    disabled={authLoading}
+                    className="flex items-center justify-center gap-2.5 w-full py-3.5 rounded-full text-[15px] font-bold text-white bg-[#e02424] hover:bg-[#c81e1e] active:bg-[#b91c1c] transition-colors shadow-md cursor-pointer"
                   >
-                    Sign up — Free Account
-                  </Link>
+                    {/* Google G Icon */}
+                    <svg className="w-4 h-4 shrink-0 bg-white rounded-full p-0.5" viewBox="0 0 24 24">
+                      <path
+                        fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                      />
+                    </svg>
+                    <span>{authLoading ? 'Connecting...' : 'Sign up with Google'}</span>
+                  </button>
 
-                  <Link
-                    href="/login"
-                    onClick={close}
-                    className="flex items-center justify-center w-full py-3 rounded-full text-[14px] font-medium text-[#1d1d1f] border border-gray-200 hover:bg-[#f5f5f7] transition-colors"
-                  >
-                    Log in
-                  </Link>
+                  <div className="flex items-center gap-2 pt-1">
+                    <Link
+                      href="/signup"
+                      onClick={close}
+                      className="flex-1 text-center py-2.5 rounded-full text-[13px] font-semibold text-[#1d1d1f] border border-gray-300 hover:bg-[#f5f5f7] transition-colors"
+                    >
+                      Sign Up
+                    </Link>
+
+                    <Link
+                      href="/login"
+                      onClick={close}
+                      className="flex-1 text-center py-2.5 rounded-full text-[13px] font-semibold text-[#1d1d1f] border border-gray-300 hover:bg-[#f5f5f7] transition-colors"
+                    >
+                      Log in
+                    </Link>
+                  </div>
                 </>
               )}
             </div>

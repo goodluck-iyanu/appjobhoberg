@@ -103,6 +103,23 @@ export default async function Navbar() {
             </div>
           )}
 
+          {/* Mobile Quick Sign up / Dashboard button */}
+          {!user ? (
+            <Link
+              href="/signup"
+              className="md:hidden inline-flex text-[12px] font-bold text-white bg-[#e02424] hover:bg-[#c81e1e] px-3.5 py-1 rounded-full transition-colors shadow-xs"
+            >
+              Sign up
+            </Link>
+          ) : (
+            <Link
+              href="/dashboard"
+              className="md:hidden inline-flex text-[12px] font-bold text-[#1d1d1f] bg-[#f5f5f7] border border-[#d2d2d7]/70 px-3 py-1 rounded-full transition-colors"
+            >
+              Dashboard
+            </Link>
+          )}
+
           {/* Mobile hamburger */}
           <MobileMenu userEmail={user?.email} isPremium={isPremium} />
         </div>
