@@ -152,7 +152,16 @@ export default function AdminPortalPage() {
   const [inspectUser, setInspectUser] = useState<UserProfile | null>(null)
   const [rejectModalUser, setRejectModalUser] = useState<UserProfile | null>(null)
   const [rejectNotes, setRejectNotes] = useState('')
-  const [deleteConfirmUser, setDeleteConfirmUser] = useState<UserProfile | null>(null)
+  const [actionConfirmation, setActionConfirmation] = useState<{
+    action: 'approve' | 'toggle_premium' | 'delete'
+    user: UserProfile
+    title: string
+    message: string
+    confirmLabel: string
+    confirmColor: 'emerald' | 'amber' | 'red'
+    icon: 'approve' | 'premium' | 'delete'
+    payload?: { isPremium?: boolean }
+  } | null>(null)
 
   // Check auth on load
   const checkAuth = useCallback(async () => {
@@ -250,6 +259,51 @@ export default function AdminPortalPage() {
     setAuthenticated(false)
     setLoginPassword('')
     toast.info('Admin Signed Out', 'You have been logged out of the admin center.')
+  }
+
+  // Safe Action Trigger - Prompts confirmation modal before executing
+  const promptAction = (
+    user: UserProfile,
+    action: 'approve' | 'toggle_premium' | 'delete',
+    payload?: { isPremium?: boolean }
+  ) => {
+    const candidateName = user.full_name || user.display_name || user.email || 'this candidate'
+
+    if (action === 'approve') {
+      setActionConfirmation({
+        action: 'approve',
+        user,
+        title: 'Approve Candidate Profile?',
+        message: `Are you sure you want to approve ${candidateName}? Once approved, they will immediately be verified and permitted to apply for remote opportunities.`,
+        confirmLabel: 'Yes, Approve Candidate',
+        confirmColor: 'emerald',
+        icon: 'approve',
+      })
+    } else if (action === 'toggle_premium') {
+      const willBePremium = !payload?.isPremium
+      setActionConfirmation({
+        action: 'toggle_premium',
+        user,
+        title: willBePremium ? 'Grant Pro Founding Membership?' : 'Revoke Pro Membership?',
+        message: willBePremium
+          ? `Are you sure you want to upgrade ${candidateName} to Pro Founding Member? They will receive unlimited monthly applications.`
+          : `Are you sure you want to revoke Pro Membership from ${candidateName}? They will be downgraded back to the 3 applications/month limit.`,
+        confirmLabel: willBePremium ? 'Yes, Grant Pro Access' : 'Yes, Revoke Access',
+        confirmColor: 'amber',
+        icon: 'premium',
+        payload,
+      })
+    } else if (action === 'delete') {
+      setActionConfirmation({
+        action: 'delete',
+        user,
+        title: 'Delete Candidate Account?',
+        message: `Are you sure you want to permanently delete the profile, application history, and data for ${candidateName}? This action is irreversible.`,
+        confirmLabel: 'Yes, Permanently Delete',
+        confirmColor: 'red',
+        icon: 'delete',
+      })
+    }
   }
 
   // Perform Admin Action (Approve, Reject, Toggle Premium, Delete)
@@ -832,7 +886,7 @@ export default function AdminPortalPage() {
                           {/* Membership Tier */}
                           <td className="py-4 px-5">
                             <button
-                              onClick={() => performAction(u.id, 'toggle_premium', { isPremium: u.is_premium })}
+                              onClick={() => promptAction(u, 'toggle_premium', { isPremium: u.is_premium })}
                               disabled={isLoading}
                               className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold transition-all cursor-pointer ${
                                 u.is_premium
@@ -861,7 +915,7 @@ export default function AdminPortalPage() {
                               {/* 1-Click Approve */}
                               {status !== 'approved' && (
                                 <button
-                                  onClick={() => performAction(u.id, 'approve')}
+                                  onClick={() => promptAction(u, 'approve')}
                                   disabled={isLoading}
                                   className="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-xl text-[12px] font-bold transition-colors cursor-pointer"
                                   title="Approve Candidate"
@@ -887,7 +941,7 @@ export default function AdminPortalPage() {
 
                               {/* Delete User */}
                               <button
-                                onClick={() => setDeleteConfirmUser(u)}
+                                onClick={() => promptAction(u, 'delete')}
                                 disabled={isLoading}
                                 className="bg-red-950/40 hover:bg-red-900 text-red-400 p-2 rounded-xl text-[12px] transition-colors cursor-pointer"
                                 title="Delete User"
@@ -1214,7 +1268,7 @@ export default function AdminPortalPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() =>
-                    performAction(inspectUser.id, 'toggle_premium', { isPremium: inspectUser.is_premium })
+                    promptAction(inspectUser, 'toggle_premium', { isPremium: inspectUser.is_premium })
                   }
                   className="bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 px-3.5 py-2 rounded-xl text-[13px] font-semibold transition-colors cursor-pointer"
                 >
@@ -1222,10 +1276,7 @@ export default function AdminPortalPage() {
                 </button>
 
                 <button
-                  onClick={() => {
-                    setDeleteConfirmUser(inspectUser)
-                    setInspectUser(null)
-                  }}
+                  onClick={() => promptAction(inspectUser, 'delete')}
                   className="bg-red-950/60 hover:bg-red-900 text-red-300 border border-red-800/60 px-3.5 py-2 rounded-xl text-[13px] font-semibold transition-colors cursor-pointer"
                 >
                   Delete User
@@ -1237,7 +1288,6 @@ export default function AdminPortalPage() {
                   onClick={() => {
                     setRejectModalUser(inspectUser)
                     setRejectNotes(inspectUser.review_notes || '')
-                    setInspectUser(null)
                   }}
                   className="bg-gray-800 hover:bg-gray-700 text-gray-200 px-4 py-2 rounded-xl text-[13px] font-semibold transition-colors cursor-pointer"
                 >
@@ -1245,7 +1295,7 @@ export default function AdminPortalPage() {
                 </button>
 
                 <button
-                  onClick={() => performAction(inspectUser.id, 'approve')}
+                  onClick={() => promptAction(inspectUser, 'approve')}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2 rounded-xl text-[13px] transition-colors cursor-pointer shadow-sm"
                 >
                   Approve Account
@@ -1289,9 +1339,11 @@ export default function AdminPortalPage() {
                 Cancel
               </button>
               <button
-                onClick={() =>
-                  performAction(rejectModalUser.id, 'reject', { reviewNotes: rejectNotes })
-                }
+                onClick={() => {
+                  const targetUser = rejectModalUser
+                  setRejectModalUser(null)
+                  performAction(targetUser.id, 'reject', { reviewNotes: rejectNotes })
+                }}
                 className="bg-amber-600 hover:bg-amber-500 text-white font-bold px-5 py-2.5 rounded-xl text-[13px] transition-colors cursor-pointer"
               >
                 Submit Feedback
@@ -1302,35 +1354,84 @@ export default function AdminPortalPage() {
       )}
 
       {/* ---------------------------------------------------- */}
-      {/* DELETE CONFIRMATION MODAL */}
+      {/* UNIVERSAL SAFETY CONFIRMATION WARNING MODAL */}
       {/* ---------------------------------------------------- */}
-      {deleteConfirmUser && (
+      {actionConfirmation && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#18181b] border border-red-500/30 rounded-3xl max-w-md w-full p-6 shadow-2xl">
-            <div className="w-12 h-12 rounded-2xl bg-red-950/60 text-[#e02424] flex items-center justify-center mb-4">
-              <Trash2 className="w-6 h-6" />
+          <div className="bg-[#18181b] border border-white/10 rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            {/* Action Icon */}
+            <div
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 ${
+                actionConfirmation.confirmColor === 'emerald'
+                  ? 'bg-emerald-950/70 border border-emerald-500/40 text-emerald-400'
+                  : actionConfirmation.confirmColor === 'amber'
+                  ? 'bg-amber-950/70 border border-amber-500/40 text-amber-400'
+                  : 'bg-red-950/70 border border-red-500/40 text-[#e02424]'
+              }`}
+            >
+              {actionConfirmation.icon === 'approve' ? (
+                <UserCheck className="w-7 h-7" />
+              ) : actionConfirmation.icon === 'premium' ? (
+                <Crown className="w-7 h-7" />
+              ) : (
+                <Trash2 className="w-7 h-7" />
+              )}
             </div>
-            <h3 className="text-lg font-bold text-white mb-1">Delete Candidate Profile</h3>
-            <p className="text-gray-400 text-[13px] mb-6 leading-relaxed">
-              Are you sure you want to delete the profile for{' '}
-              <strong className="text-white">
-                {deleteConfirmUser.full_name || deleteConfirmUser.display_name || deleteConfirmUser.email}
-              </strong>
-              ? This action cannot be undone.
+
+            {/* Safety Pill */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-2.5 bg-white/5 border border-white/10 text-gray-300">
+              <span>⚠️ Action Confirmation Required</span>
+            </div>
+
+            <h3 className="text-xl font-bold text-white mb-2 tracking-tight">
+              {actionConfirmation.title}
+            </h3>
+
+            <p className="text-gray-300 text-[13px] sm:text-[14px] leading-relaxed mb-5">
+              {actionConfirmation.message}
             </p>
 
+            {/* Candidate Card Preview */}
+            <div className="bg-[#27272a] border border-white/5 rounded-2xl p-3.5 mb-6 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#18181b] border border-white/10 flex items-center justify-center font-bold text-gray-300 shrink-0">
+                {(actionConfirmation.user.full_name || actionConfirmation.user.display_name || 'U').charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold text-white text-sm truncate">
+                  {actionConfirmation.user.full_name || actionConfirmation.user.display_name || 'Job Seeker'}
+                </div>
+                <div className="text-xs text-gray-400 truncate">
+                  {actionConfirmation.user.email || 'No email provided'}
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
             <div className="flex items-center justify-end gap-3">
               <button
-                onClick={() => setDeleteConfirmUser(null)}
-                className="px-4 py-2 rounded-xl text-[13px] font-semibold text-gray-400 hover:text-white cursor-pointer"
+                type="button"
+                onClick={() => setActionConfirmation(null)}
+                className="px-4 py-2.5 rounded-xl text-[13px] font-semibold text-gray-400 hover:text-white bg-[#27272a] hover:bg-[#3f3f46] transition-colors cursor-pointer"
               >
                 Cancel
               </button>
+
               <button
-                onClick={() => performAction(deleteConfirmUser.id, 'delete')}
-                className="bg-[#e02424] hover:bg-[#c81e1e] text-white font-bold px-5 py-2.5 rounded-xl text-[13px] transition-colors cursor-pointer"
+                type="button"
+                onClick={async () => {
+                  const item = actionConfirmation
+                  setActionConfirmation(null)
+                  await performAction(item.user.id, item.action, item.payload)
+                }}
+                className={`px-5 py-2.5 rounded-xl text-[13px] font-bold text-white transition-all shadow-md cursor-pointer ${
+                  actionConfirmation.confirmColor === 'emerald'
+                    ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950'
+                    : actionConfirmation.confirmColor === 'amber'
+                    ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-950'
+                    : 'bg-[#e02424] hover:bg-[#c81e1e] shadow-red-950'
+                }`}
               >
-                Confirm Delete
+                {actionConfirmation.confirmLabel}
               </button>
             </div>
           </div>
