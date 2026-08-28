@@ -222,12 +222,6 @@ export default function ApplySection({
         Click below to submit your application on the official {job.company_name} portal.
       </p>
 
-      {errorMsg && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-[13px] rounded-xl max-w-md mx-auto">
-          {errorMsg}
-        </div>
-      )}
-
       <button
         type="button"
         onClick={handleApplyClick}
