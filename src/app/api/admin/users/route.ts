@@ -47,7 +47,26 @@ export async function GET() {
       authLogsError = err?.message || 'Failed to query auth_logs table'
     }
 
-    // 3. Calculate live overview metrics
+    // 3. Fetch applications
+    let applications: any[] = []
+    let applicationsError: string | null = null
+
+    try {
+      const { data: apps, error: appsError } = await supabase
+        .from('applications')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (appsError) {
+        applicationsError = appsError.message
+      } else {
+        applications = apps || []
+      }
+    } catch (err: any) {
+      applicationsError = err?.message || 'Failed to query applications table'
+    }
+
+    // 4. Calculate live overview metrics
     const totalUsers = users.length
     const underReview = users.filter((u) => u.review_status === 'under_review').length
     const approved = users.filter((u) => u.review_status === 'approved').length
@@ -75,6 +94,8 @@ export async function GET() {
       users,
       authLogs,
       authLogsError,
+      applications,
+      applicationsError,
     })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Failed to fetch users' }, { status: 500 })

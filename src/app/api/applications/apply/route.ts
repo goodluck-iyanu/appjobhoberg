@@ -88,9 +88,13 @@ export async function POST(req: NextRequest) {
 
     // 4. Record application in database with server UTC timestamp
     const serverTimestamp = new Date().toISOString()
+    
+    // Validate if jobId is a valid UUID. If it's a string from an external API, set to null to avoid UUID casting errors.
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(jobId)
+
     const appPayload = {
       user_id: user.id,
-      job_id: jobId,
+      job_id: isUuid ? jobId : null,
       job_title: jobTitle || 'Remote Position',
       company_name: companyName || 'Company',
       status: 'submitted',
@@ -101,8 +105,11 @@ export async function POST(req: NextRequest) {
     // Try insert with authenticated supabase client first (respects auth.uid() RLS), fallback to admin client
     let insertResult = await supabase.from('applications').insert(appPayload).select()
     if (insertResult.error) {
-      console.warn('Authenticated insert note, trying admin insert:', insertResult.error.message)
-      await adminSupabase.from('applications').insert(appPayload)
+      console.warn('Authenticated insert failed, trying admin insert:', insertResult.error.message)
+      const adminResult = await adminSupabase.from('applications').insert(appPayload)
+      if (adminResult.error) {
+        console.error('Admin insert ALSO failed:', adminResult.error.message)
+      }
     }
 
     const newCount = monthlyCount + 1

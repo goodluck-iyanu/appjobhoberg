@@ -184,10 +184,8 @@ export default function AdminPortalPage() {
         setUsers(data.users || [])
         setAuthLogs(data.authLogs || [])
         setMetrics(data.metrics)
-        if (data.authLogsError) {
-          setDashboardError(`Security Table Notice: ${data.authLogsError}. Please run the auth_logs SQL in Supabase.`)
-        } else {
-          setDashboardError(null)
+        if (data.authLogsError || data.applicationsError) {
+          setDashboardError(`Table Notice: ${data.authLogsError || ''} ${data.applicationsError || ''}. Please ensure RLS policies allow admin read.`)
         }
       } else {
         setDashboardError(data.error || 'Failed to load candidates from database.')
@@ -367,8 +365,8 @@ export default function AdminPortalPage() {
     })
   }, [authLogs, inspectUser])
 
-  if (authChecking) {
-    return (
+  // Candidate specific applications for modal
+  const candidateApplications = useMemo(() => {
       <div className="flex-1 bg-[#121214] text-white py-32 flex flex-col items-center justify-center">
         <div className="w-10 h-10 border-4 border-[#e02424] border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-gray-400 text-[14px]">Verifying secure session...</p>
@@ -1106,8 +1104,8 @@ export default function AdminPortalPage() {
                 )}
               </div>
 
-              {/* Candidate Specific Login/Logout Audit Trail */}
-              <div className="p-5 rounded-2xl bg-[#202023] border border-white/10 space-y-3.5">
+              {/* Candidate Specific Applications History */}
+              <div className="p-5 rounded-2xl bg-[#202023] border border-white/10 space-y-3.5 mb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Lock className="w-4 h-4 text-[#e02424]" />
