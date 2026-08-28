@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { success: false, error: 'You must be signed in to apply.' },
+        { success: false, error: 'You must be signed in with Google to apply.' },
         { status: 401 }
       )
     }
@@ -27,40 +27,51 @@ export async function POST(req: NextRequest) {
 
     const adminSupabase = createAdminClient()
 
-    // 1. Fetch user's profile to verify review_status and premium status
-    const { data: profile, error: profileError } = await adminSupabase
+    // 1. Fetch user's profile
+    let { data: profile, error: profileError } = await adminSupabase
       .from('profiles')
       .select('review_status, is_premium, full_name, email')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (profileError || !profile) {
-      return NextResponse.json(
-        { success: false, error: 'User profile not found.' },
-        { status: 404 }
-      )
+    // If profile doesn't exist, create an initial draft profile
+    if (!profile) {
+      const { data: newProfile } = await adminSupabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          email: user.email,
+          full_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+          review_status: 'draft',
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single()
+      profile = newProfile
     }
 
-    if (profile.review_status !== 'approved') {
+    if (profile?.review_status !== 'approved') {
       return NextResponse.json(
         {
           success: false,
+          needsApproval: true,
+          reviewStatus: profile?.review_status || 'draft',
           error:
-            profile.review_status === 'under_review'
-              ? 'Your profile is currently under review.'
-              : 'Your profile must be completed and approved before applying.',
+            profile?.review_status === 'under_review'
+              ? 'Your profile is currently under review by our team. Once approved, you can apply immediately.'
+              : 'Please complete your career profile and submit it for verification before applying.',
         },
         { status: 403 }
       )
     }
 
-    const isPremium = Boolean(profile.is_premium)
+    const isPremium = Boolean(profile?.is_premium)
 
-    // 2. Authoritative UTC server calendar month start (cannot be bypassed by user clock changes)
+    // 2. Count applications in the current calendar month using server UTC time
     const now = new Date()
     const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
 
-    const { data: monthlyApps, error: appsError } = await adminSupabase
+    const { data: monthlyApps } = await adminSupabase
       .from('applications')
       .select('id, created_at')
       .eq('user_id', user.id)
@@ -75,25 +86,25 @@ export async function POST(req: NextRequest) {
           success: false,
           limitReached: true,
           error:
-            'You have reached your monthly limit of 3 free applications. Upgrade to Premium for unlimited applications.',
+            "You have reached your monthly limit of 3 free applications. Upgrade to Premium for unlimited applications.",
         },
         { status: 429 }
       )
     }
 
-    // 4. Record the application with authoritative server UTC timestamp
+    // 4. Record application in database
     const serverTimestamp = new Date().toISOString()
-    const { error: insertError } = await adminSupabase.from('applications').insert({
-      user_id: user.id,
-      job_id: jobId,
-      job_title: jobTitle || 'Remote Position',
-      company_name: companyName || 'Company',
-      apply_url: applyUrl,
-      created_at: serverTimestamp,
-    })
-
-    if (insertError) {
-      console.error('Failed to log application:', insertError)
+    try {
+      await adminSupabase.from('applications').insert({
+        user_id: user.id,
+        job_id: jobId,
+        job_title: jobTitle || 'Remote Position',
+        company_name: companyName || 'Company',
+        apply_url: applyUrl,
+        created_at: serverTimestamp,
+      })
+    } catch (e) {
+      console.error('Applications table logging note:', e)
     }
 
     const newCount = monthlyCount + 1
