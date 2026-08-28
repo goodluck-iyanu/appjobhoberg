@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const email = user.email || 'customer@example.com'
     const reference = `hoberg_${planTier || 'founding'}_${user.id.slice(0, 8)}_${Date.now()}`
     const { origin } = new URL(request.url)
-    const callbackUrl = `${origin}/dashboard?reference=${reference}&upgraded=true`
+    const callbackUrl = `${origin}/dashboard?upgraded=true&reference=${reference}`
 
     // If user provided a custom Paystack Payment Page link
     if (customPaymentLink && customPaymentLink.startsWith('http')) {

@@ -24,20 +24,40 @@ export default function ApplyHeaderButton({
 
   // Real-time bypass of Next.js Router cache
   useEffect(() => {
-    if (user && !isPremiumState) {
-      const checkPremiumStatus = async () => {
+    if (!user || isPremiumState) return
+
+    const checkPremiumStatus = async () => {
+      try {
         const supabase = createClient()
         const { data } = await supabase
           .from('profiles')
           .select('is_premium')
           .eq('id', user.id)
-          .single()
-        
+          .maybeSingle()
+
         if (data?.is_premium) {
           setIsPremiumState(true)
         }
+      } catch {}
+    }
+
+    checkPremiumStatus()
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        checkPremiumStatus()
       }
-      checkPremiumStatus()
+    }
+
+    window.addEventListener('focus', checkPremiumStatus)
+    document.addEventListener('visibilitychange', handleVisibility)
+
+    const interval = setInterval(checkPremiumStatus, 3000)
+
+    return () => {
+      window.removeEventListener('focus', checkPremiumStatus)
+      document.removeEventListener('visibilitychange', handleVisibility)
+      clearInterval(interval)
     }
   }, [user, isPremiumState])
 

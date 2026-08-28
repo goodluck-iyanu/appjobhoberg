@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
         .update({
           is_premium: newPremiumState,
           premium_tier: newPremiumState ? 'founding_member' : 'free',
+          premium_since: newPremiumState ? new Date().toISOString() : null,
           updated_at: new Date().toISOString(),
         })
         .eq('id', userId)

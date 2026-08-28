@@ -50,20 +50,42 @@ export default function ApplySection({
   // Real-time bypass of Next.js Router cache:
   // If the user upgraded in another tab or navigated back, we fetch their fresh premium status
   useEffect(() => {
-    if (user && !isPremiumState) {
-      const checkPremiumStatus = async () => {
+    if (!user || isPremiumState) return
+
+    const checkPremiumStatus = async () => {
+      try {
         const supabase = createClient()
         const { data } = await supabase
           .from('profiles')
           .select('is_premium')
           .eq('id', user.id)
-          .single()
-        
+          .maybeSingle()
+
         if (data?.is_premium) {
           setIsPremiumState(true)
         }
+      } catch {}
+    }
+
+    checkPremiumStatus()
+
+    // Re-check when window gains focus or tab becomes visible
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        checkPremiumStatus()
       }
-      checkPremiumStatus()
+    }
+
+    window.addEventListener('focus', checkPremiumStatus)
+    document.addEventListener('visibilitychange', handleVisibility)
+
+    // Interval check every 3s while user is on page
+    const interval = setInterval(checkPremiumStatus, 3000)
+
+    return () => {
+      window.removeEventListener('focus', checkPremiumStatus)
+      document.removeEventListener('visibilitychange', handleVisibility)
+      clearInterval(interval)
     }
   }, [user, isPremiumState])
 

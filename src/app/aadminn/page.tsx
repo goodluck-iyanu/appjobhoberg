@@ -831,14 +831,19 @@ export default function AdminPortalPage() {
 
                           {/* Membership Tier */}
                           <td className="py-4 px-5">
-                            {u.is_premium ? (
-                              <span className="inline-flex items-center gap-1 bg-amber-400/20 text-amber-300 text-[12px] font-bold px-2.5 py-1 rounded-full border border-amber-400/30">
-                                <Crown className="w-3 h-3" />
-                                Pro Founding
-                              </span>
-                            ) : (
-                              <span className="text-[12px] text-gray-400">Free Tier</span>
-                            )}
+                            <button
+                              onClick={() => performAction(u.id, 'toggle_premium', { isPremium: u.is_premium })}
+                              disabled={isLoading}
+                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold transition-all cursor-pointer ${
+                                u.is_premium
+                                  ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40 hover:bg-amber-400/30'
+                                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white border border-white/5'
+                              }`}
+                              title={u.is_premium ? 'Click to Revoke Premium' : 'Click to Grant Premium'}
+                            >
+                              <Crown className={`w-3.5 h-3.5 ${u.is_premium ? 'text-amber-400' : 'text-gray-500'}`} />
+                              <span>{u.is_premium ? 'Pro Founding' : 'Free Tier'}</span>
+                            </button>
                           </td>
 
                           {/* Actions */}
