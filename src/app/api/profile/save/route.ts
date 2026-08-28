@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { createAdminClient } from '@/utils/supabase/admin'
 
 export async function POST(req: NextRequest) {
   try {
@@ -42,7 +41,6 @@ export async function POST(req: NextRequest) {
       targetStatus,
     } = body
 
-    const adminSupabase = createAdminClient()
     const nextReviewStatus = targetStatus || reviewStatus || 'draft'
     const skillsArray = Array.isArray(skills)
       ? skills
@@ -81,8 +79,8 @@ export async function POST(req: NextRequest) {
       payload.submitted_at = new Date().toISOString()
     }
 
-    // Upsert into Supabase profiles using admin client
-    let { data, error } = await adminSupabase
+    // Upsert into Supabase profiles using authenticated client
+    let { data, error } = await supabase
       .from('profiles')
       .upsert(payload)
       .select()
@@ -90,7 +88,7 @@ export async function POST(req: NextRequest) {
 
     if (error && error.message?.includes('full_name')) {
       delete payload.full_name
-      const retry = await adminSupabase.from('profiles').upsert(payload).select().single()
+      const retry = await supabase.from('profiles').upsert(payload).select().single()
       data = retry.data
       error = retry.error
     }
