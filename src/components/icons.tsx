@@ -57,6 +57,8 @@ import {
   RefreshCw,
   AlertCircle,
   MessageCircle,
+  Activity,
+  History,
 } from 'lucide-react'
 
 // Custom Brand Icons (High-fidelity inline SVGs)
@@ -153,4 +155,6 @@ export {
   RefreshCw,
   AlertCircle,
   MessageCircle,
+  Activity,
+  History,
 }
