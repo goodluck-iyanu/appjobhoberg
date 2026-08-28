@@ -52,7 +52,6 @@ export async function POST(req: NextRequest) {
 
     const payload: Record<string, any> = {
       id: user.id,
-      email: user.email,
       full_name: fullName || user.user_metadata?.full_name || user.email?.split('@')[0],
       display_name: fullName || user.user_metadata?.full_name || user.email?.split('@')[0],
       country: country || 'Nigeria',

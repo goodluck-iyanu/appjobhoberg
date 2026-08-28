@@ -50,6 +50,9 @@ export default function ApplySection({
     e.preventDefault()
     if (loading) return
 
+    // Open official employer portal in a new tab synchronously to bypass popup blockers
+    window.open(job.apply_url, '_blank', 'noopener,noreferrer')
+
     setLoading(true)
     setErrorMsg(null)
 
@@ -87,20 +90,14 @@ export default function ApplySection({
 
         toast.success(
           'Application Saved to Profile! 🚀',
-          `Opening official ${job.company_name} portal in a new tab...`
+          `Your application for ${job.company_name} was successfully logged.`
         )
-
-        // Open official employer portal in a new tab
-        window.open(job.apply_url, '_blank', 'noopener,noreferrer')
       } else if (data.limitReached) {
         setMonthlyCount(3)
         toast.warning('Monthly Limit Reached', 'You have used all 3 free applications for this month.')
-      } else {
-        // Fallback open
-        window.open(job.apply_url, '_blank', 'noopener,noreferrer')
       }
     } catch {
-      window.open(job.apply_url, '_blank', 'noopener,noreferrer')
+      // Silently fail on network error as the user is already on the new tab
     } finally {
       setLoading(false)
     }
