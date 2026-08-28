@@ -30,6 +30,8 @@ interface ApplySectionProps {
 }
 
 import { useToast } from '@/components/Toast'
+import { createClient } from '@/utils/supabase/client'
+import { useEffect } from 'react'
 
 export default function ApplySection({
   job,
@@ -39,12 +41,33 @@ export default function ApplySection({
   initialMonthlyCount,
 }: ApplySectionProps) {
   const [monthlyCount, setMonthlyCount] = useState(initialMonthlyCount)
+  const [isPremiumState, setIsPremiumState] = useState(isPremium)
   const [loading, setLoading] = useState(false)
   const [applied, setApplied] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const toast = useToast()
 
-  const isLimitReached = !isPremium && monthlyCount >= 3
+  // Real-time bypass of Next.js Router cache:
+  // If the user upgraded in another tab or navigated back, we fetch their fresh premium status
+  useEffect(() => {
+    if (user && !isPremiumState) {
+      const checkPremiumStatus = async () => {
+        const supabase = createClient()
+        const { data } = await supabase
+          .from('profiles')
+          .select('is_premium')
+          .eq('id', user.id)
+          .single()
+        
+        if (data?.is_premium) {
+          setIsPremiumState(true)
+        }
+      }
+      checkPremiumStatus()
+    }
+  }, [user, isPremiumState])
+
+  const isLimitReached = !isPremiumState && monthlyCount >= 3
 
   const handleApplyClick = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -98,9 +121,9 @@ export default function ApplySection({
         }
 
         setApplied(true)
-        if (!isPremium && typeof data.monthlyCount === 'number') {
+        if (!isPremiumState && typeof data.monthlyCount === 'number') {
           setMonthlyCount(data.monthlyCount)
-        } else if (!isPremium) {
+        } else if (!isPremiumState) {
           setMonthlyCount((prev) => prev + 1)
         }
 
@@ -149,7 +172,7 @@ export default function ApplySection({
   }
 
   // 2. Profile Under Review (For free users)
-  if (!isPremium && reviewStatus === 'under_review') {
+  if (!isPremiumState && reviewStatus === 'under_review') {
     return (
       <div className="bg-amber-50/90 border border-amber-200 rounded-3xl p-6 sm:p-8 text-center">
         <div className="w-12 h-12 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mx-auto mb-3">
@@ -172,7 +195,7 @@ export default function ApplySection({
   }
 
   // 3. Profile Not Submitted / Incomplete (For free users)
-  if (!isPremium && reviewStatus !== 'approved') {
+  if (!isPremiumState && reviewStatus !== 'approved') {
     return (
       <div className="bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-3xl p-6 sm:p-8 text-center">
         <div className="w-12 h-12 bg-gray-200 text-[#1d1d1f] rounded-2xl flex items-center justify-center mx-auto mb-3">
@@ -280,7 +303,7 @@ export default function ApplySection({
 
       {/* Application Usage Counter Pill */}
       <div className="mt-4 flex items-center justify-center gap-2">
-        {isPremium ? (
+        {isPremiumState ? (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-[12px] font-bold">
             <Crown className="w-3.5 h-3.5 text-amber-700" />
             <span>Premium Member &bull; Unlimited Applications</span>
