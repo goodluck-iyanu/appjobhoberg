@@ -13,6 +13,7 @@ export interface Job {
   apply_url: string
   status: string
   category: string
+  source?: string
 }
 
 export const FALLBACK_JOBS: Job[] = [

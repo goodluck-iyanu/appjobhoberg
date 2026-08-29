@@ -91,6 +91,8 @@ interface Metrics {
   freeUsers: number
   estimatedRevenue: number
   totalAuthLogs?: number
+  totalApplications?: number
+  totalJobs?: number
 }
 
 function formatServerTimestamp(isoString?: string | null) {
@@ -130,6 +132,7 @@ export default function AdminPortalPage() {
   const [users, setUsers] = useState<UserProfile[]>([])
   const [authLogs, setAuthLogs] = useState<AuthLog[]>([])
   const [applications, setApplications] = useState<any[]>([])
+  const [jobs, setJobs] = useState<any[]>([])
   const [metrics, setMetrics] = useState<Metrics>({
     totalUsers: 0,
     underReview: 0,
@@ -140,10 +143,12 @@ export default function AdminPortalPage() {
     freeUsers: 0,
     estimatedRevenue: 0,
     totalAuthLogs: 0,
+    totalApplications: 0,
+    totalJobs: 0,
   })
   const [dataLoading, setDataLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterTab, setFilterTab] = useState<'all' | 'under_review' | 'approved' | 'draft' | 'premium' | 'logs'>('all')
+  const [filterTab, setFilterTab] = useState<'all' | 'under_review' | 'approved' | 'draft' | 'premium' | 'logs' | 'jobs' | 'applications'>('all')
   const [autoSync, setAutoSync] = useState(true)
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
   const [dashboardError, setDashboardError] = useState<string | null>(null)
@@ -194,6 +199,7 @@ export default function AdminPortalPage() {
         setUsers(data.users || [])
         setAuthLogs(data.authLogs || [])
         setApplications(data.applications || [])
+        setJobs(data.jobs || [])
         setMetrics(data.metrics)
         if (data.authLogsError || data.applicationsError) {
           setDashboardError(`Table Notice: ${data.authLogsError || ''} ${data.applicationsError || ''}. Please ensure RLS policies allow admin read.`)
@@ -427,6 +433,36 @@ export default function AdminPortalPage() {
     return applications.filter((app) => app.user_id === inspectUser.id)
   }, [applications, inspectUser])
 
+  // Filtered live aggregated jobs
+  const filteredJobs = useMemo(() => {
+    return jobs.filter((j) => {
+      if (!searchTerm.trim()) return true
+      const q = searchTerm.toLowerCase()
+      return (
+        (j.title || '').toLowerCase().includes(q) ||
+        (j.company_name || '').toLowerCase().includes(q) ||
+        (j.location || '').toLowerCase().includes(q) ||
+        (j.category || '').toLowerCase().includes(q) ||
+        (j.source || '').toLowerCase().includes(q)
+      )
+    })
+  }, [jobs, searchTerm])
+
+  // Filtered applications across all users
+  const filteredApplications = useMemo(() => {
+    return applications.filter((app) => {
+      if (!searchTerm.trim()) return true
+      const q = searchTerm.toLowerCase()
+      return (
+        (app.job_title || '').toLowerCase().includes(q) ||
+        (app.company_name || '').toLowerCase().includes(q) ||
+        (app.status || '').toLowerCase().includes(q) ||
+        (app.notes || '').toLowerCase().includes(q) ||
+        (app.user_id || '').toLowerCase().includes(q)
+      )
+    })
+  }, [applications, searchTerm])
+
   if (authChecking) {
     return (
       <div className="flex-1 bg-[#121214] text-white py-32 flex flex-col items-center justify-center">
@@ -602,83 +638,96 @@ export default function AdminPortalPage() {
           </div>
         )}
 
-        {/* 5 Real-Time KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        {/* 6 Real-Time KPI Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 mb-8">
           {/* Total Candidates */}
           <div
             onClick={() => setFilterTab('all')}
-            className={`bg-[#18181b] border rounded-2xl p-5 shadow-sm cursor-pointer transition-all ${
+            className={`bg-[#18181b] border rounded-2xl p-4.5 shadow-sm cursor-pointer transition-all ${
               filterTab === 'all' ? 'border-blue-400 bg-blue-950/20' : 'border-white/10 hover:border-blue-400'
             }`}
           >
-            <div className="flex items-center justify-between text-gray-400 mb-2">
-              <span className="text-[12px] uppercase font-bold tracking-wider">Total Users</span>
-              <Users className="w-4 h-4 text-blue-400" />
+            <div className="flex items-center justify-between text-gray-400 mb-1.5">
+              <span className="text-[11px] uppercase font-bold tracking-wider">Total Users</span>
+              <Users className="w-3.5 h-3.5 text-blue-400" />
             </div>
-            <div className="text-3xl font-black text-white">{metrics.totalUsers}</div>
-            <p className="text-[11px] text-gray-400 mt-1">{metrics.approved} approved candidates</p>
+            <div className="text-2xl font-black text-white">{metrics.totalUsers}</div>
+            <p className="text-[10px] text-gray-400 mt-1">{metrics.approved} approved</p>
           </div>
 
           {/* Pending Reviews */}
           <div
             onClick={() => setFilterTab('under_review')}
-            className={`bg-[#18181b] border rounded-2xl p-5 shadow-sm cursor-pointer transition-all ${
+            className={`bg-[#18181b] border rounded-2xl p-4.5 shadow-sm cursor-pointer transition-all ${
               filterTab === 'under_review' ? 'border-amber-400 bg-amber-950/20' : 'border-amber-500/30 hover:border-amber-400'
             }`}
           >
-            <div className="flex items-center justify-between text-amber-400 mb-2">
-              <span className="text-[12px] uppercase font-bold tracking-wider">Needs Review</span>
-              <Clock className="w-4 h-4 text-amber-400" />
+            <div className="flex items-center justify-between text-amber-400 mb-1.5">
+              <span className="text-[11px] uppercase font-bold tracking-wider">Needs Review</span>
+              <Clock className="w-3.5 h-3.5 text-amber-400" />
             </div>
-            <div className="text-3xl font-black text-amber-400">{metrics.underReview}</div>
-            <p className="text-[11px] text-amber-300/80 mt-1">🟡 Click to review applications</p>
+            <div className="text-2xl font-black text-amber-400">{metrics.underReview}</div>
+            <p className="text-[10px] text-amber-300/80 mt-1">🟡 Click to review</p>
           </div>
 
           {/* Approved */}
           <div
             onClick={() => setFilterTab('approved')}
-            className={`bg-[#18181b] border rounded-2xl p-5 shadow-sm cursor-pointer transition-all ${
+            className={`bg-[#18181b] border rounded-2xl p-4.5 shadow-sm cursor-pointer transition-all ${
               filterTab === 'approved' ? 'border-emerald-400 bg-emerald-950/20' : 'border-emerald-500/30 hover:border-emerald-400'
             }`}
           >
-            <div className="flex items-center justify-between text-emerald-400 mb-2">
-              <span className="text-[12px] uppercase font-bold tracking-wider">Approved</span>
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <div className="flex items-center justify-between text-emerald-400 mb-1.5">
+              <span className="text-[11px] uppercase font-bold tracking-wider">Approved</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
             </div>
-            <div className="text-3xl font-black text-emerald-400">{metrics.approved}</div>
-            <p className="text-[11px] text-emerald-300/80 mt-1">🟢 Active job seekers</p>
+            <div className="text-2xl font-black text-emerald-400">{metrics.approved}</div>
+            <p className="text-[10px] text-emerald-300/80 mt-1">🟢 Active seekers</p>
           </div>
 
-          {/* Free vs Premium */}
+          {/* Premium Members */}
           <div
             onClick={() => setFilterTab('premium')}
-            className={`bg-[#18181b] border rounded-2xl p-5 shadow-sm cursor-pointer transition-all ${
+            className={`bg-[#18181b] border rounded-2xl p-4.5 shadow-sm cursor-pointer transition-all ${
               filterTab === 'premium' ? 'border-amber-400 bg-amber-950/20' : 'border-white/10 hover:border-amber-400'
             }`}
           >
-            <div className="flex items-center justify-between text-amber-300 mb-2">
-              <span className="text-[12px] uppercase font-bold tracking-wider">Premium Members</span>
-              <Crown className="w-4 h-4 text-amber-400" />
+            <div className="flex items-center justify-between text-amber-300 mb-1.5">
+              <span className="text-[11px] uppercase font-bold tracking-wider">Pro Members</span>
+              <Crown className="w-3.5 h-3.5 text-amber-400" />
             </div>
-            <div className="text-3xl font-black text-amber-300">{metrics.premiumUsers}</div>
-            <p className="text-[11px] text-gray-400 mt-1">{metrics.freeUsers} on free tier</p>
+            <div className="text-2xl font-black text-amber-300">{metrics.premiumUsers}</div>
+            <p className="text-[10px] text-gray-400 mt-1">₦{(metrics.estimatedRevenue || 0).toLocaleString()} rev</p>
           </div>
 
-          {/* Security & Audit Events */}
+          {/* Live Jobs Hub */}
           <div
-            onClick={() => setFilterTab('logs')}
-            className={`bg-[#18181b] border rounded-2xl p-5 shadow-sm cursor-pointer transition-all ${
-              filterTab === 'logs' ? 'border-red-400 bg-red-950/30' : 'border-white/10 hover:border-red-400'
+            onClick={() => setFilterTab('jobs')}
+            className={`bg-[#18181b] border rounded-2xl p-4.5 shadow-sm cursor-pointer transition-all ${
+              filterTab === 'jobs' ? 'border-purple-400 bg-purple-950/20' : 'border-white/10 hover:border-purple-400'
             }`}
           >
-            <div className="flex items-center justify-between text-[#e02424] mb-2">
-              <span className="text-[12px] uppercase font-bold tracking-wider">Auth Events</span>
-              <Lock className="w-4 h-4 text-[#e02424]" />
+            <div className="flex items-center justify-between text-purple-400 mb-1.5">
+              <span className="text-[11px] uppercase font-bold tracking-wider">Active Jobs</span>
+              <Briefcase className="w-3.5 h-3.5 text-purple-400" />
             </div>
-            <div className="text-3xl font-black text-white">
-              {authLogs.length}
+            <div className="text-2xl font-black text-purple-300">{metrics.totalJobs || jobs.length}</div>
+            <p className="text-[10px] text-purple-300/80 mt-1">💼 Multi-Source</p>
+          </div>
+
+          {/* Candidate Applications */}
+          <div
+            onClick={() => setFilterTab('applications')}
+            className={`bg-[#18181b] border rounded-2xl p-4.5 shadow-sm cursor-pointer transition-all ${
+              filterTab === 'applications' ? 'border-cyan-400 bg-cyan-950/20' : 'border-white/10 hover:border-cyan-400'
+            }`}
+          >
+            <div className="flex items-center justify-between text-cyan-400 mb-1.5">
+              <span className="text-[11px] uppercase font-bold tracking-wider">Applications</span>
+              <FileText className="w-3.5 h-3.5 text-cyan-400" />
             </div>
-            <p className="text-[11px] text-gray-400 mt-1">🔐 Login &amp; Logout logs</p>
+            <div className="text-2xl font-black text-cyan-300">{applications.length}</div>
+            <p className="text-[10px] text-cyan-300/80 mt-1">📝 Tracked links</p>
           </div>
         </div>
 
@@ -691,8 +740,9 @@ export default function AdminPortalPage() {
                 { id: 'all', label: `All Users (${users.length})` },
                 { id: 'under_review', label: `🟡 Under Review (${metrics.underReview})` },
                 { id: 'approved', label: `🟢 Approved (${metrics.approved})` },
-                { id: 'draft', label: `⚪ Incomplete / Draft (${metrics.draft})` },
                 { id: 'premium', label: `👑 Premium (${metrics.premiumUsers})` },
+                { id: 'jobs', label: `💼 Active Jobs (${jobs.length})` },
+                { id: 'applications', label: `📝 Submitted Applications (${applications.length})` },
                 { id: 'logs', label: `🔐 Login/Logout Audit (${authLogs.length})` },
               ].map((tab) => (
                 <button
@@ -716,7 +766,15 @@ export default function AdminPortalPage() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={filterTab === 'logs' ? 'Search email, IP, event...' : 'Search name, email, skills...'}
+                placeholder={
+                  filterTab === 'logs'
+                    ? 'Search email, IP, event...'
+                    : filterTab === 'jobs'
+                    ? 'Search job title, company, source...'
+                    : filterTab === 'applications'
+                    ? 'Search candidate, job title, status...'
+                    : 'Search name, email, skills...'
+                }
                 className="w-full bg-[#27272a] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-[13px] text-white placeholder-gray-500 outline-none focus:border-[#e02424] transition-all"
               />
             </div>
@@ -796,6 +854,211 @@ export default function AdminPortalPage() {
                         </td>
                       </tr>
                     ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : filterTab === 'jobs' ? (
+          /* ---------------------------------------------------- */
+          /* VIEW 3: ACTIVE JOBS HUB (ACROSS ALL SOURCES) */
+          /* ---------------------------------------------------- */
+          <div className="bg-[#18181b] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
+            <div className="p-5 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="font-bold text-lg text-white">Live Aggregated Jobs &amp; Portals</h3>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Real-time opportunities synced from Remotive, Jobicy, Arbeitnow, Database, and Curated African Roles
+                </p>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="bg-purple-950/60 border border-purple-500/40 text-purple-300 text-[11px] font-bold px-3 py-1 rounded-full">
+                  💼 {jobs.length} Total Openings
+                </span>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-white/10 bg-[#27272a]/60 text-[12px] font-bold uppercase tracking-wider text-gray-400">
+                    <th className="py-4 px-5">Role &amp; Company</th>
+                    <th className="py-4 px-5">Source</th>
+                    <th className="py-4 px-5">Location</th>
+                    <th className="py-4 px-5">Category &amp; Type</th>
+                    <th className="py-4 px-5">Compensation</th>
+                    <th className="py-4 px-5 text-right">Official Link</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-[13px]">
+                  {filteredJobs.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-16 text-center text-gray-500">
+                        No jobs found matching your search.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredJobs.map((j, idx) => {
+                      const sourceName = j.source || 'Aggregated'
+                      let sourceBadgeColor = 'bg-gray-800 text-gray-300 border-gray-700'
+                      if (sourceName.includes('Nigeria') || sourceName.includes('Curated')) {
+                        sourceBadgeColor = 'bg-emerald-950/60 text-emerald-300 border-emerald-500/40'
+                      } else if (sourceName.includes('Remotive')) {
+                        sourceBadgeColor = 'bg-blue-950/60 text-blue-300 border-blue-500/40'
+                      } else if (sourceName.includes('Jobicy')) {
+                        sourceBadgeColor = 'bg-purple-950/60 text-purple-300 border-purple-500/40'
+                      } else if (sourceName.includes('Arbeitnow')) {
+                        sourceBadgeColor = 'bg-amber-950/60 text-amber-300 border-amber-500/40'
+                      } else if (sourceName.includes('Database') || sourceName.includes('Custom')) {
+                        sourceBadgeColor = 'bg-cyan-950/60 text-cyan-300 border-cyan-500/40'
+                      }
+
+                      return (
+                        <tr key={j.id || idx} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="py-3.5 px-5">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-xl bg-[#27272a] border border-white/10 flex items-center justify-center font-bold text-xs text-white shrink-0">
+                                {j.company_name?.charAt(0).toUpperCase() || 'J'}
+                              </div>
+                              <div>
+                                <div className="font-bold text-white text-[14px]">{j.title}</div>
+                                <div className="text-xs text-gray-400">{j.company_name}</div>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="py-3.5 px-5">
+                            <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${sourceBadgeColor}`}>
+                              {sourceName}
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-5 text-gray-300 text-xs">
+                            {j.location || 'Worldwide (Remote)'}
+                          </td>
+
+                          <td className="py-3.5 px-5">
+                            <span className="text-gray-300 text-xs">{j.category || 'General'}</span>
+                            <span className="text-[11px] text-gray-500 block">{j.employment_type}</span>
+                          </td>
+
+                          <td className="py-3.5 px-5 text-xs text-gray-300 font-medium">
+                            {j.salary_range || 'Competitive'}
+                          </td>
+
+                          <td className="py-3.5 px-5 text-right">
+                            {j.apply_url && (
+                              <a
+                                href={j.apply_url.startsWith('http') ? j.apply_url : `https://${j.apply_url}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 bg-[#27272a] hover:bg-[#3f3f46] text-white hover:text-[#e02424] border border-white/10 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                              >
+                                <span>Test Portal</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : filterTab === 'applications' ? (
+          /* ---------------------------------------------------- */
+          /* VIEW 4: CANDIDATE APPLICATIONS TRACKER */
+          /* ---------------------------------------------------- */
+          <div className="bg-[#18181b] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
+            <div className="p-5 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="font-bold text-lg text-white">Candidate Applications Tracker</h3>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Permanent audit log of every application submitted by candidates with direct links to official employer portals
+                </p>
+              </div>
+              <span className="bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 text-[11px] font-bold px-3 py-1 rounded-full">
+                📝 {applications.length} Tracked Applications
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-white/10 bg-[#27272a]/60 text-[12px] font-bold uppercase tracking-wider text-gray-400">
+                    <th className="py-4 px-5">Job Title &amp; Company</th>
+                    <th className="py-4 px-5">Candidate</th>
+                    <th className="py-4 px-5">Status</th>
+                    <th className="py-4 px-5">Date Applied (WAT)</th>
+                    <th className="py-4 px-5 text-right">Official Application Portal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 text-[13px]">
+                  {filteredApplications.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-16 text-center text-gray-500">
+                        No applications found matching the search criteria.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredApplications.map((app, idx) => {
+                      const userObj = users.find((u) => u.id === app.user_id)
+                      const targetUrl = app.apply_url || app.notes
+
+                      return (
+                        <tr key={app.id || idx} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="py-3.5 px-5">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-xl bg-red-950/60 border border-red-500/30 flex items-center justify-center font-bold text-xs text-red-300 shrink-0">
+                                {app.company_name?.charAt(0).toUpperCase() || 'J'}
+                              </div>
+                              <div>
+                                <div className="font-bold text-white text-[14px]">{app.job_title}</div>
+                                <div className="text-xs text-gray-400">{app.company_name}</div>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="py-3.5 px-5">
+                            <div className="font-semibold text-white">
+                              {userObj?.full_name || userObj?.display_name || 'Job Seeker'}
+                            </div>
+                            <div className="text-xs text-gray-400 font-mono">
+                              {userObj?.email || (app.user_id ? app.user_id.slice(0, 8) + '...' : 'Unknown')}
+                            </div>
+                          </td>
+
+                          <td className="py-3.5 px-5">
+                            <span className="inline-flex items-center gap-1.5 bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                              Applied &amp; Logged
+                            </span>
+                          </td>
+
+                          <td className="py-3.5 px-5 text-xs text-gray-400 whitespace-nowrap">
+                            {formatServerTimestamp(app.created_at)}
+                          </td>
+
+                          <td className="py-3.5 px-5 text-right">
+                            {targetUrl ? (
+                              <a
+                                href={targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-500/40 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-xs"
+                              >
+                                <span>Visit Official Portal</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            ) : (
+                              <span className="text-gray-500 text-xs">Direct / Saved</span>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })
                   )}
                 </tbody>
               </table>

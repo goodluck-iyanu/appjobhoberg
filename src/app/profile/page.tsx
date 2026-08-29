@@ -1052,41 +1052,49 @@ export default function ProfilePage() {
 
           {applications.length > 0 ? (
             <div className="divide-y divide-gray-100">
-              {applications.map((app: any) => (
-                <div
-                  key={app.id}
-                  className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50/50 transition-colors rounded-xl px-2 -mx-2"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-[15px] text-[#1d1d1f]">{app.job_title}</h4>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">
-                        ✅ Logged &amp; Forwarded
-                      </span>
+              {applications.map((app: any) => {
+                const targetUrl = app.apply_url || app.notes
+                return (
+                  <div
+                    key={app.id}
+                    className="py-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50/60 transition-colors rounded-2xl px-3 -mx-3"
+                  >
+                    <div className="flex items-start gap-3.5">
+                      <div className="w-10 h-10 rounded-2xl bg-red-50 text-[#e02424] flex items-center justify-center font-bold text-sm shrink-0 border border-red-100/80">
+                        {app.company_name?.charAt(0).toUpperCase() || 'J'}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-bold text-[15px] text-[#1d1d1f]">{app.job_title}</h4>
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            ✅ Applied &amp; Logged
+                          </span>
+                        </div>
+                        <p className="text-[13px] text-[#86868b] mt-0.5">
+                          {app.company_name} &bull; Applied on{' '}
+                          {new Date(app.created_at).toLocaleDateString('en-GB', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-[13px] text-[#86868b] mt-0.5">
-                      {app.company_name} &bull; Applied on{' '}
-                      {new Date(app.created_at).toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                    </p>
-                  </div>
 
-                  {(app.apply_url || app.notes) && (
-                    <a
-                      href={app.apply_url || app.notes}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-[13px] text-[#e02424] hover:underline font-semibold shrink-0"
-                    >
-                      <span>Revisit Application Portal</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  )}
-                </div>
-              ))}
+                    {targetUrl && (
+                      <a
+                        href={targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 bg-[#f5f5f7] hover:bg-[#e8e8ed] text-[#1d1d1f] hover:text-[#e02424] border border-[#d2d2d7]/60 px-4 py-2 rounded-xl text-[13px] font-semibold transition-all shrink-0 cursor-pointer shadow-2xs"
+                      >
+                        <span>Revisit Official Portal</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           ) : (
             <div className="py-8 text-center text-[#86868b] bg-[#f5f5f7] rounded-2xl">

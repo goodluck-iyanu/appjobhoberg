@@ -66,7 +66,16 @@ export async function GET() {
       applicationsError = err?.message || 'Failed to query applications table'
     }
 
-    // 4. Calculate live overview metrics
+    // 4. Fetch live aggregated jobs across all sources
+    let jobs: any[] = []
+    try {
+      const { fetchLiveJobs } = await import('@/utils/jobs')
+      jobs = await fetchLiveJobs()
+    } catch (err: any) {
+      console.error('Failed to aggregate jobs for admin portal:', err)
+    }
+
+    // 5. Calculate live overview metrics
     const totalUsers = users.length
     const underReview = users.filter((u) => u.review_status === 'under_review').length
     const approved = users.filter((u) => u.review_status === 'approved').length
@@ -90,12 +99,15 @@ export async function GET() {
         freeUsers,
         estimatedRevenue,
         totalAuthLogs: authLogs.length,
+        totalApplications: applications.length,
+        totalJobs: jobs.length,
       },
       users,
       authLogs,
       authLogsError,
       applications,
       applicationsError,
+      jobs,
     })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Failed to fetch users' }, { status: 500 })

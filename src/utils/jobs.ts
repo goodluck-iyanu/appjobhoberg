@@ -171,14 +171,24 @@ export async function fetchLiveJobs(options?: {
       .order('created_at', { ascending: false })
 
     if (dbJobs && dbJobs.length > 0) {
-      jobsList.push(...(dbJobs as Job[]))
+      jobsList.push(
+        ...(dbJobs as Job[]).map((j) => ({
+          ...j,
+          source: j.source || 'Custom Employer Post',
+        }))
+      )
     }
   } catch {
     // Supabase table not created yet or credentials not configured
   }
 
   // 2. Add Nigerian & African / Global curated roles
-  jobsList.push(...NIGERIA_GLOBAL_ROLES)
+  jobsList.push(
+    ...NIGERIA_GLOBAL_ROLES.map((j) => ({
+      ...j,
+      source: 'Nigeria & Africa Curated',
+    }))
+  )
 
   // 3. Fetch from Multiple Real APIs in Parallel
   const apiPromises = [
@@ -203,8 +213,9 @@ export async function fetchLiveJobs(options?: {
             category: item.category || 'Other',
             description: item.description || '',
             requirements: '',
-            apply_url: item.url,
+            apply_url: (item.url && item.url.startsWith('http')) ? item.url : `https://remotive.com`,
             status: 'open',
+            source: 'Remotive API',
           }))
         }
         return []
@@ -238,8 +249,9 @@ export async function fetchLiveJobs(options?: {
               category: (item.jobIndustry && item.jobIndustry[0]) || 'General',
               description: item.jobDescription || '',
               requirements: '',
-              apply_url: item.url,
+              apply_url: (item.url && item.url.startsWith('http')) ? item.url : `https://jobicy.com`,
               status: 'open',
+              source: 'Jobicy API',
             }
           })
         }
@@ -268,8 +280,9 @@ export async function fetchLiveJobs(options?: {
             category: (item.tags && item.tags[0]) || 'Business',
             description: item.description || '',
             requirements: '',
-            apply_url: item.url,
+            apply_url: (item.url && item.url.startsWith('http')) ? item.url : `https://www.arbeitnow.com`,
             status: 'open',
+            source: 'Arbeitnow API',
           }))
         }
         return []
@@ -286,7 +299,12 @@ export async function fetchLiveJobs(options?: {
 
   // 4. Fallback if everything fails
   if (jobsList.length === 0) {
-    jobsList.push(...FALLBACK_JOBS)
+    jobsList.push(
+      ...FALLBACK_JOBS.map((j) => ({
+        ...j,
+        source: 'Partner Listings',
+      }))
+    )
   }
 
   // 5. Deduplicate by title + company
