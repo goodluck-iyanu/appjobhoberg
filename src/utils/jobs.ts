@@ -33,18 +33,6 @@ interface JobicyJob {
   jobDescription?: string
 }
 
-interface ArbeitnowJob {
-  slug: string
-  title: string
-  company_name: string
-  location: string
-  remote: boolean
-  url: string
-  tags?: string[]
-  job_types?: string[]
-  description?: string
-  created_at?: number
-}
 
 interface RemoteOKJob {
   id: string | number
@@ -345,35 +333,7 @@ export async function fetchLiveJobs(options?: {
       })
       .catch(() => []),
 
-    // API C: Arbeitnow API (Diverse global/European remote roles)
-    fetch('https://www.arbeitnow.com/api/job-board-api', {
-      next: { revalidate: 1800 },
-      headers: { Accept: 'application/json' },
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.data && Array.isArray(data.data)) {
-          return data.data.slice(0, 30).map((item: ArbeitnowJob) => ({
-            id: `arbeitnow-${item.slug}`,
-            created_at: item.created_at ? new Date(item.created_at * 1000).toISOString() : new Date().toISOString(),
-            title: item.title,
-            company_name: item.company_name,
-            company_logo_url: null,
-            location: item.remote ? 'Remote (Global)' : (item.location || 'Remote'),
-            employment_type: normalizeJobType(item.job_types),
-            is_remote: true,
-            salary_range: '',
-            category: (item.tags && item.tags[0]) || 'Business',
-            description: item.description || '',
-            requirements: '',
-            apply_url: (item.url && item.url.startsWith('http')) ? item.url : `https://www.arbeitnow.com`,
-            status: 'open',
-            source: 'Arbeitnow API',
-          }))
-        }
-        return []
-      })
-      .catch(() => []),
+    // (Arbeitnow removed to guarantee strictly English & strictly Remote only)
 
     // API D: RemoteOK API (100+ verified tech, marketing, support, and sales roles)
     fetch('https://remoteok.com/api', {
