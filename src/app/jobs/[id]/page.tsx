@@ -99,11 +99,8 @@ export default async function JobDetails({
 
   const isLimitReached = !isPremium && monthlyCount >= 3
 
-  // Check if description is HTML or plain text
-  const isHtml =
-    job.description.includes('<p>') ||
-    job.description.includes('<div>') ||
-    job.description.includes('<br>')
+  // Check if description is HTML or plain text using regex for HTML tags
+  const isHtml = /<\/?[a-z][\s\S]*>/i.test(job.description) || job.description.includes('&lt;')
 
   return (
     <div className="flex-1 bg-[#f5f5f7] py-8 sm:py-14">

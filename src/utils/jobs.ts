@@ -333,11 +333,49 @@ export async function fetchLiveJobs(options?: {
       })
       .catch(() => []),
 
-    // (Arbeitnow removed to guarantee strictly English & strictly Remote only)
+    // API C: Himalayas API (Highly curated tech and remote jobs, strictly English & Remote)
+    fetch('https://himalayas.app/jobs/api?limit=50', {
+      next: { revalidate: 1800 },
+      headers: { Accept: 'application/json' },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.jobs && Array.isArray(data.jobs)) {
+          return data.jobs.map((item: any) => {
+            let salaryText = ''
+            if (item.minSalary && item.maxSalary) {
+              const cur = item.currency || '$'
+              salaryText = `${cur}${item.minSalary.toLocaleString()} - ${cur}${item.maxSalary.toLocaleString()}${item.salaryPeriod ? ` / ${item.salaryPeriod}` : ''}`
+            } else if (item.minSalary) {
+              salaryText = `From ${item.currency || '$'}${item.minSalary.toLocaleString()}`
+            }
+            return {
+              id: `himalayas-${item.guid?.split('-').pop() || Math.random().toString(36).substring(7)}`,
+              created_at: item.pubDate ? new Date(item.pubDate * 1000).toISOString() : new Date().toISOString(),
+              title: item.title,
+              company_name: item.companyName,
+              company_logo_url: item.companyLogo || null,
+              location: item.locationRestrictions && item.locationRestrictions.length > 0 
+                ? `${item.locationRestrictions.join(', ')} (Remote)` 
+                : 'Worldwide (Remote)',
+              employment_type: item.employmentType || 'Full-time',
+              is_remote: true,
+              salary_range: salaryText,
+              category: (item.categories && item.categories[0]) || 'Tech',
+              description: item.description || item.excerpt || '',
+              requirements: '',
+              apply_url: item.applicationLink || item.guid,
+              status: 'open',
+              source: 'Himalayas API',
+            }
+          })
+        }
+        return []
+      })
+      .catch(() => []),
 
     // API D: RemoteOK API (100+ verified tech, marketing, support, and sales roles)
     fetch('https://remoteok.com/api', {
-      next: { revalidate: 1800 },
       headers: {
         Accept: 'application/json',
         'User-Agent':
