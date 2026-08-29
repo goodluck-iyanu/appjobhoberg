@@ -396,6 +396,24 @@ export default function AdminPortalPage() {
     }
   }
 
+  // Shuffle and rotate job catalog across diverse categories
+  const handleShuffleJobs = async () => {
+    try {
+      toast.info('Rotating Jobs...', 'Shuffling and interleaving categories across the platform...')
+      const res = await fetch('/api/admin/jobs/shuffle', { method: 'POST' })
+      const data = await res.json()
+      if (data.success) {
+        toast.success('Jobs Rotated! 🔀', 'Job listings dynamically shuffled across all categories.')
+        await fetchDashboardData(true)
+        setFilterTab('jobs')
+      } else {
+        toast.error('Rotation Failed', data.error)
+      }
+    } catch {
+      toast.error('Network Error', 'Could not rotate jobs.')
+    }
+  }
+
   // Filtered users list
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {
@@ -949,6 +967,14 @@ export default function AdminPortalPage() {
                 >
                   <Zap className={`w-3.5 h-3.5 ${jobsSyncing ? 'animate-spin' : 'text-amber-300'}`} />
                   <span>{jobsSyncing ? 'Refreshing Feeds...' : '⚡ Refresh & Sync All Sources'}</span>
+                </button>
+                <button
+                  onClick={handleShuffleJobs}
+                  className="inline-flex items-center gap-1.5 bg-[#27272a] hover:bg-[#3f3f46] text-gray-200 border border-white/10 text-[12px] font-semibold px-3 py-1.5 rounded-xl transition-all cursor-pointer shadow-sm"
+                  title="Randomly shuffle and rotate categories across the platform"
+                >
+                  <RefreshCw className="w-3.5 h-3.5 text-blue-400" />
+                  <span>🔀 Shuffle Order</span>
                 </button>
                 <span className="bg-purple-950/60 border border-purple-500/40 text-purple-300 text-[11px] font-bold px-3 py-1 rounded-full">
                   💼 {jobs.length} Total Openings
