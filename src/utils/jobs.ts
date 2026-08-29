@@ -234,6 +234,86 @@ export async function fetchLiveJobs(options?: {
   limit?: number
 }): Promise<Job[]> {
   const jobsList: Job[] = []
+  
+  // 1. Supabase Database Jobs
+  try {
+    const supabase = await createClient()
+    const { data: dbJobs } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('status', 'open')
+      .order('created_at', { ascending: false })
+
+    if (dbJobs && dbJobs.length > 0) {
+      jobsList.push(
+        ...(dbJobs as Job[]).map((j) => ({
+          ...j,
+          source: j.source || 'Custom Employer Post',
+        }))
+      )
+    }
+  } catch {}
+
+  // 2. Add curated roles and fallback
+  jobsList.push(
+    ...NIGERIA_GLOBAL_ROLES.map((j) => ({
+      ...j,
+      source: 'Nigeria & Africa Curated',
+    }))
+  )
+
+  if (jobsList.length === 0) {
+    jobsList.push(
+      ...FALLBACK_JOBS.map((j) => ({
+        ...j,
+        source: 'Partner Listings',
+      }))
+    )
+  }
+
+  // 3. Filtering
+  let filtered = jobsList
+
+  if (options?.query) {
+    const q = options.query.toLowerCase()
+    filtered = filtered.filter(
+      (job) =>
+        job.title.toLowerCase().includes(q) ||
+        job.company_name.toLowerCase().includes(q) ||
+        job.location.toLowerCase().includes(q) ||
+        job.category.toLowerCase().includes(q) ||
+        job.description.toLowerCase().includes(q)
+    )
+  }
+
+  if (options?.category && options.category !== 'all') {
+    const cat = options.category.toLowerCase()
+    filtered = filtered.filter(
+      (job) =>
+        job.category.toLowerCase().includes(cat) ||
+        job.title.toLowerCase().includes(cat)
+    )
+  }
+
+  if (options?.location) {
+    const loc = options.location.toLowerCase()
+    filtered = filtered.filter((job) => job.location.toLowerCase().includes(loc))
+  }
+
+  if (options?.limit && options.limit > 0) {
+    return filtered.slice(0, options.limit)
+  }
+
+  return filtered
+}
+
+export async function fetchAllFeeds(options?: {
+  query?: string
+  category?: string
+  location?: string
+  limit?: number
+}): Promise<Job[]> {
+  const jobsList: Job[] = []
 
   // 1. Supabase Database Jobs
   try {

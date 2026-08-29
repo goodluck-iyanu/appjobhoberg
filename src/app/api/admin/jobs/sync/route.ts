@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { createAdminClient } from '@/utils/supabase/admin'
-import { fetchLiveJobs } from '@/utils/jobs'
+import { fetchAllFeeds } from '@/utils/jobs'
 
 const ADMIN_TOKEN = 'hoberg_admin_secure_session_token_2026'
 
@@ -18,7 +18,7 @@ export async function POST() {
     const supabase = createAdminClient()
 
     // 1. Fetch fresh jobs from all live providers & curated lists
-    const liveJobs = await fetchLiveJobs()
+    const liveJobs = await fetchAllFeeds()
 
     // 2. Wipe ALL old external remote jobs so the site is instantly refreshed with ONLY active jobs
     // This removes old API jobs but keeps any 'internal' jobs manually created by the admin
