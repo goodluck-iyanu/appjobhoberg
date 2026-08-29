@@ -104,7 +104,7 @@ Responsibilities:
     requirements: `• 2+ years of experience as an Executive Assistant, Virtual Assistant, or Operations Coordinator.
 • Exceptional organization, time management, and proactive communication.
 • Reliable high-speed internet and quiet home office environment.`,
-    apply_url: 'https://hoberg.com.ng',
+    apply_url: 'https://weworkremotely.com',
     status: 'open',
   },
   {
@@ -148,7 +148,7 @@ Responsibilities:
     requirements: `• Bachelor’s degree in Accounting, Finance, or ICAN/ACCA qualification in progress.
 • 3+ years in bookkeeping, accounting, or auditing.
 • Proficiency in Excel and cloud accounting software.`,
-    apply_url: 'https://hoberg.com.ng',
+    apply_url: 'https://remotive.com',
     status: 'open',
   }
 ]

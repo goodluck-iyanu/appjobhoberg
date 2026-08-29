@@ -95,18 +95,39 @@ export default function ApplySection({
     e.preventDefault()
     if (loading) return
 
-    // Open a blank loading tab synchronously to bypass popup blockers
-    const newWindow = window.open('about:blank', '_blank', 'noopener,noreferrer')
-    if (newWindow) {
-      newWindow.document.title = 'Verifying...'
-      newWindow.document.write(`
-        <div style="font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; color: #1d1d1f;">
-          <div style="width: 24px; height: 24px; border: 3px solid #e02424; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
-          <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
-          <h2 style="margin: 0; font-size: 18px;">Verifying application limit...</h2>
-          <p style="color: #86868b; margin-top: 8px;">Preparing official portal for ${job.company_name}</p>
-        </div>
-      `)
+    // Ensure valid target URL
+    const targetUrl =
+      job.apply_url && job.apply_url.startsWith('http')
+        ? job.apply_url
+        : `https://${job.apply_url || 'hoberg.com.ng'}`
+
+    // Open a loading tab synchronously (DO NOT use noopener so we maintain window reference)
+    let newWindow: Window | null = null
+    try {
+      newWindow = window.open('', '_blank')
+      if (newWindow) {
+        newWindow.document.title = `Connecting to ${job.company_name}...`
+        newWindow.document.body.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+        newWindow.document.body.style.display = 'flex'
+        newWindow.document.body.style.flexDirection = 'column'
+        newWindow.document.body.style.alignItems = 'center'
+        newWindow.document.body.style.justifyContent = 'center'
+        newWindow.document.body.style.height = '100vh'
+        newWindow.document.body.style.margin = '0'
+        newWindow.document.body.style.backgroundColor = '#ffffff'
+        newWindow.document.body.style.color = '#1d1d1f'
+        newWindow.document.body.innerHTML = `
+          <div style="text-align: center; max-width: 480px; padding: 24px;">
+            <div style="width: 36px; height: 36px; border: 3px solid #e02424; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px;"></div>
+            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+            <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 700;">Connecting to Official Portal...</h2>
+            <p style="color: #86868b; font-size: 14px; margin: 0 0 16px;">Logging application for <strong>${job.company_name}</strong></p>
+            <p style="color: #a1a1aa; font-size: 12px;">Redirecting automatically...</p>
+          </div>
+        `
+      }
+    } catch {
+      // Window opening blocked by strict browser policy
     }
 
     setLoading(true)
@@ -127,19 +148,30 @@ export default function ApplySection({
           jobId: job.id,
           jobTitle: job.title,
           companyName: job.company_name,
-          applyUrl: job.apply_url,
+          applyUrl: targetUrl,
         }),
       })
 
       const data = await res.json()
 
-      // 2. Smooth animation delay (0.8s) so the candidate clearly sees the loading & saving progress
-      await new Promise((resolve) => setTimeout(resolve, 800))
+      // 2. Smooth animation delay (0.6s) so the candidate clearly sees the loading & saving progress
+      await new Promise((resolve) => setTimeout(resolve, 600))
 
       if (data.success) {
         // Validation passed! Navigate the popup to the actual employer portal
-        if (newWindow) {
-          newWindow.location.href = job.apply_url
+        if (newWindow && !newWindow.closed) {
+          try {
+            newWindow.location.href = targetUrl
+          } catch {
+            try {
+              newWindow.location.replace(targetUrl)
+            } catch {
+              window.open(targetUrl, '_blank')
+            }
+          }
+        } else {
+          // If popup was blocked initially, open now
+          window.open(targetUrl, '_blank')
         }
 
         setApplied(true)
@@ -151,22 +183,22 @@ export default function ApplySection({
 
         toast.success(
           'Application Saved to Profile! ✅',
-          `Your application for ${job.company_name} was successfully logged.`
+          `Opening official portal for ${job.company_name}...`
         )
       } else if (data.limitReached) {
         // Force close the popup because they have reached their limit
-        if (newWindow) newWindow.close()
-        
+        if (newWindow && !newWindow.closed) newWindow.close()
+
         setMonthlyCount(3)
         toast.warning('Monthly Limit Reached', 'You have used all 3 free applications for this month.')
       } else {
         // Unknown error, close popup
-        if (newWindow) newWindow.close()
+        if (newWindow && !newWindow.closed) newWindow.close()
         toast.error('Error', data.error || 'Failed to process application.')
       }
     } catch {
       // Network error, close popup to be safe
-      if (newWindow) newWindow.close()
+      if (newWindow && !newWindow.closed) newWindow.close()
       toast.error('Network Error', 'Please check your connection and try again.')
     } finally {
       setLoading(false)
@@ -298,30 +330,48 @@ export default function ApplySection({
         Click below to submit your application on the official {job.company_name} portal.
       </p>
 
-      <button
-        type="button"
-        onClick={handleApplyClick}
-        disabled={loading}
-        className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] active:bg-[#991b1b] text-white font-bold px-8 py-4 rounded-full transition-all text-[15px] shadow-md hover:shadow-lg disabled:opacity-85 cursor-pointer gap-2.5"
-      >
-        {loading ? (
-          <>
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <span>Saving to profile &amp; opening portal...</span>
-          </>
-        ) : applied ? (
-          <>
-            <CheckCircle className="w-4 h-4 text-emerald-300" />
-            <span>Application Recorded &bull; Re-open Portal</span>
+      {applied ? (
+        <div className="flex flex-col items-center gap-3">
+          <a
+            href={
+              job.apply_url && job.apply_url.startsWith('http')
+                ? job.apply_url
+                : `https://${job.apply_url || 'hoberg.com.ng'}`
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold px-8 py-4 rounded-full transition-all text-[15px] shadow-md hover:shadow-lg gap-2.5 cursor-pointer"
+          >
+            <CheckCircle className="w-4 h-4 text-emerald-200" />
+            <span>Open {job.company_name} Official Portal</span>
             <ExternalLink className="w-4 h-4" />
-          </>
-        ) : (
-          <>
-            <span>Apply on Official Site</span>
-            <ExternalLink className="w-4 h-4" />
-          </>
-        )}
-      </button>
+          </a>
+          <p className="text-[13px] text-[#86868b]">
+            Application saved to your profile! Click above if your browser did not automatically open the page.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-2">
+          <button
+            type="button"
+            onClick={handleApplyClick}
+            disabled={loading}
+            className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] active:bg-[#991b1b] text-white font-bold px-8 py-4 rounded-full transition-all text-[15px] shadow-md hover:shadow-lg disabled:opacity-85 cursor-pointer gap-2.5"
+          >
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Saving to profile &amp; opening portal...</span>
+              </>
+            ) : (
+              <>
+                <span>Apply on Official Site</span>
+                <ExternalLink className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Application Usage Counter Pill */}
       <div className="mt-4 flex items-center justify-center gap-2">
