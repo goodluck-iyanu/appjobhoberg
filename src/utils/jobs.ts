@@ -353,7 +353,7 @@ export async function fetchAllFeeds(options?: {
   const apiPromises = [
     // API A: Remotive API (50 jobs across engineering, marketing, support, sales, writing)
     fetch('https://remotive.com/api/remote-jobs?limit=50', {
-      next: { revalidate: 1800 },
+      cache: 'no-store',
       headers: { Accept: 'application/json' },
     })
       .then((res) => (res.ok ? res.json() : null))
@@ -383,7 +383,7 @@ export async function fetchAllFeeds(options?: {
 
     // API B: Jobicy API (Remote roles across Marketing, HR, Finance, Admin, Engineering, Design)
     fetch('https://jobicy.com/api/v2/remote-jobs?count=30', {
-      next: { revalidate: 1800 },
+      cache: 'no-store',
       headers: { Accept: 'application/json' },
     })
       .then((res) => (res.ok ? res.json() : null))
@@ -420,7 +420,7 @@ export async function fetchAllFeeds(options?: {
 
     // API C: Himalayas API (Highly curated tech and remote jobs, strictly English & Remote)
     fetch('https://himalayas.app/jobs/api?limit=50', {
-      next: { revalidate: 1800 },
+      cache: 'no-store',
       headers: { Accept: 'application/json' },
     })
       .then((res) => (res.ok ? res.json() : null))
