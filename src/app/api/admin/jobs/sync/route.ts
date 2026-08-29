@@ -20,28 +20,25 @@ export async function POST() {
     // 1. Fetch fresh jobs from all live providers & curated lists
     const liveJobs = await fetchLiveJobs()
 
-    // 2. Fetch existing database jobs to prevent duplicates and keep permanent records
-    const { data: dbJobs, error: dbError } = await supabase
+    // 2. Wipe ALL old external remote jobs so the site is instantly refreshed with ONLY active jobs
+    // This removes old API jobs but keeps any 'internal' jobs manually created by the admin
+    const { error: deleteError } = await supabase
       .from('jobs')
-      .select('id, title, company_name')
+      .delete()
+      .neq('source', 'internal')
 
-    if (dbError) {
-      console.warn('Could not query existing jobs in db:', dbError.message)
+    if (deleteError) {
+      console.warn('Could not wipe old jobs:', deleteError.message)
     }
-
-    const existingKeys = new Set(
-      (dbJobs || []).map(
-        (j) => `${(j.title || '').toLowerCase().trim()}___${(j.company_name || '').toLowerCase().trim()}`
-      )
-    )
 
     // 3. Prepare fresh jobs that need to be inserted into the platform database
     const jobsToInsert: any[] = []
     const now = new Date().toISOString()
+    const seen = new Set<string>()
 
     for (const j of liveJobs) {
       const key = `${(j.title || '').toLowerCase().trim()}___${(j.company_name || '').toLowerCase().trim()}`
-      if (!existingKeys.has(key)) {
+      if (!seen.has(key)) {
         jobsToInsert.push({
           title: j.title,
           company_name: j.company_name,
@@ -58,7 +55,7 @@ export async function POST() {
           source: j.source || 'Aggregated Feed',
           created_at: now, // Newest timestamp puts fresh jobs at the top of listings
         })
-        existingKeys.add(key)
+        seen.add(key)
       }
     }
 
@@ -93,8 +90,8 @@ export async function POST() {
       success: true,
       newJobsAdded: insertedCount,
       totalSynced: liveJobs.length,
-      totalInDatabase: totalDbCount || (dbJobs?.length || 0) + insertedCount,
-      message: `Sync complete! Added ${insertedCount} fresh jobs to the top of listings. Total database records: ${totalDbCount || (dbJobs?.length || 0) + insertedCount}.`,
+      totalInDatabase: totalDbCount || insertedCount,
+      message: `Refresh complete! Wiped old remote jobs and added ${insertedCount} fresh jobs. Total records: ${totalDbCount || insertedCount}.`,
     })
   } catch (err: any) {
     return NextResponse.json(

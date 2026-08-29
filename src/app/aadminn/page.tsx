@@ -376,13 +376,13 @@ export default function AdminPortalPage() {
   const handleSyncJobs = async () => {
     setJobsSyncing(true)
     try {
-      toast.info('Fetching Live Feeds...', 'Querying Remotive, Jobicy, Arbeitnow, and African feeds...')
+      toast.info('Fetching Live Feeds...', 'Querying RemoteOK, Remotive, Jobicy, Himalayas...')
       const res = await fetch('/api/admin/jobs/sync', { method: 'POST' })
       const data = await res.json()
       if (data.success) {
         toast.success(
           'Jobs Refreshed & Synced! ⚡',
-          `Added ${data.newJobsAdded} new jobs to the top of listings. Database now holds ${data.totalInDatabase} total opportunities.`
+          `Wiped old remote jobs and added ${data.newJobsAdded} fresh opportunities. Database now holds ${data.totalInDatabase} total records.`
         )
         await fetchDashboardData(true)
         setFilterTab('jobs')
@@ -644,13 +644,13 @@ export default function AdminPortalPage() {
                   action: 'sync_jobs',
                   user: {
                     id: 'jobs-sync',
-                    full_name: 'All Multi-Source Providers (Remotive, Jobicy, Arbeitnow, Curated)',
+                    full_name: 'All Multi-Source Providers (RemoteOK, Remotive, Jobicy, Himalayas)',
                     email: 'Automated Real-Time Feed Ingestion',
                     created_at: new Date().toISOString(),
                   },
                   title: 'Refresh & Sync Remote Jobs from All Sources?',
                   message:
-                    'This will fetch fresh opportunities from all live feeds, place newly available positions at the top of the listings, and permanently preserve all existing jobs and candidate application history in the database.',
+                    'This will fetch fresh opportunities from all live feeds, wipe out old remote jobs, and permanently preserve candidate application history in the database.',
                   confirmLabel: 'Yes, Sync & Refresh Jobs',
                   confirmColor: 'purple',
                   icon: 'sync',
@@ -940,7 +940,7 @@ export default function AdminPortalPage() {
               <div>
                 <h3 className="font-bold text-lg text-white">Live Aggregated Jobs &amp; Portals</h3>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Real-time opportunities synced from Remotive, Jobicy, Arbeitnow, Database, and Curated African Roles
+                  Real-time opportunities synced from Remotive, Jobicy, Himalayas, Database, and Curated African Roles
                 </p>
               </div>
               <div className="flex items-center gap-2.5 flex-wrap">
@@ -950,13 +950,13 @@ export default function AdminPortalPage() {
                       action: 'sync_jobs',
                       user: {
                         id: 'jobs-sync',
-                        full_name: 'All Multi-Source Providers (Remotive, Jobicy, Arbeitnow, Curated)',
+                        full_name: 'All Multi-Source Providers (RemoteOK, Remotive, Jobicy, Himalayas)',
                         email: 'Automated Real-Time Feed Ingestion',
                         created_at: new Date().toISOString(),
                       },
                       title: 'Refresh & Sync Remote Jobs from All Sources?',
                       message:
-                        'This will fetch fresh opportunities from all live feeds, place newly available positions at the top of the listings, and permanently preserve all existing jobs and candidate application history in the database.',
+                        'This will fetch fresh opportunities from all live feeds, wipe out old remote jobs, and permanently preserve candidate application history in the database.',
                       confirmLabel: 'Yes, Sync & Refresh Jobs',
                       confirmColor: 'purple',
                       icon: 'sync',
@@ -1011,7 +1011,7 @@ export default function AdminPortalPage() {
                         sourceBadgeColor = 'bg-blue-950/60 text-blue-300 border-blue-500/40'
                       } else if (sourceName.includes('Jobicy')) {
                         sourceBadgeColor = 'bg-purple-950/60 text-purple-300 border-purple-500/40'
-                      } else if (sourceName.includes('Arbeitnow')) {
+                      } else if (sourceName.includes('Himalayas')) {
                         sourceBadgeColor = 'bg-amber-950/60 text-amber-300 border-amber-500/40'
                       } else if (sourceName.includes('Database') || sourceName.includes('Custom')) {
                         sourceBadgeColor = 'bg-cyan-950/60 text-cyan-300 border-cyan-500/40'
