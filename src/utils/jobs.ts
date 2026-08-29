@@ -254,17 +254,22 @@ export async function fetchLiveJobs(options?: {
     }
   } catch {}
 
-  // 2. Add curated roles and fallback
+  // 2. Add curated roles (and shuffle them if we revalidate cache)
+  const shuffledCurated = [...NIGERIA_GLOBAL_ROLES].sort(() => Math.random() - 0.5)
   jobsList.push(
-    ...NIGERIA_GLOBAL_ROLES.map((j) => ({
+    ...shuffledCurated.map((j) => ({
       ...j,
       source: 'Nigeria & Africa Curated',
     }))
   )
 
   if (jobsList.length === 0) {
+    // If database is empty, fallback to hardcoded jobs and shuffle them randomly
+    // so the admin's 'Shuffle' button still visually scrambles them on the site
+    const shuffledFallbacks = [...FALLBACK_JOBS].sort(() => Math.random() - 0.5)
+    
     jobsList.push(
-      ...FALLBACK_JOBS.map((j) => ({
+      ...shuffledFallbacks.map((j) => ({
         ...j,
         source: 'Partner Listings',
       }))
