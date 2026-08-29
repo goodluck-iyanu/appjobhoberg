@@ -32,6 +32,9 @@ import {
   Github,
   Activity,
   History,
+  Zap,
+  Sparkles,
+  Database,
 } from '@/components/icons'
 import { useToast } from '@/components/Toast'
 
@@ -59,20 +62,20 @@ interface UserProfile {
   portfolio_url?: string
   job_type_preference?: string
   expected_salary?: string
-  review_status?: 'draft' | 'under_review' | 'approved' | 'rejected'
+  review_status?: string
   review_notes?: string
   is_premium?: boolean
   premium_tier?: string
   last_login_at?: string
   last_logout_at?: string
-  created_at?: string
+  created_at: string
   submitted_at?: string
   reviewed_at?: string
 }
 
 interface AuthLog {
   id: string
-  user_id: string
+  user_id?: string
   user_email: string
   user_name?: string
   event_type: 'login' | 'logout'
@@ -147,6 +150,7 @@ export default function AdminPortalPage() {
     totalJobs: 0,
   })
   const [dataLoading, setDataLoading] = useState(false)
+  const [jobsSyncing, setJobsSyncing] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterTab, setFilterTab] = useState<'all' | 'under_review' | 'approved' | 'draft' | 'premium' | 'logs' | 'jobs' | 'applications'>('all')
   const [autoSync, setAutoSync] = useState(true)
@@ -158,13 +162,13 @@ export default function AdminPortalPage() {
   const [rejectModalUser, setRejectModalUser] = useState<UserProfile | null>(null)
   const [rejectNotes, setRejectNotes] = useState('')
   const [actionConfirmation, setActionConfirmation] = useState<{
-    action: 'approve' | 'toggle_premium' | 'delete'
-    user: UserProfile
+    action: 'approve' | 'toggle_premium' | 'delete' | 'sync_jobs'
+    user?: UserProfile
     title: string
     message: string
     confirmLabel: string
-    confirmColor: 'emerald' | 'amber' | 'red'
-    icon: 'approve' | 'premium' | 'delete'
+    confirmColor: 'emerald' | 'amber' | 'red' | 'purple'
+    icon: 'approve' | 'premium' | 'delete' | 'sync'
     payload?: { isPremium?: boolean }
   } | null>(null)
 
@@ -365,6 +369,30 @@ export default function AdminPortalPage() {
       toast.error('Network Error', 'Network error executing admin action.')
     } finally {
       setActionLoadingId(null)
+    }
+  }
+
+  // Synchronize and refresh jobs from all remote providers & APIs
+  const handleSyncJobs = async () => {
+    setJobsSyncing(true)
+    try {
+      toast.info('Fetching Live Feeds...', 'Querying Remotive, Jobicy, Arbeitnow, and African feeds...')
+      const res = await fetch('/api/admin/jobs/sync', { method: 'POST' })
+      const data = await res.json()
+      if (data.success) {
+        toast.success(
+          'Jobs Refreshed & Synced! ⚡',
+          `Added ${data.newJobsAdded} new jobs to the top of listings. Database now holds ${data.totalInDatabase} total opportunities.`
+        )
+        await fetchDashboardData(true)
+        setFilterTab('jobs')
+      } else {
+        toast.error('Sync Failed', data.error || 'Could not sync remote jobs.')
+      }
+    } catch {
+      toast.error('Network Error', 'Failed to connect to job sync service.')
+    } finally {
+      setJobsSyncing(false)
     }
   }
 
@@ -591,6 +619,32 @@ export default function AdminPortalPage() {
 
           {/* Sync & Logout Actions */}
           <div className="flex items-center gap-3 flex-wrap">
+            {/* Sync & Refresh Remote Jobs from All Sources */}
+            <button
+              onClick={() => {
+                setActionConfirmation({
+                  action: 'sync_jobs',
+                  user: {
+                    id: 'jobs-sync',
+                    full_name: 'All Multi-Source Providers (Remotive, Jobicy, Arbeitnow, Curated)',
+                    email: 'Automated Real-Time Feed Ingestion',
+                    created_at: new Date().toISOString(),
+                  },
+                  title: 'Refresh & Sync Remote Jobs from All Sources?',
+                  message:
+                    'This will fetch fresh opportunities from all live feeds, place newly available positions at the top of the listings, and permanently preserve all existing jobs and candidate application history in the database.',
+                  confirmLabel: 'Yes, Sync & Refresh Jobs',
+                  confirmColor: 'purple',
+                  icon: 'sync',
+                })
+              }}
+              disabled={jobsSyncing}
+              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold px-3.5 py-2 rounded-xl text-[13px] transition-all cursor-pointer shadow-md shadow-purple-950/40 disabled:opacity-75"
+            >
+              <Zap className={`w-3.5 h-3.5 ${jobsSyncing ? 'animate-spin' : 'text-amber-300'}`} />
+              <span>{jobsSyncing ? 'Syncing...' : '⚡ Sync Remote Jobs'}</span>
+            </button>
+
             {/* Auto-Sync Toggle */}
             <button
               onClick={() => setAutoSync(!autoSync)}
@@ -871,7 +925,31 @@ export default function AdminPortalPage() {
                   Real-time opportunities synced from Remotive, Jobicy, Arbeitnow, Database, and Curated African Roles
                 </p>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <button
+                  onClick={() => {
+                    setActionConfirmation({
+                      action: 'sync_jobs',
+                      user: {
+                        id: 'jobs-sync',
+                        full_name: 'All Multi-Source Providers (Remotive, Jobicy, Arbeitnow, Curated)',
+                        email: 'Automated Real-Time Feed Ingestion',
+                        created_at: new Date().toISOString(),
+                      },
+                      title: 'Refresh & Sync Remote Jobs from All Sources?',
+                      message:
+                        'This will fetch fresh opportunities from all live feeds, place newly available positions at the top of the listings, and permanently preserve all existing jobs and candidate application history in the database.',
+                      confirmLabel: 'Yes, Sync & Refresh Jobs',
+                      confirmColor: 'purple',
+                      icon: 'sync',
+                    })
+                  }}
+                  disabled={jobsSyncing}
+                  className="inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-[12px] font-bold px-3.5 py-1.5 rounded-xl transition-all cursor-pointer shadow-sm disabled:opacity-75"
+                >
+                  <Zap className={`w-3.5 h-3.5 ${jobsSyncing ? 'animate-spin' : 'text-amber-300'}`} />
+                  <span>{jobsSyncing ? 'Refreshing Feeds...' : '⚡ Refresh & Sync All Sources'}</span>
+                </button>
                 <span className="bg-purple-950/60 border border-purple-500/40 text-purple-300 text-[11px] font-bold px-3 py-1 rounded-full">
                   💼 {jobs.length} Total Openings
                 </span>
@@ -1629,6 +1707,8 @@ export default function AdminPortalPage() {
                   ? 'bg-emerald-950/70 border border-emerald-500/40 text-emerald-400'
                   : actionConfirmation.confirmColor === 'amber'
                   ? 'bg-amber-950/70 border border-amber-500/40 text-amber-400'
+                  : actionConfirmation.confirmColor === 'purple'
+                  ? 'bg-purple-950/70 border border-purple-500/40 text-purple-300'
                   : 'bg-red-950/70 border border-red-500/40 text-[#e02424]'
               }`}
             >
@@ -1636,6 +1716,8 @@ export default function AdminPortalPage() {
                 <UserCheck className="w-7 h-7" />
               ) : actionConfirmation.icon === 'premium' ? (
                 <Crown className="w-7 h-7" />
+              ) : actionConfirmation.icon === 'sync' ? (
+                <Zap className="w-7 h-7 text-amber-300" />
               ) : (
                 <Trash2 className="w-7 h-7" />
               )}
@@ -1654,20 +1736,22 @@ export default function AdminPortalPage() {
               {actionConfirmation.message}
             </p>
 
-            {/* Candidate Card Preview */}
-            <div className="bg-[#27272a] border border-white/5 rounded-2xl p-3.5 mb-6 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#18181b] border border-white/10 flex items-center justify-center font-bold text-gray-300 shrink-0">
-                {(actionConfirmation.user.full_name || actionConfirmation.user.display_name || 'U').charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="font-semibold text-white text-sm truncate">
-                  {actionConfirmation.user.full_name || actionConfirmation.user.display_name || 'Job Seeker'}
+            {/* Target Details Preview */}
+            {actionConfirmation.user && (
+              <div className="bg-[#27272a] border border-white/5 rounded-2xl p-3.5 mb-6 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#18181b] border border-white/10 flex items-center justify-center font-bold text-gray-300 shrink-0">
+                  {(actionConfirmation.user.full_name || actionConfirmation.user.display_name || 'U').charAt(0).toUpperCase()}
                 </div>
-                <div className="text-xs text-gray-400 truncate">
-                  {actionConfirmation.user.email || 'No email provided'}
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold text-white text-sm truncate">
+                    {actionConfirmation.user.full_name || actionConfirmation.user.display_name || 'Job Seeker'}
+                  </div>
+                  <div className="text-xs text-gray-400 truncate">
+                    {actionConfirmation.user.email || 'No email provided'}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex items-center justify-end gap-3">
@@ -1684,13 +1768,19 @@ export default function AdminPortalPage() {
                 onClick={async () => {
                   const item = actionConfirmation
                   setActionConfirmation(null)
-                  await performAction(item.user.id, item.action, item.payload)
+                  if (item.action === 'sync_jobs') {
+                    await handleSyncJobs()
+                  } else if (item.user) {
+                    await performAction(item.user.id, item.action, item.payload)
+                  }
                 }}
                 className={`px-5 py-2.5 rounded-xl text-[13px] font-bold text-white transition-all shadow-md cursor-pointer ${
                   actionConfirmation.confirmColor === 'emerald'
                     ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-950'
                     : actionConfirmation.confirmColor === 'amber'
                     ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-950'
+                    : actionConfirmation.confirmColor === 'purple'
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-purple-950'
                     : 'bg-[#e02424] hover:bg-[#c81e1e] shadow-red-950'
                 }`}
               >

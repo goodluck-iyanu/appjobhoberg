@@ -311,12 +311,19 @@ export async function fetchLiveJobs(options?: {
   const seen = new Set<string>()
   const uniqueJobs: Job[] = []
   for (const j of jobsList) {
-    const key = `${j.title.toLowerCase()}___${j.company_name.toLowerCase()}`
+    const key = `${j.title.toLowerCase().trim()}___${j.company_name.toLowerCase().trim()}`
     if (!seen.has(key)) {
       seen.add(key)
       uniqueJobs.push(j)
     }
   }
+
+  // Ensure newest jobs are placed at the top, older jobs follow below
+  uniqueJobs.sort((a, b) => {
+    const timeA = new Date(a.created_at).getTime() || 0
+    const timeB = new Date(b.created_at).getTime() || 0
+    return timeB - timeA
+  })
 
   // 6. Filtering
   let filtered = uniqueJobs
