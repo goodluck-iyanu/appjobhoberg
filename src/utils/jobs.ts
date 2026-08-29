@@ -33,7 +33,6 @@ interface JobicyJob {
   jobDescription?: string
 }
 
-
 interface RemoteOKJob {
   id: string | number
   slug?: string
@@ -50,6 +49,18 @@ interface RemoteOKJob {
   salary_max?: number
 }
 
+function decodeHtmlEntities(str: string): string {
+  if (!str) return ''
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&#x27;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+}
+
 function normalizeJobType(jobType?: string | string[]): string {
   if (!jobType) return 'Full-time'
   const str = Array.isArray(jobType) ? jobType.join(' ') : String(jobType)
@@ -62,141 +73,29 @@ function normalizeJobType(jobType?: string | string[]): string {
   return 'Full-time'
 }
 
-// Verified African, Nigerian & Global remote opportunities
-const NIGERIA_GLOBAL_ROLES: Job[] = [
-  {
-    id: 'ng-1',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-    title: 'Customer Success & Support Specialist',
-    company_name: 'Paystack',
-    location: 'Nigeria / Remote Africa',
-    employment_type: 'Full-time',
-    is_remote: true,
-    salary_range: 'Competitive (NGN / USD)',
-    category: 'Customer Support',
-    description: `Paystack is seeking a Customer Success & Support Specialist to provide exceptional support to thousands of fast-growing businesses across Africa and globally.
-
-Key Responsibilities:
-• Deliver prompt, empathetic, and comprehensive support to merchants via chat, email, and scheduled calls.
-• Diagnose payment integrations, API queries, and settlement issues.
-• Collaborate with product and engineering teams to identify recurring bugs and advocate for merchant experience improvements.
-• Create knowledge base guides and documentation for new features.`,
-    requirements: `• 2+ years in customer success, tech support, or fintech operations.
-• Clear verbal and written English communication skills.
-• Strong problem-solving aptitude and patience.
-• Familiarity with online payments in Nigeria and Africa is an advantage.`,
-    apply_url: 'https://paystack.com/careers',
-    status: 'open',
-  },
-  {
-    id: 'ng-2',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    title: 'Executive Virtual Assistant & Operations Coordinator',
-    company_name: 'RemoteFirst Global',
-    location: 'Remote (Worldwide / Nigeria Eligible)',
-    employment_type: 'Full-time',
-    is_remote: true,
-    salary_range: '$1,200 - $2,000 / mo',
-    category: 'Admin & Operations',
-    description: `We are hiring a detail-oriented Executive Virtual Assistant to support executive leadership across calendar management, client correspondence, travel logistics, and workflow automation.
-
-Responsibilities:
-• Manage busy executive calendars, inbox filtering, and schedule optimization.
-• Prepare meeting agendas, slide decks, and meeting minutes.
-• Coordinate digital tools (Notion, Slack, ClickUp, Google Workspace).
-• Handle confidential business information with utmost discretion.`,
-    requirements: `• 2+ years of experience as an Executive Assistant, Virtual Assistant, or Operations Coordinator.
-• Exceptional organization, time management, and proactive communication.
-• Reliable high-speed internet and quiet home office environment.`,
-    apply_url: 'https://weworkremotely.com',
-    status: 'open',
-  },
-  {
-    id: 'ng-3',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-    title: 'Content Writer & SEO Copywriter',
-    company_name: 'Hoberg Digital Agency',
-    location: 'Lagos, Nigeria (Remote)',
-    employment_type: 'Contract',
-    is_remote: true,
-    salary_range: '₦250,000 - ₦400,000 / mo',
-    category: 'Marketing & Writing',
-    description: `Hoberg Digital Agency is hiring a talented Content Writer & Copywriter to craft compelling SEO articles, website copy, case studies, and ad content for global and Nigerian clients.
-
-Responsibilities:
-• Research and write high-ranking, engaging blog posts and guides.
-• Write conversion-focused landing page copy and social media campaigns.
-• Conduct keyword research and optimize content for Google and AI search engines.`,
-    requirements: `• Proven portfolio of published articles, blog posts, or website copy.
-• Strong command of English grammar and creative storytelling.
-• Understanding of on-page SEO best practices.`,
-    apply_url: 'https://hoberg.com.ng',
-    status: 'open',
-  },
-  {
-    id: 'ng-4',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 18).toISOString(),
-    title: 'Financial Analyst & Bookkeeper (Remote)',
-    company_name: 'FinGrowth Partners',
-    location: 'Remote (Global / Africa)',
-    employment_type: 'Full-time',
-    is_remote: true,
-    salary_range: '$2,500 - $3,800 / mo',
-    category: 'Finance & Accounting',
-    description: `Manage financial records, monthly reconciliations, payroll preparation, and variance reporting for international SME clients.
-
-Responsibilities:
-• Perform daily bookkeeping, invoice processing, and bank reconciliations in QuickBooks / Xero.
-• Prepare monthly P&L statements, balance sheets, and cash flow forecasts.
-• Assist with payroll filings and statutory compliance.`,
-    requirements: `• Bachelor’s degree in Accounting, Finance, or ICAN/ACCA qualification in progress.
-• 3+ years in bookkeeping, accounting, or auditing.
-• Proficiency in Excel and cloud accounting software.`,
-    apply_url: 'https://remotive.com',
-    status: 'open',
-  },
-  {
-    id: 'ng-5',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 20).toISOString(),
-    title: 'Social Media & Community Growth Manager',
-    company_name: 'ScaleRemote Digital',
-    location: 'Remote (Worldwide)',
-    employment_type: 'Full-time',
-    is_remote: true,
-    salary_range: '$1,500 - $2,600 / mo',
-    category: 'Marketing & Writing',
-    description: `Drive audience growth, manage community interactions on LinkedIn/Twitter, and launch high-impact digital campaigns across social channels.`,
-    requirements: `• 2+ years managing social media channels and driving organic community engagement.
-• Experience with Canva, Figma, buffer/Hootsuite, and creative video shorts.`,
-    apply_url: 'https://remotive.com',
-    status: 'open',
-  },
-  {
-    id: 'ng-6',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    title: 'Full Stack Engineer (React & Node.js)',
-    company_name: 'TechVenture Global',
-    location: 'Remote (Global / Africa)',
-    employment_type: 'Full-time',
-    is_remote: true,
-    salary_range: '$3,500 - $5,500 / mo',
-    category: 'Engineering',
-    description: `Build and scale modern web applications with React, Next.js, Node.js, and PostgreSQL. Collaborate asynchronously in an agile global team.`,
-    requirements: `• 3+ years full-stack web development experience with React and TypeScript.
-• Strong API design skills and database proficiency.`,
-    apply_url: 'https://remoteok.com',
-    status: 'open',
-  }
-]
+function normalizeCategory(cat?: string): string {
+  if (!cat) return 'General'
+  const lower = cat.toLowerCase()
+  if (lower.includes('software') || lower.includes('dev') || lower.includes('engineer') || lower.includes('tech') || lower.includes('code') || lower.includes('program')) return 'Engineering'
+  if (lower.includes('design') || lower.includes('ui') || lower.includes('ux') || lower.includes('product design') || lower.includes('creative')) return 'Design'
+  if (lower.includes('market') || lower.includes('growth') || lower.includes('seo') || lower.includes('social') || lower.includes('brand')) return 'Marketing'
+  if (lower.includes('support') || lower.includes('customer') || lower.includes('client') || lower.includes('success')) return 'Customer Support'
+  if (lower.includes('sales') || lower.includes('account executive') || lower.includes('biz dev') || lower.includes('business development')) return 'Sales'
+  if (lower.includes('product') || lower.includes('pm')) return 'Product'
+  if (lower.includes('data') || lower.includes('analyst') || lower.includes('analytics') || lower.includes('machine learning') || lower.includes('ai')) return 'Data Science'
+  if (lower.includes('writing') || lower.includes('content') || lower.includes('copy') || lower.includes('editorial')) return 'Writing'
+  if (lower.includes('finance') || lower.includes('accounting') || lower.includes('bookkeeper') || lower.includes('payroll')) return 'Finance'
+  if (lower.includes('hr') || lower.includes('people') || lower.includes('recruiting') || lower.includes('talent')) return 'Human Resources'
+  if (lower.includes('admin') || lower.includes('assistant') || lower.includes('operations') || lower.includes('management')) return 'Operations'
+  return cat.charAt(0).toUpperCase() + cat.slice(1)
+}
 
 /**
  * Smartly shuffles and interleaves jobs across diverse industries and categories
- * so the feed remains dynamic, varied, and fresh rather than repetitively grouped.
  */
 export function smartShuffleJobs(jobs: Job[], seedOffset = 0): Job[] {
   if (!jobs || jobs.length <= 1) return jobs
 
-  // Group by category to interleave
   const groups: { [cat: string]: Job[] } = {}
   for (const j of jobs) {
     const cat = j.category || 'General'
@@ -204,9 +103,7 @@ export function smartShuffleJobs(jobs: Job[], seedOffset = 0): Job[] {
     groups[cat].push(j)
   }
 
-  // Interleave round-robin
   const categories = Object.keys(groups)
-  // Deterministic rotation based on seed
   const rotationIndex = Math.abs(seedOffset) % (categories.length || 1)
   const rotatedCategories = [
     ...categories.slice(rotationIndex),
@@ -227,199 +124,128 @@ export function smartShuffleJobs(jobs: Job[], seedOffset = 0): Job[] {
   return interleaved
 }
 
-export async function fetchLiveJobs(options?: {
-  query?: string
-  category?: string
-  location?: string
-  limit?: number
-}): Promise<Job[]> {
-  const jobsList: Job[] = []
-  
-  // 1. Supabase Database Jobs
-  try {
-    const supabase = await createClient()
-    const { data: dbJobs } = await supabase
-      .from('jobs')
-      .select('*')
-      .eq('status', 'open')
-      .order('created_at', { ascending: false })
+/**
+ * Fetches 100% real, active remote jobs directly from official providers
+ * (Remotive, Jobicy, Himalayas, RemoteOK, and WeWorkRemotely)
+ * Zero dummy jobs.
+ */
+export async function fetchAllFeeds(): Promise<Job[]> {
+  const remotiveCategories = [
+    'software-dev',
+    'customer-support',
+    'design',
+    'marketing',
+    'sales',
+    'product',
+    'business',
+    'data',
+    'writing',
+    'hr',
+    'finance',
+    'all-others',
+  ]
 
-    if (dbJobs && dbJobs.length > 0) {
-      jobsList.push(
-        ...(dbJobs as Job[]).map((j) => ({
-          ...j,
-          source: j.source || 'Custom Employer Post',
-        }))
-      )
-    }
-  } catch {}
+  const jobicyIndustries = [
+    'engineering',
+    'marketing',
+    'supporting',
+    'copywriting',
+    'business',
+    'hr',
+    'management',
+  ]
 
-  // 2. Add curated roles (and shuffle them if we revalidate cache)
-  const shuffledCurated = [...NIGERIA_GLOBAL_ROLES].sort(() => Math.random() - 0.5)
-  jobsList.push(
-    ...shuffledCurated.map((j) => ({
-      ...j,
-      source: 'Nigeria & Africa Curated',
-    }))
-  )
+  const wwrCategories = [
+    'remote-programming-jobs',
+    'remote-customer-support-jobs',
+    'remote-devops-sysadmin-jobs',
+    'remote-sales-and-marketing-jobs',
+    'remote-product-jobs',
+  ]
 
-  if (jobsList.length === 0) {
-    // If database is empty, fallback to hardcoded jobs and shuffle them randomly
-    // so the admin's 'Shuffle' button still visually scrambles them on the site
-    const shuffledFallbacks = [...FALLBACK_JOBS].sort(() => Math.random() - 0.5)
-    
-    jobsList.push(
-      ...shuffledFallbacks.map((j) => ({
-        ...j,
-        source: 'Partner Listings',
-      }))
-    )
-  }
+  const apiPromises: Promise<Job[]>[] = []
 
-  // 3. Filtering
-  let filtered = jobsList
-
-  if (options?.query) {
-    const q = options.query.toLowerCase()
-    filtered = filtered.filter(
-      (job) =>
-        job.title.toLowerCase().includes(q) ||
-        job.company_name.toLowerCase().includes(q) ||
-        job.location.toLowerCase().includes(q) ||
-        job.category.toLowerCase().includes(q) ||
-        job.description.toLowerCase().includes(q)
-    )
-  }
-
-  if (options?.category && options.category !== 'all') {
-    const cat = options.category.toLowerCase()
-    filtered = filtered.filter(
-      (job) =>
-        job.category.toLowerCase().includes(cat) ||
-        job.title.toLowerCase().includes(cat)
-    )
-  }
-
-  if (options?.location) {
-    const loc = options.location.toLowerCase()
-    filtered = filtered.filter((job) => job.location.toLowerCase().includes(loc))
-  }
-
-  if (options?.limit && options.limit > 0) {
-    return filtered.slice(0, options.limit)
-  }
-
-  return filtered
-}
-
-export async function fetchAllFeeds(options?: {
-  query?: string
-  category?: string
-  location?: string
-  limit?: number
-}): Promise<Job[]> {
-  const jobsList: Job[] = []
-
-  // 1. Supabase Database Jobs
-  try {
-    const supabase = await createClient()
-    const { data: dbJobs } = await supabase
-      .from('jobs')
-      .select('*')
-      .eq('status', 'open')
-      .order('created_at', { ascending: false })
-
-    if (dbJobs && dbJobs.length > 0) {
-      jobsList.push(
-        ...(dbJobs as Job[]).map((j) => ({
-          ...j,
-          source: j.source || 'Custom Employer Post',
-        }))
-      )
-    }
-  } catch {
-    // Supabase table not created yet or credentials not configured
-  }
-
-  // 2. Add Nigerian & African / Global curated roles
-  jobsList.push(
-    ...NIGERIA_GLOBAL_ROLES.map((j) => ({
-      ...j,
-      source: 'Nigeria & Africa Curated',
-    }))
-  )
-
-  // 3. Fetch from Multiple Real APIs in Parallel
-  const apiPromises = [
-    // API A: Remotive API (50 jobs across engineering, marketing, support, sales, writing)
-    fetch('https://remotive.com/api/remote-jobs?limit=50', {
-      cache: 'no-store',
-      headers: { Accept: 'application/json' },
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.jobs && Array.isArray(data.jobs)) {
-          return data.jobs.map((item: RemotiveJob) => ({
-            id: `remotive-${item.id}`,
-            created_at: item.publication_date || new Date().toISOString(),
-            title: item.title,
-            company_name: item.company_name,
-            company_logo_url: item.company_logo_url || item.company_logo || null,
-            location: item.candidate_required_location || 'Worldwide (Remote)',
-            employment_type: normalizeJobType(item.job_type),
-            is_remote: true,
-            salary_range: item.salary || '',
-            category: item.category || 'Other',
-            description: item.description || '',
-            requirements: '',
-            apply_url: (item.url && item.url.startsWith('http')) ? item.url : `https://remotive.com`,
-            status: 'open',
-            source: 'Remotive API',
-          }))
-        }
-        return []
+  // 1. Remotive API (Multiple remote categories)
+  for (const cat of remotiveCategories) {
+    apiPromises.push(
+      fetch(`https://remotive.com/api/remote-jobs?category=${cat}`, {
+        cache: 'no-store',
+        headers: { Accept: 'application/json' },
       })
-      .catch(() => []),
-
-    // API B: Jobicy API (Remote roles across Marketing, HR, Finance, Admin, Engineering, Design)
-    fetch('https://jobicy.com/api/v2/remote-jobs?count=30', {
-      cache: 'no-store',
-      headers: { Accept: 'application/json' },
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.jobs && Array.isArray(data.jobs)) {
-          return data.jobs.map((item: JobicyJob) => {
-            let salaryText = ''
-            if (item.salaryMin && item.salaryMax) {
-              const cur = item.salaryCurrency || '$'
-              salaryText = `${cur}${item.salaryMin.toLocaleString()} - ${cur}${item.salaryMax.toLocaleString()}${item.salaryPeriod ? ` / ${item.salaryPeriod}` : ''}`
-            }
-            return {
-              id: `jobicy-${item.id}`,
-              created_at: item.pubDate || new Date().toISOString(),
-              title: item.jobTitle,
-              company_name: item.companyName,
-              company_logo_url: item.companyLogo || null,
-              location: item.jobGeo ? `${item.jobGeo} (Remote)` : 'Worldwide (Remote)',
-              employment_type: normalizeJobType(item.jobType),
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.jobs && Array.isArray(data.jobs)) {
+            return data.jobs.map((item: RemotiveJob) => ({
+              id: `remotive-${item.id}`,
+              created_at: item.publication_date || new Date().toISOString(),
+              title: decodeHtmlEntities(item.title || 'Remote Role'),
+              company_name: decodeHtmlEntities(item.company_name || 'Remote Partner'),
+              company_logo_url: item.company_logo_url || item.company_logo || null,
+              location: item.candidate_required_location ? `${item.candidate_required_location} (Remote)` : 'Worldwide (Remote)',
+              employment_type: normalizeJobType(item.job_type),
               is_remote: true,
-              salary_range: salaryText,
-              category: (item.jobIndustry && item.jobIndustry[0]) || 'General',
-              description: item.jobDescription || '',
+              salary_range: item.salary || 'Competitive',
+              category: normalizeCategory(item.category || cat),
+              description: item.description || '',
               requirements: '',
-              apply_url: (item.url && item.url.startsWith('http')) ? item.url : `https://jobicy.com`,
+              apply_url: (item.url && item.url.startsWith('http')) ? item.url : `https://remotive.com`,
               status: 'open',
-              source: 'Jobicy API',
-            }
-          })
-        }
-        return []
-      })
-      .catch(() => []),
+              source: 'Remotive API',
+            }))
+          }
+          return []
+        })
+        .catch(() => [])
+    )
+  }
 
-    // API C: Himalayas API (Highly curated tech and remote jobs, strictly English & Remote)
-    fetch('https://himalayas.app/jobs/api?limit=50', {
+  // 2. Jobicy API (Multiple remote industries)
+  for (const ind of jobicyIndustries) {
+    apiPromises.push(
+      fetch(`https://jobicy.com/api/v2/remote-jobs?count=50&industry=${ind}`, {
+        cache: 'no-store',
+        headers: { Accept: 'application/json' },
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.jobs && Array.isArray(data.jobs)) {
+            return data.jobs.map((item: JobicyJob) => {
+              let salaryText = 'Competitive'
+              if (item.salaryMin && item.salaryMax) {
+                const cur = item.salaryCurrency || '$'
+                salaryText = `${cur}${item.salaryMin.toLocaleString()} - ${cur}${item.salaryMax.toLocaleString()}${item.salaryPeriod ? ` / ${item.salaryPeriod}` : ''}`
+              } else if (item.salaryMin) {
+                const cur = item.salaryCurrency || '$'
+                salaryText = `From ${cur}${item.salaryMin.toLocaleString()}`
+              }
+              return {
+                id: `jobicy-${item.id}`,
+                created_at: item.pubDate || new Date().toISOString(),
+                title: decodeHtmlEntities(item.jobTitle || 'Remote Role'),
+                company_name: decodeHtmlEntities(item.companyName || 'Remote Partner'),
+                company_logo_url: item.companyLogo || null,
+                location: item.jobGeo ? `${item.jobGeo} (Remote)` : 'Worldwide (Remote)',
+                employment_type: normalizeJobType(item.jobType),
+                is_remote: true,
+                salary_range: salaryText,
+                category: normalizeCategory((item.jobIndustry && item.jobIndustry[0]) || ind),
+                description: item.jobDescription || '',
+                requirements: '',
+                apply_url: (item.url && item.url.startsWith('http')) ? item.url : `https://jobicy.com`,
+                status: 'open',
+                source: 'Jobicy API',
+              }
+            })
+          }
+          return []
+        })
+        .catch(() => [])
+    )
+  }
+
+  // 3. Himalayas API (100+ verified remote tech jobs)
+  apiPromises.push(
+    fetch('https://himalayas.app/jobs/api?limit=100', {
       cache: 'no-store',
       headers: { Accept: 'application/json' },
     })
@@ -427,7 +253,7 @@ export async function fetchAllFeeds(options?: {
       .then((data) => {
         if (data?.jobs && Array.isArray(data.jobs)) {
           return data.jobs.map((item: any) => {
-            let salaryText = ''
+            let salaryText = 'Competitive'
             if (item.minSalary && item.maxSalary) {
               const cur = item.currency || '$'
               salaryText = `${cur}${item.minSalary.toLocaleString()} - ${cur}${item.maxSalary.toLocaleString()}${item.salaryPeriod ? ` / ${item.salaryPeriod}` : ''}`
@@ -437,19 +263,19 @@ export async function fetchAllFeeds(options?: {
             return {
               id: `himalayas-${item.guid?.split('-').pop() || Math.random().toString(36).substring(7)}`,
               created_at: item.pubDate ? new Date(item.pubDate * 1000).toISOString() : new Date().toISOString(),
-              title: item.title,
-              company_name: item.companyName,
+              title: decodeHtmlEntities(item.title || 'Remote Role'),
+              company_name: decodeHtmlEntities(item.companyName || 'Remote Partner'),
               company_logo_url: item.companyLogo || null,
-              location: item.locationRestrictions && item.locationRestrictions.length > 0 
-                ? `${item.locationRestrictions.join(', ')} (Remote)` 
+              location: item.locationRestrictions && item.locationRestrictions.length > 0
+                ? `${item.locationRestrictions.join(', ')} (Remote)`
                 : 'Worldwide (Remote)',
               employment_type: item.employmentType || 'Full-time',
               is_remote: true,
               salary_range: salaryText,
-              category: (item.categories && item.categories[0]) || 'Tech',
+              category: normalizeCategory((item.categories && item.categories[0]) || 'Engineering'),
               description: item.description || item.excerpt || '',
               requirements: '',
-              apply_url: item.applicationLink || item.guid,
+              apply_url: item.applicationLink || item.guid || 'https://himalayas.app',
               status: 'open',
               source: 'Himalayas API',
             }
@@ -457,14 +283,16 @@ export async function fetchAllFeeds(options?: {
         }
         return []
       })
-      .catch(() => []),
+      .catch(() => [])
+  )
 
-    // API D: RemoteOK API (100+ verified tech, marketing, support, and sales roles)
+  // 4. RemoteOK API (100+ verified remote roles)
+  apiPromises.push(
     fetch('https://remoteok.com/api', {
+      cache: 'no-store',
       headers: {
         Accept: 'application/json',
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       },
     })
       .then((res) => (res.ok ? res.json() : null))
@@ -472,9 +300,8 @@ export async function fetchAllFeeds(options?: {
         if (Array.isArray(data)) {
           return data
             .filter((item: RemoteOKJob) => item && item.position && item.company)
-            .slice(0, 50)
             .map((item: RemoteOKJob) => {
-              let salaryText = ''
+              let salaryText = 'Competitive'
               if (item.salary_min && item.salary_max && item.salary_max > 0) {
                 salaryText = `$${item.salary_min.toLocaleString()} - $${item.salary_max.toLocaleString()} / yr`
               }
@@ -483,16 +310,14 @@ export async function fetchAllFeeds(options?: {
               return {
                 id: `remoteok-${item.id}`,
                 created_at: item.date || new Date().toISOString(),
-                title: item.position || 'Remote Role',
-                company_name: item.company || 'Remote Partner',
+                title: decodeHtmlEntities(item.position || 'Remote Role'),
+                company_name: decodeHtmlEntities(item.company || 'Remote Partner'),
                 company_logo_url: item.company_logo || null,
-                location: item.location || 'Worldwide (Remote)',
+                location: item.location ? `${item.location} (Remote)` : 'Worldwide (Remote)',
                 employment_type: 'Full-time',
                 is_remote: true,
-                salary_range: salaryText || 'Competitive',
-                category: item.tags && item.tags[0]
-                  ? item.tags[0].charAt(0).toUpperCase() + item.tags[0].slice(1)
-                  : 'Engineering',
+                salary_range: salaryText,
+                category: normalizeCategory(item.tags && item.tags[0] ? item.tags[0] : 'Engineering'),
                 description: item.description || '',
                 requirements: '',
                 apply_url: targetApply.startsWith('http') ? targetApply : `https://${targetApply}`,
@@ -504,29 +329,70 @@ export async function fetchAllFeeds(options?: {
         return []
       })
       .catch(() => [])
-  ]
+  )
 
-  const results = await Promise.all(apiPromises)
-  for (const list of results) {
-    if (list && list.length > 0) {
-      jobsList.push(...list)
-    }
-  }
+  // 5. We Work Remotely (Official remote RSS feeds)
+  for (const cat of wwrCategories) {
+    apiPromises.push(
+      fetch(`https://weworkremotely.com/categories/${cat}.rss`, {
+        cache: 'no-store',
+        headers: { Accept: 'application/rss+xml, text/xml' },
+      })
+        .then((res) => (res.ok ? res.text() : ''))
+        .then((xml) => {
+          if (!xml || !xml.includes('<item>')) return []
+          const items = xml.split('<item>').slice(1)
+          const parsedJobs: Job[] = []
+          for (const item of items) {
+            const rawTitle = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] || item.match(/<title>(.*?)<\/title>/)?.[1] || ''
+            const link = item.match(/<link>(.*?)<\/link>/)?.[1] || ''
+            const pubDate = item.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || ''
+            const desc = item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/)?.[1] || item.match(/<description>([\s\S]*?)<\/description>/)?.[1] || ''
 
-  // 4. Fallback if everything fails
-  if (jobsList.length === 0) {
-    jobsList.push(
-      ...FALLBACK_JOBS.map((j) => ({
-        ...j,
-        source: 'Partner Listings',
-      }))
+            if (!rawTitle || !link) continue
+
+            // Title format is usually "CompanyName: Job Title"
+            let company = 'Remote Company'
+            let jobTitle = rawTitle
+            if (rawTitle.includes(':')) {
+              const parts = rawTitle.split(':')
+              company = parts[0].trim()
+              jobTitle = parts.slice(1).join(':').trim()
+            }
+
+            parsedJobs.push({
+              id: `wwr-${link.split('/').pop() || Math.random().toString(36).substring(7)}`,
+              created_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+              title: decodeHtmlEntities(jobTitle),
+              company_name: decodeHtmlEntities(company),
+              company_logo_url: null,
+              location: 'Worldwide (Remote)',
+              employment_type: 'Full-time',
+              is_remote: true,
+              salary_range: 'Competitive',
+              category: normalizeCategory(cat.replace('remote-', '').replace('-jobs', '')),
+              description: desc,
+              requirements: '',
+              apply_url: link.startsWith('http') ? link : `https://${link}`,
+              status: 'open',
+              source: 'WeWorkRemotely',
+            })
+          }
+          return parsedJobs
+        })
+        .catch(() => [])
     )
   }
 
-  // 5. Deduplicate by title + company
+  const results = await Promise.all(apiPromises)
+  const allFetched = results.flat()
+
+  // Deduplicate by normalized title + company
   const seen = new Set<string>()
   const uniqueJobs: Job[] = []
-  for (const j of jobsList) {
+
+  for (const j of allFetched) {
+    if (!j.title || !j.company_name) continue
     const key = `${j.title.toLowerCase().trim()}___${j.company_name.toLowerCase().trim()}`
     if (!seen.has(key)) {
       seen.add(key)
@@ -534,15 +400,52 @@ export async function fetchAllFeeds(options?: {
     }
   }
 
-  // 6. Smartly interleave across diverse industries and categories
-  // so the feed is dynamic and not grouped monolithically
-  const interleavedJobs = smartShuffleJobs(uniqueJobs)
+  return uniqueJobs
+}
 
-  // 7. Filtering
-  let filtered = interleavedJobs
+/**
+ * Public job retrieval for pages and search filters.
+ * Reads directly from the Supabase database if populated, or falls back to live feeds.
+ * 100% Real remote jobs — Zero dummy jobs.
+ */
+export async function fetchLiveJobs(options?: {
+  query?: string
+  category?: string
+  location?: string
+  limit?: number
+}): Promise<Job[]> {
+  const jobsList: Job[] = []
+
+  // 1. Supabase Database Jobs
+  try {
+    const supabase = await createClient()
+    const { data: dbJobs } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('status', 'open')
+      .order('created_at', { ascending: false })
+
+    if (dbJobs && dbJobs.length > 0) {
+      jobsList.push(
+        ...(dbJobs as Job[]).map((j) => ({
+          ...j,
+          source: j.source || 'Verified Remote Role',
+        }))
+      )
+    }
+  } catch {}
+
+  // 2. If database is completely empty, fetch live directly from official feeds so site is immediately populated
+  if (jobsList.length === 0) {
+    const liveFeeds = await fetchAllFeeds()
+    jobsList.push(...liveFeeds)
+  }
+
+  // 3. Filtering
+  let filtered = jobsList
 
   if (options?.query) {
-    const q = options.query.toLowerCase()
+    const q = options.query.toLowerCase().trim()
     filtered = filtered.filter(
       (job) =>
         job.title.toLowerCase().includes(q) ||
@@ -554,7 +457,7 @@ export async function fetchAllFeeds(options?: {
   }
 
   if (options?.category && options.category !== 'all') {
-    const cat = options.category.toLowerCase()
+    const cat = options.category.toLowerCase().trim()
     filtered = filtered.filter(
       (job) =>
         job.category.toLowerCase().includes(cat) ||
@@ -563,7 +466,7 @@ export async function fetchAllFeeds(options?: {
   }
 
   if (options?.location) {
-    const loc = options.location.toLowerCase()
+    const loc = options.location.toLowerCase().trim()
     filtered = filtered.filter((job) => job.location.toLowerCase().includes(loc))
   }
 
@@ -574,6 +477,9 @@ export async function fetchAllFeeds(options?: {
   return filtered
 }
 
+/**
+ * Fetch a single job by ID from DB or live feeds
+ */
 export async function fetchJobById(id: string): Promise<Job | null> {
   // 1. Check Supabase
   try {
@@ -585,19 +491,14 @@ export async function fetchJobById(id: string): Promise<Job | null> {
       .single()
 
     if (data) return data as Job
-  } catch {
-    // ignore
-  }
+  } catch {}
 
-  // 2. Search local Nigeria & Global list
-  const ngMatch = NIGERIA_GLOBAL_ROLES.find((j) => j.id === id)
-  if (ngMatch) return ngMatch
+  // 2. Check live feeds
+  try {
+    const allJobs = await fetchAllFeeds()
+    const found = allJobs.find((j) => String(j.id) === String(id))
+    if (found) return found
+  } catch {}
 
-  // 3. Search all aggregated jobs
-  const allJobs = await fetchLiveJobs()
-  const found = allJobs.find((j) => String(j.id) === String(id))
-  if (found) return found
-
-  // 4. Check fallback list
-  return FALLBACK_JOBS.find((j) => String(j.id) === String(id)) || null
+  return null
 }

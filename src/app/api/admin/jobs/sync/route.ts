@@ -36,14 +36,17 @@ export async function POST() {
     const now = new Date().toISOString()
     const seen = new Set<string>()
 
-    for (const j of liveJobs) {
+    for (let i = 0; i < liveJobs.length; i++) {
+      const j = liveJobs[i]
       const key = `${(j.title || '').toLowerCase().trim()}___${(j.company_name || '').toLowerCase().trim()}`
-      if (!seen.has(key)) {
+      if (!seen.has(key) && j.title && j.company_name) {
+        // Space timestamps by 1 minute each so order is clean and deterministic
+        const itemCreatedAt = new Date(Date.now() - jobsToInsert.length * 60000).toISOString()
         jobsToInsert.push({
           title: j.title,
           company_name: j.company_name,
           company_logo_url: j.company_logo_url || null,
-          location: j.location || 'Remote',
+          location: j.location || 'Worldwide (Remote)',
           employment_type: j.employment_type || 'Full-time',
           is_remote: true,
           salary_range: j.salary_range || 'Competitive',
@@ -53,7 +56,7 @@ export async function POST() {
           apply_url: j.apply_url && j.apply_url.startsWith('http') ? j.apply_url : `https://${j.apply_url || 'hoberg.com.ng'}`,
           status: 'open',
           source: j.source || 'Aggregated Feed',
-          created_at: now, // Newest timestamp puts fresh jobs at the top of listings
+          created_at: itemCreatedAt,
         })
         seen.add(key)
       }

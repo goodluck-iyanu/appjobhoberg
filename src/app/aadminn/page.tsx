@@ -376,7 +376,7 @@ export default function AdminPortalPage() {
   const handleSyncJobs = async () => {
     setJobsSyncing(true)
     try {
-      toast.info('Fetching Live Feeds...', 'Querying RemoteOK, Remotive, Jobicy, Himalayas...')
+      toast.info('Fetching Live Feeds...', 'Querying Remotive, Jobicy, Himalayas, RemoteOK, and WeWorkRemotely...')
       const res = await fetch('/api/admin/jobs/sync', { method: 'POST' })
       const data = await res.json()
       if (data.success) {
@@ -644,7 +644,7 @@ export default function AdminPortalPage() {
                   action: 'sync_jobs',
                   user: {
                     id: 'jobs-sync',
-                    full_name: 'All Multi-Source Providers (RemoteOK, Remotive, Jobicy, Himalayas)',
+                    full_name: 'All Multi-Source Providers (Remotive, Jobicy, Himalayas, RemoteOK, WeWorkRemotely)',
                     email: 'Automated Real-Time Feed Ingestion',
                     created_at: new Date().toISOString(),
                   },
@@ -950,7 +950,7 @@ export default function AdminPortalPage() {
                       action: 'sync_jobs',
                       user: {
                         id: 'jobs-sync',
-                        full_name: 'All Multi-Source Providers (RemoteOK, Remotive, Jobicy, Himalayas)',
+                        full_name: 'All Multi-Source Providers (Remotive, Jobicy, Himalayas, RemoteOK, WeWorkRemotely)',
                         email: 'Automated Real-Time Feed Ingestion',
                         created_at: new Date().toISOString(),
                       },
