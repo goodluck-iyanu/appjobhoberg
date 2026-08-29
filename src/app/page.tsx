@@ -12,6 +12,9 @@ import {
   ArrowRight,
 } from '@/components/icons'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function Home() {
   const jobs = await fetchLiveJobs({ limit: 12 })
 

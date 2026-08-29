@@ -5,6 +5,16 @@ import { createAdminClient } from '@/utils/supabase/admin'
 
 const ADMIN_TOKEN = 'hoberg_admin_secure_session_token_2026'
 
+// Fisher-Yates shuffle algorithm
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr
+}
+
 export async function POST() {
   const cookieStore = await cookies()
   const token = cookieStore.get('hoberg_admin_token')?.value
@@ -16,7 +26,7 @@ export async function POST() {
   try {
     const supabase = createAdminClient()
 
-    // 1. Fetch all jobs to shuffle (fetch ALL columns to safely upsert)
+    // 1. Fetch all open jobs to shuffle
     const { data: dbJobs, error: fetchError } = await supabase
       .from('jobs')
       .select('*')
@@ -25,37 +35,41 @@ export async function POST() {
     if (fetchError) throw fetchError
 
     if (dbJobs && dbJobs.length > 0) {
-      // 2. Randomly shuffle the jobs array
-      dbJobs.sort(() => Math.random() - 0.5)
+      // 2. Randomly shuffle the jobs
+      const shuffled = shuffleArray(dbJobs)
 
       // 3. Assign new descending timestamps so they appear in this new order
-      // We start from 'now' and space them out by 10 minutes each
       const now = Date.now()
-      const updates = dbJobs.map((job, index) => ({
+      const updates = shuffled.map((job, index) => ({
         ...job,
-        created_at: new Date(now - index * 600000).toISOString(),
+        created_at: new Date(now - index * 60000).toISOString(),
       }))
 
-      // 4. Update them in the database
-      const { error: updateError } = await supabase
-        .from('jobs')
-        .upsert(updates) // Safe because we fetched all columns
-
-      if (updateError) {
-        console.warn('Upsert issue during shuffle:', updateError.message)
+      // 4. Update them in chunks of 50 for speed and stability
+      const chunkSize = 50
+      const chunkPromises = []
+      for (let i = 0; i < updates.length; i += chunkSize) {
+        const chunk = updates.slice(i, i + chunkSize)
+        chunkPromises.push(
+          supabase.from('jobs').upsert(chunk, { onConflict: 'id' })
+        )
       }
+      await Promise.all(chunkPromises)
     }
 
-    // 5. Revalidate paths so Next.js server components re-evaluate
+    // 5. Instantly invalidate Next.js caches
     try {
-      revalidatePath('/')
-      revalidatePath('/jobs')
-      revalidatePath('/dashboard')
+      revalidatePath('/', 'layout')
+      revalidatePath('/', 'page')
+      revalidatePath('/jobs', 'page')
+      revalidatePath('/dashboard', 'page')
+      revalidatePath('/aadminn', 'page')
     } catch {}
 
     return NextResponse.json({
       success: true,
-      message: 'Job feed display order successfully rotated and shuffled across all industries!',
+      shuffledCount: dbJobs?.length || 0,
+      message: `Successfully shuffled ${dbJobs?.length || 0} jobs across all categories!`,
     })
   } catch (err: any) {
     return NextResponse.json(
