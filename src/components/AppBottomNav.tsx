@@ -12,7 +12,7 @@ export default function AppBottomNav() {
     { href: '/jobs', label: 'Jobs', icon: Briefcase, active: pathname.startsWith('/jobs') },
     { href: '/app/tracker', label: 'Tracker', icon: CheckCircle, active: pathname.startsWith('/app/tracker') },
     { href: '/app/cv', label: 'My CV', icon: FileText, active: pathname.startsWith('/app/cv') },
-    { href: '/app/profile', label: 'Profile', icon: User, active: pathname.startsWith('/app/profile') || pathname.startsWith('/profile') },
+    { href: '/profile', label: 'Profile', icon: User, active: pathname.startsWith('/profile') },
   ]
 
   return (

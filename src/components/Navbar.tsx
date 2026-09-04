@@ -105,6 +105,12 @@ export default async function Navbar() {
               >
                 My CV
               </Link>
+              <Link
+                href="/profile"
+                className="text-[13px] font-medium text-[#86868b] hover:text-[#1d1d1f] transition-colors"
+              >
+                Profile
+              </Link>
               <SignOutButton />
             </div>
           ) : (

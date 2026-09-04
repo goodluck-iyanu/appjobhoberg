@@ -154,7 +154,7 @@ export default function MobileMenu({ user, isPremium, profileName }: MobileMenuP
                     <span>Master CV & Versions</span>
                   </Link>
                   <Link
-                    href="/app/profile"
+                    href="/profile"
                     onClick={close}
                     className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[14px] font-medium text-[#1d1d1f] hover:bg-gray-50"
                   >
@@ -185,6 +185,14 @@ export default function MobileMenu({ user, isPremium, profileName }: MobileMenuP
                 <span>Lagos Opportunities</span>
               </Link>
               <Link
+                href="/jobs/abuja"
+                onClick={close}
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[14px] font-medium text-[#1d1d1f] hover:bg-gray-50"
+              >
+                <MapPin className="w-4 h-4 text-purple-600" />
+                <span>Abuja Opportunities</span>
+              </Link>
+              <Link
                 href="/jobs/remote-nigeria"
                 onClick={close}
                 className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[14px] font-medium text-[#1d1d1f] hover:bg-gray-50"
@@ -199,6 +207,30 @@ export default function MobileMenu({ user, isPremium, profileName }: MobileMenuP
               >
                 <span>💵</span>
                 <span>Dollar Remote Roles</span>
+              </Link>
+              <Link
+                href="/jobs/graduate"
+                onClick={close}
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[14px] font-medium text-[#1d1d1f] hover:bg-gray-50"
+              >
+                <ShieldCheck className="w-4 h-4 text-blue-600" />
+                <span>Graduate Jobs</span>
+              </Link>
+              <Link
+                href="/jobs/nysc"
+                onClick={close}
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[14px] font-medium text-[#1d1d1f] hover:bg-gray-50"
+              >
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span>NYSC Opportunities</span>
+              </Link>
+              <Link
+                href="/categories"
+                onClick={close}
+                className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[14px] font-medium text-[#1d1d1f] hover:bg-gray-50"
+              >
+                <ArrowRight className="w-4 h-4 text-gray-500" />
+                <span>All Categories</span>
               </Link>
 
               <div className="my-2 border-t border-gray-100" />
