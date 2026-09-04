@@ -61,3 +61,4 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS free_tailor_used BOOLEAN DE
 NOTIFY pgrst, 'reload schema';
 
 -- Done! All profile columns now exist.
+

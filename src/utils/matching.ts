@@ -207,8 +207,8 @@ export function calculateProfileStrength(profile: Partial<UserProfile> | null): 
       label: 'Getting Started',
       nextActions: [
         { id: 'upload_cv', text: 'Upload your CV once for instant matching', href: '/app/cv' },
-        { id: 'set_roles', text: 'Specify 1–3 target job roles', href: '/app/profile' },
-        { id: 'add_skills', text: 'Add your top technical and soft skills', href: '/app/profile' },
+        { id: 'set_roles', text: 'Specify 1–3 target job roles', href: '/profile' },
+        { id: 'add_skills', text: 'Add your top technical and soft skills', href: '/profile' },
       ],
     }
   }
@@ -220,34 +220,34 @@ export function calculateProfileStrength(profile: Partial<UserProfile> | null): 
   if (profile.full_name && profile.phone) {
     score += 15
   } else {
-    actions.push({ id: 'contact', text: 'Add phone number for employer contact', href: '/app/profile' })
+    actions.push({ id: 'contact', text: 'Add phone number for employer contact', href: '/profile' })
   }
 
   // 2. Target roles
   if (profile.target_roles && profile.target_roles.length > 0) {
     score += 15
   } else {
-    actions.push({ id: 'roles', text: 'Select target job titles to personalize your feed', href: '/app/profile' })
+    actions.push({ id: 'roles', text: 'Select target job titles to personalize your feed', href: '/profile' })
   }
 
   // 3. Skills
   if (profile.skills && profile.skills.length >= 4) {
     score += 20
   } else {
-    actions.push({ id: 'skills', text: 'Add at least 4 key skills to unlock 80%+ matches', href: '/app/profile' })
+    actions.push({ id: 'skills', text: 'Add at least 4 key skills to unlock 80%+ matches', href: '/profile' })
   }
 
   // 4. Experience & Education
   if (profile.experience && profile.experience.length > 0) {
     score += 15
   } else {
-    actions.push({ id: 'exp', text: 'Add your work experience or past projects', href: '/app/profile' })
+    actions.push({ id: 'exp', text: 'Add your work experience or past projects', href: '/profile' })
   }
 
   if (profile.education && profile.education.length > 0) {
     score += 10
   } else {
-    actions.push({ id: 'edu', text: 'Add education and NYSC status', href: '/app/profile' })
+    actions.push({ id: 'edu', text: 'Add education and NYSC status', href: '/profile' })
   }
 
   // 5. Links
@@ -255,7 +255,7 @@ export function calculateProfileStrength(profile: Partial<UserProfile> | null): 
     score += 5
   } else {
     if (actions.length < 4) {
-      actions.push({ id: 'links', text: 'Add LinkedIn or portfolio link', href: '/app/profile' })
+      actions.push({ id: 'links', text: 'Add LinkedIn or portfolio link', href: '/profile' })
     }
   }
 

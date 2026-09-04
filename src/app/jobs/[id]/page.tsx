@@ -77,27 +77,10 @@ export default async function JobDetails({
         console.error('Profile fetch note in job details:', err)
       }
 
-      // Count applications made this month
-      try {
-        const now = new Date()
-        const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0))
-
-        const { data: monthlyApps } = await supabase
-          .from('applications')
-          .select('id, created_at')
-          .eq('user_id', user.id)
-          .gte('created_at', startOfMonth.toISOString())
-
-        monthlyCount = (monthlyApps || []).length
-      } catch (err) {
-        console.error('Applications count note in job details:', err)
-      }
     }
   } catch {
     user = null
   }
-
-  const isLimitReached = !isPremium && monthlyCount >= 3
 
   // Check if description is HTML or plain text using regex for HTML tags
   const isHtml = /<\/?[a-z][\s\S]*>/i.test(job.description) || job.description.includes('&lt;')
@@ -144,11 +127,8 @@ export default async function JobDetails({
 
               {/* Apply button desktop / mobile - Gated by Auth, Review Status, & 3-Monthly Limit */}
               <div className="shrink-0 flex flex-col items-stretch sm:items-end">
-                <ApplyHeaderButton 
+                <ApplyHeaderButton
                   user={user ? { id: user.id } : null}
-                  reviewStatus={reviewStatus}
-                  isPremium={isPremium}
-                  monthlyCount={monthlyCount}
                 />
               </div>
             </div>

@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar'
 import AppBottomNav from '@/components/AppBottomNav'
 import AuthSessionLogger from '@/components/AuthSessionLogger'
 import { ToastProvider } from '@/components/Toast'
+import CookieConsent from '@/components/CookieConsent'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -183,10 +184,12 @@ export default function RootLayout({
                   Privacy
                 </Link>
                 <span>·</span>
+                <Link href="/terms_of_service" className="hover:text-[#1d1d1f]">
                   Terms
                 </Link>
                 <span>·</span>
                 <Link href="/pricing" className="hover:text-[#1d1d1f]">
+                  Pricing
                 </Link>
               </div>
             </div>
@@ -194,5 +197,6 @@ export default function RootLayout({
         </footer>
         <CookieConsent />
       </body>
+    </html>
   )
 }
