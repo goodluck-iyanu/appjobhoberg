@@ -17,6 +17,7 @@ import {
   CheckCircle,
   User,
   PlusCircle,
+  Home,
 } from '@/components/icons'
 import SignOutButton from '@/components/SignOutButton'
 
