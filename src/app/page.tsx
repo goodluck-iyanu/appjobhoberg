@@ -1,5 +1,3 @@
-export const revalidate = 60
-
 import Link from 'next/link'
 import { fetchLiveJobs } from '@/utils/jobs'
 import { createClient } from '@/utils/supabase/server'
@@ -22,7 +20,6 @@ import {
 } from '@/components/icons'
 
 export const dynamic = 'force-dynamic'
-export const revalidate = 0
 
 export default async function Home() {
   const supabase = await createClient()
