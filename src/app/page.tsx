@@ -1,3 +1,5 @@
+export const revalidate = 60
+
 import Link from 'next/link'
 import { fetchLiveJobs } from '@/utils/jobs'
 import { createClient } from '@/utils/supabase/server'
