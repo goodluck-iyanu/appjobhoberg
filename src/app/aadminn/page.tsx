@@ -136,6 +136,7 @@ export default function AdminPortalPage() {
   const [authLogs, setAuthLogs] = useState<AuthLog[]>([])
   const [applications, setApplications] = useState<any[]>([])
   const [jobs, setJobs] = useState<any[]>([])
+  const [employerPosts, setEmployerPosts] = useState<any[]>([])
   const [metrics, setMetrics] = useState<Metrics>({
     totalUsers: 0,
     underReview: 0,
