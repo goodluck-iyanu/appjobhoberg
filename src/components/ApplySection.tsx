@@ -6,390 +6,154 @@ import {
   ExternalLink,
   ShieldCheck,
   CheckCircle,
-  Clock,
-  Crown,
-  Lock,
   Sparkles,
-  Zap,
+  ArrowRight,
+  Bookmark,
 } from '@/components/icons'
+import { useToast } from '@/components/Toast'
 
 interface ApplySectionProps {
-  job: {
-    id: string
-    title: string
-    company_name: string
-    apply_url: string
-  }
-  user: {
-    id: string
-    email?: string
-  } | null
-  reviewStatus: 'draft' | 'under_review' | 'approved' | 'rejected'
-  isPremium: boolean
-  initialMonthlyCount: number
+  jobId: string
+  jobTitle: string
+  companyName: string
+  applyUrl: string
+  isLoggedIn: boolean
 }
 
-import { useToast } from '@/components/Toast'
-import { createClient } from '@/utils/supabase/client'
-import { useEffect } from 'react'
-
 export default function ApplySection({
-  job,
-  user,
-  reviewStatus,
-  isPremium,
-  initialMonthlyCount,
+  jobId,
+  jobTitle,
+  companyName,
+  applyUrl,
+  isLoggedIn,
 }: ApplySectionProps) {
-  const [monthlyCount, setMonthlyCount] = useState(initialMonthlyCount)
-  const [isPremiumState, setIsPremiumState] = useState(isPremium)
-  const [loading, setLoading] = useState(false)
   const [applied, setApplied] = useState(false)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+  const [loading, setLoading] = useState(false)
   const toast = useToast()
 
-  // Real-time bypass of Next.js Router cache:
-  // If the user upgraded in another tab or navigated back, we fetch their fresh premium status
-  useEffect(() => {
-    if (!user || isPremiumState) return
+  const targetUrl =
+    applyUrl && applyUrl.startsWith('http')
+      ? applyUrl
+      : applyUrl?.includes('@')
+      ? `mailto:${applyUrl}`
+      : `https://${applyUrl || 'hoberg.com.ng'}`
 
-    const checkPremiumStatus = async () => {
+  const handleApply = async () => {
+    // 1. Open official application page immediately in a new tab
+    window.open(targetUrl, '_blank', 'noopener,noreferrer')
+    setApplied(true)
+
+    // 2. If logged in, record in application tracker
+    if (isLoggedIn) {
+      setLoading(true)
       try {
-        const supabase = createClient()
-        const { data } = await supabase
-          .from('profiles')
-          .select('is_premium')
-          .eq('id', user.id)
-          .maybeSingle()
-
-        if (data?.is_premium) {
-          setIsPremiumState(true)
+        const res = await fetch('/api/applications/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jobId,
+            jobTitle,
+            companyName,
+            applyUrl: targetUrl,
+          }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          toast.success('Application Tracked! 📋', `Added ${jobTitle} to your tracker pipeline.`)
         }
-      } catch {}
-    }
-
-    checkPremiumStatus()
-
-    // Re-check when window gains focus or tab becomes visible
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        checkPremiumStatus()
+      } catch {
+        // Quiet fail — user already opened the target URL
+      } finally {
+        setLoading(false)
       }
+    } else {
+      toast.info('Application Opened', 'Tip: Sign in with Google to automatically track all your job applications.')
     }
+  }
 
-    window.addEventListener('focus', checkPremiumStatus)
-    document.addEventListener('visibilitychange', handleVisibility)
-
-    // Interval check every 3s while user is on page
-    const interval = setInterval(checkPremiumStatus, 3000)
-
-    return () => {
-      window.removeEventListener('focus', checkPremiumStatus)
-      document.removeEventListener('visibilitychange', handleVisibility)
-      clearInterval(interval)
+  const handleSaveJob = async () => {
+    if (!isLoggedIn) {
+      toast.info('Sign in to Save', 'Create a free account to save jobs and track your applications.')
+      return
     }
-  }, [user, isPremiumState])
-
-  const isLimitReached = !isPremiumState && monthlyCount >= 3
-
-  const handleApplyClick = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    if (loading) return
-
-    // Ensure valid target URL
-    const targetUrl =
-      job.apply_url && job.apply_url.startsWith('http')
-        ? job.apply_url
-        : `https://${job.apply_url || 'hoberg.com.ng'}`
-
-    // Open a loading tab synchronously (DO NOT use noopener so we maintain window reference)
-    let newWindow: Window | null = null
-    try {
-      newWindow = window.open('', '_blank')
-      if (newWindow) {
-        newWindow.document.title = `Connecting to ${job.company_name}...`
-        newWindow.document.body.style.fontFamily = 'system-ui, -apple-system, sans-serif'
-        newWindow.document.body.style.display = 'flex'
-        newWindow.document.body.style.flexDirection = 'column'
-        newWindow.document.body.style.alignItems = 'center'
-        newWindow.document.body.style.justifyContent = 'center'
-        newWindow.document.body.style.height = '100vh'
-        newWindow.document.body.style.margin = '0'
-        newWindow.document.body.style.backgroundColor = '#ffffff'
-        newWindow.document.body.style.color = '#1d1d1f'
-        newWindow.document.body.innerHTML = `
-          <div style="text-align: center; max-width: 480px; padding: 24px;">
-            <div style="width: 36px; height: 36px; border: 3px solid #e02424; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px;"></div>
-            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
-            <h2 style="margin: 0 0 8px; font-size: 20px; font-weight: 700;">Connecting to Official Portal...</h2>
-            <p style="color: #86868b; font-size: 14px; margin: 0 0 16px;">Logging application for <strong>${job.company_name}</strong></p>
-            <p style="color: #a1a1aa; font-size: 12px;">Redirecting automatically...</p>
-          </div>
-        `
-      }
-    } catch {
-      // Window opening blocked by strict browser policy
-    }
-
-    setLoading(true)
-    setErrorMsg(null)
-
-    // Trigger saving feedback toast
-    toast.info(
-      'Recording to Your Profile...',
-      `Logging application for ${job.title} at ${job.company_name}...`
-    )
 
     try {
-      // 1. Record application in backend database & verify limits securely
-      const res = await fetch('/api/applications/apply', {
+      const res = await fetch('/api/applications/save', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          jobId: job.id,
-          jobTitle: job.title,
-          companyName: job.company_name,
+          jobId,
+          jobTitle,
+          companyName,
           applyUrl: targetUrl,
         }),
       })
-
       const data = await res.json()
-
-      // 2. Smooth animation delay (0.6s) so the candidate clearly sees the loading & saving progress
-      await new Promise((resolve) => setTimeout(resolve, 600))
-
       if (data.success) {
-        // Validation passed! Navigate the popup to the actual employer portal
-        if (newWindow && !newWindow.closed) {
-          try {
-            newWindow.location.href = targetUrl
-          } catch {
-            try {
-              newWindow.location.replace(targetUrl)
-            } catch {
-              window.open(targetUrl, '_blank')
-            }
-          }
-        } else {
-          // If popup was blocked initially, open now
-          window.open(targetUrl, '_blank')
-        }
-
-        setApplied(true)
-        if (!isPremiumState && typeof data.monthlyCount === 'number') {
-          setMonthlyCount(data.monthlyCount)
-        } else if (!isPremiumState) {
-          setMonthlyCount((prev) => prev + 1)
-        }
-
-        toast.success(
-          'Application Saved to Profile! ✅',
-          `Opening official portal for ${job.company_name}...`
-        )
-      } else if (data.limitReached) {
-        // Force close the popup because they have reached their limit
-        if (newWindow && !newWindow.closed) newWindow.close()
-
-        setMonthlyCount(3)
-        toast.warning('Monthly Limit Reached', 'You have used all 3 free applications for this month.')
-      } else {
-        // Unknown error, close popup
-        if (newWindow && !newWindow.closed) newWindow.close()
-        toast.error('Error', data.error || 'Failed to process application.')
+        setSaved(!saved)
+        toast.success(saved ? 'Job Removed' : 'Job Saved! 📌', saved ? 'Removed from saved jobs.' : 'Saved to your tracker.')
       }
     } catch {
-      // Network error, close popup to be safe
-      if (newWindow && !newWindow.closed) newWindow.close()
-      toast.error('Network Error', 'Please check your connection and try again.')
-    } finally {
-      setLoading(false)
+      toast.error('Error', 'Could not save job.')
     }
   }
 
-  // 1. Not Logged In
-  if (!user) {
-    return (
-      <div className="bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-3xl p-6 sm:p-8 text-center">
-        <h3 className="text-[18px] font-bold text-[#1d1d1f] mb-2">
-          Sign in to apply for this role at {job.company_name}
-        </h3>
-        <p className="text-[14px] text-[#86868b] mb-6 max-w-md mx-auto">
-          Create a free account with Google to build your verified profile and get 3 free monthly applications.
-        </p>
-        <Link
-          href="/login"
-          className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer"
-        >
-          Sign in with Google
-        </Link>
-      </div>
-    )
-  }
-
-  // 2. Profile Under Review (For free users)
-  if (!isPremiumState && reviewStatus === 'under_review') {
-    return (
-      <div className="bg-amber-50/90 border border-amber-200 rounded-3xl p-6 sm:p-8 text-center">
-        <div className="w-12 h-12 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mx-auto mb-3">
-          <Clock className="w-6 h-6" />
-        </div>
-        <h3 className="text-[18px] font-bold text-amber-950 mb-1">
-          Profile Under Review
-        </h3>
-        <p className="text-[14px] text-amber-900/90 mb-6 max-w-md mx-auto leading-relaxed">
-          Our team is currently reviewing your professional profile. Usually reviewed within 24 hours. Once verified, you will be able to apply to all remote positions immediately.
-        </p>
-        <Link
-          href="/profile"
-          className="inline-flex items-center justify-center bg-white hover:bg-gray-50 text-[#1d1d1f] font-semibold px-8 py-3 rounded-full border border-gray-300 transition-colors text-[14px] shadow-sm"
-        >
-          View Review Status
-        </Link>
-      </div>
-    )
-  }
-
-  // 3. Profile Not Submitted / Incomplete (For free users)
-  if (!isPremiumState && reviewStatus !== 'approved') {
-    return (
-      <div className="bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-3xl p-6 sm:p-8 text-center">
-        <div className="w-12 h-12 bg-gray-200 text-[#1d1d1f] rounded-2xl flex items-center justify-center mx-auto mb-3">
-          <ShieldCheck className="w-6 h-6" />
-        </div>
-        <h3 className="text-[18px] font-bold text-[#1d1d1f] mb-1">
-          Complete &amp; Submit Your Profile
-        </h3>
-        <p className="text-[14px] text-[#86868b] mb-6 max-w-md mx-auto leading-relaxed">
-          Before applying for opportunities, submit your verified career profile for Hoberg review.
-        </p>
-        <Link
-          href="/profile"
-          className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold px-8 py-3.5 rounded-full transition-colors text-[15px] shadow-sm cursor-pointer"
-        >
-          Complete Profile &amp; Submit
-        </Link>
-      </div>
-    )
-  }
-
-  // 4. Approved, BUT FREE LIMIT REACHED (3 of 3 used) -> BLURRED LOCKED PREMIUM GATE
-  if (isLimitReached) {
-    return (
-      <div className="relative overflow-hidden rounded-3xl border-2 border-amber-400/80 bg-gradient-to-br from-amber-500/10 via-white to-red-500/10 p-8 sm:p-10 text-center shadow-xl">
-        {/* Background Decorative Glow */}
-        <div className="absolute -top-12 -right-12 w-48 h-48 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-12 -left-12 w-48 h-48 bg-red-500/20 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10">
-          <div className="w-14 h-14 bg-gradient-to-tr from-amber-500 to-orange-500 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md shadow-amber-500/20">
-            <Crown className="w-7 h-7" />
-          </div>
-
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-[12px] font-extrabold uppercase tracking-wider mb-3">
-            <Lock className="w-3.5 h-3.5" />
-            Monthly Free Limit Reached (3/3 Used)
-          </div>
-
-          <h3 className="text-[20px] sm:text-[24px] font-black text-[#1d1d1f] tracking-tight mb-2">
-            Unlock Unlimited Job Applications
-          </h3>
-
-          <p className="text-[14px] sm:text-[15px] text-[#86868b] max-w-lg mx-auto mb-6 leading-relaxed">
-            You&apos;ve used all <strong className="text-[#1d1d1f]">3 of your free applications</strong> for this calendar month. Upgrade to <strong className="text-[#e02424]">Hoberg Premium</strong> to apply for unlimited remote jobs, skip the queue, and access exclusive high-paying roles.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
-            <Link
-              href="/premium"
-              className="w-full sm:w-auto flex-1 inline-flex items-center justify-center bg-gradient-to-r from-amber-500 via-orange-500 to-[#e02424] hover:opacity-95 text-white font-bold px-8 py-4 rounded-full transition-all text-[15px] shadow-lg shadow-orange-500/25 cursor-pointer gap-2"
-            >
-              <Sparkles className="w-4 h-4 text-amber-200" />
-              <span>Upgrade to Premium &bull; ₦4,000/mo</span>
-            </Link>
-          </div>
-
-          <p className="text-[12px] text-[#86868b] mt-3">
-            Founding Member Rate: 20% OFF &bull; Renews monthly &bull; Cancel anytime
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  // 5. Approved Candidate with Applications Remaining or Premium Active
   return (
-    <div className="bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-3xl p-6 sm:p-8 text-center relative">
-      <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-3">
-        <CheckCircle className="w-6 h-6" />
+    <div className="space-y-4">
+      {/* Primary Action Row */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* Main Apply Button (Always Active, Always Free) */}
+        <button
+          type="button"
+          onClick={handleApply}
+          className={`flex-1 flex items-center justify-center gap-2 font-semibold text-[15px] px-8 py-4 rounded-2xl transition-all shadow-sm cursor-pointer ${
+            applied
+              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              : 'bg-[#e02424] hover:bg-[#c81e1e] active:scale-[0.99] text-white'
+          }`}
+        >
+          {applied ? (
+            <>
+              <CheckCircle className="w-5 h-5" />
+              <span>Applied ✓ (Tracked in Pipeline)</span>
+            </>
+          ) : (
+            <>
+              <span>Apply on Official Site</span>
+              <ExternalLink className="w-4 h-4" />
+            </>
+          )}
+        </button>
+
+        {/* Save Button */}
+        <button
+          type="button"
+          onClick={handleSaveJob}
+          className={`flex items-center justify-center gap-2 px-6 py-4 rounded-2xl border text-[14px] font-semibold transition-all cursor-pointer ${
+            saved
+              ? 'bg-amber-50 border-amber-300 text-amber-900'
+              : 'bg-white hover:bg-gray-50 border-[#d2d2d7] text-[#1d1d1f]'
+          }`}
+        >
+          <Bookmark className={`w-4 h-4 ${saved ? 'fill-amber-500 text-amber-500' : ''}`} />
+          <span>{saved ? 'Saved' : 'Save Job'}</span>
+        </button>
       </div>
 
-      <h3 className="text-[18px] font-bold text-[#1d1d1f] mb-1">
-        You are verified &amp; ready to apply!
-      </h3>
-
-      <p className="text-[14px] text-[#86868b] mb-6 max-w-md mx-auto">
-        Click below to submit your application on the official {job.company_name} portal.
-      </p>
-
-      {applied ? (
-        <div className="flex flex-col items-center gap-3">
-          <a
-            href={
-              job.apply_url && job.apply_url.startsWith('http')
-                ? job.apply_url
-                : `https://${job.apply_url || 'hoberg.com.ng'}`
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold px-8 py-4 rounded-full transition-all text-[15px] shadow-md hover:shadow-lg gap-2.5 cursor-pointer"
-          >
-            <CheckCircle className="w-4 h-4 text-emerald-200" />
-            <span>Open {job.company_name} Official Portal</span>
-            <ExternalLink className="w-4 h-4" />
-          </a>
-          <p className="text-[13px] text-[#86868b]">
-            Application saved to your profile! Click above if your browser did not automatically open the page.
-          </p>
+      {/* Trust & Charter Microcopy */}
+      <div className="flex items-center justify-between text-[12px] text-[#86868b] px-1">
+        <div className="flex items-center gap-1.5">
+          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <span>100% Free Application • No limits</span>
         </div>
-      ) : (
-        <div className="flex flex-col items-center gap-2">
-          <button
-            type="button"
-            onClick={handleApplyClick}
-            disabled={loading}
-            className="inline-flex items-center justify-center bg-[#e02424] hover:bg-[#c81e1e] active:bg-[#991b1b] text-white font-bold px-8 py-4 rounded-full transition-all text-[15px] shadow-md hover:shadow-lg disabled:opacity-85 cursor-pointer gap-2.5"
-          >
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Saving to profile &amp; opening portal...</span>
-              </>
-            ) : (
-              <>
-                <span>Apply on Official Site</span>
-                <ExternalLink className="w-4 h-4" />
-              </>
-            )}
-          </button>
-        </div>
-      )}
-
-      {/* Application Usage Counter Pill */}
-      <div className="mt-4 flex items-center justify-center gap-2">
-        {isPremiumState ? (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-[12px] font-bold">
-            <Crown className="w-3.5 h-3.5 text-amber-700" />
-            <span>Premium Member &bull; Unlimited Applications</span>
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#d2d2d7]/70 text-[#1d1d1f] text-[12px] font-medium shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-[#e02424]" />
-            <span>
-              Monthly Allowance: <strong>{monthlyCount} of 3 free applications used</strong> ({Math.max(0, 3 - monthlyCount)} remaining)
-            </span>
-          </span>
+        {isLoggedIn && (
+          <Link href="/app/tracker" className="text-[#e02424] font-medium hover:underline flex items-center gap-1">
+            <span>View Tracker</span>
+            <ArrowRight className="w-3 h-3" />
+          </Link>
         )}
       </div>
     </div>
   )
 }
-

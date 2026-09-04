@@ -152,8 +152,7 @@ export default function AdminPortalPage() {
   const [dataLoading, setDataLoading] = useState(false)
   const [jobsSyncing, setJobsSyncing] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterTab, setFilterTab] = useState<'all' | 'under_review' | 'approved' | 'draft' | 'premium' | 'logs' | 'jobs' | 'applications'>('all')
-  const [autoSync, setAutoSync] = useState(true)
+  const [filterTab, setFilterTab] = useState<'all' | 'under_review' | 'approved' | 'draft' | 'premium' | 'logs' | 'jobs' | 'applications' | 'employer_posts' | 'job_reports'>('all')
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
   const [dashboardError, setDashboardError] = useState<string | null>(null)
 
@@ -204,7 +203,7 @@ export default function AdminPortalPage() {
         setAuthLogs(data.authLogs || [])
         setApplications(data.applications || [])
         setJobs(data.jobs || [])
-        setMetrics(data.metrics)
+        setEmployerPosts(data.employerPosts || [])
         if (data.authLogsError || data.applicationsError) {
           setDashboardError(`Table Notice: ${data.authLogsError || ''} ${data.applicationsError || ''}. Please ensure RLS policies allow admin read.`)
         }
@@ -372,7 +371,7 @@ export default function AdminPortalPage() {
     }
   }
 
-  // Synchronize and refresh jobs from all remote providers & APIs
+  // Perform Job/Employer Post Actions
   const handleSyncJobs = async () => {
     setJobsSyncing(true)
     try {
@@ -815,7 +814,7 @@ export default function AdminPortalPage() {
                 { id: 'premium', label: `👑 Premium (${metrics.premiumUsers})` },
                 { id: 'jobs', label: `💼 Active Jobs (${jobs.length})` },
                 { id: 'applications', label: `📝 Submitted Applications (${applications.length})` },
-                { id: 'logs', label: `🔐 Login/Logout Audit (${authLogs.length})` },
+                { id: 'employer_posts', label: `🏢 Employer Posts (${employerPosts.length})` },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -1168,7 +1167,7 @@ export default function AdminPortalPage() {
               </table>
             </div>
           </div>
-        ) : (
+        ) : filterTab === 'employer_posts' ? (
           /* ---------------------------------------------------- */
           /* VIEW 2: CANDIDATES MANAGEMENT TABLE */
           /* ---------------------------------------------------- */

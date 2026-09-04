@@ -75,7 +75,21 @@ export async function GET() {
       console.error('Failed to aggregate jobs for admin portal:', err)
     }
 
-    // 5. Calculate live overview metrics
+    // 5. Fetch employer posts
+    let employerPosts: any[] = []
+    try {
+      const { data: ep } = await supabase.from('employer_posts').select('*').order('created_at', { ascending: false })
+      employerPosts = ep || []
+    } catch (err: any) {}
+
+    // 6. Fetch job reports
+    let jobReports: any[] = []
+    try {
+      const { data: jr } = await supabase.from('job_reports').select('*').order('created_at', { ascending: false })
+      jobReports = jr || []
+    } catch (err: any) {}
+
+    // 7. Calculate live overview metrics
     const totalUsers = users.length
     const underReview = users.filter((u) => u.review_status === 'under_review').length
     const approved = users.filter((u) => u.review_status === 'approved').length
@@ -101,6 +115,8 @@ export async function GET() {
         totalAuthLogs: authLogs.length,
         totalApplications: applications.length,
         totalJobs: jobs.length,
+        totalEmployerPosts: employerPosts.length,
+        totalJobReports: jobReports.length,
       },
       users,
       authLogs,
@@ -108,6 +124,8 @@ export async function GET() {
       applications,
       applicationsError,
       jobs,
+      employerPosts,
+      jobReports,
     })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Failed to fetch users' }, { status: 500 })

@@ -43,6 +43,7 @@ export async function POST() {
       const updates = shuffled.map((job, index) => ({
         ...job,
         created_at: new Date(now - index * 60000).toISOString(),
+        posted_at: new Date(now - index * 60000).toISOString(),
       }))
 
       // 4. Update them in chunks of 50 for speed and stability
@@ -51,7 +52,10 @@ export async function POST() {
       for (let i = 0; i < updates.length; i += chunkSize) {
         const chunk = updates.slice(i, i + chunkSize)
         chunkPromises.push(
-          supabase.from('jobs').upsert(chunk, { onConflict: 'id' })
+          supabase.from('jobs').upsert(chunk, { onConflict: 'id' }).then((res) => {
+            if (res.error) throw new Error(res.error.message)
+            return res
+          })
         )
       }
       await Promise.all(chunkPromises)

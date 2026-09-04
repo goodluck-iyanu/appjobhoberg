@@ -161,12 +161,12 @@ export default async function JobDetails({
               </span>
               <span className="inline-flex items-center gap-1.5 text-[12px] sm:text-[13px] font-medium text-[#1d1d1f] bg-[#f5f5f7] px-3 py-1.5 rounded-lg">
                 <Briefcase className="w-3.5 h-3.5 text-[#86868b]" />
-                {job.employment_type}
+                {job.work_type || 'Full-time'}
               </span>
               <span className="inline-flex items-center gap-1.5 text-[12px] sm:text-[13px] font-medium text-[#1d1d1f] bg-[#f5f5f7] px-3 py-1.5 rounded-lg">
-                <Calendar className="w-3.5 h-3.5 text-[#86868b]" />
-                Posted {new Date(job.created_at).toLocaleDateString()}
-              </span>
+                  <Calendar className="w-3.5 h-3.5 text-[#86868b]" />
+                  Posted {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'Recently'}
+                </span>
             </div>
           </div>
 
@@ -217,18 +217,13 @@ export default async function JobDetails({
 
             {/* Bottom Interactive Application Section */}
             <div id="apply-section">
-              <ApplySection
-                job={{
-                  id: job.id,
-                  title: job.title,
-                  company_name: job.company_name,
-                  apply_url: job.apply_url,
-                }}
-                user={user ? { id: user.id, email: user.email } : null}
-                reviewStatus={reviewStatus}
-                isPremium={isPremium}
-                initialMonthlyCount={monthlyCount}
-              />
+                <ApplySection
+                  jobId={job.id}
+                  jobTitle={job.title}
+                  companyName={job.company_name}
+                  applyUrl={job.apply_url}
+                  isLoggedIn={!!user}
+                />
             </div>
           </div>
 

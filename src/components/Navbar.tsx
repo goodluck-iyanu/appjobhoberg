@@ -2,11 +2,12 @@ import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 import MobileMenu from '@/components/MobileMenu'
 import SignOutButton from '@/components/SignOutButton'
-import { Crown } from '@/components/icons'
+import { Crown, Sparkles, PlusCircle } from '@/components/icons'
 
 export default async function Navbar() {
   let user = null
   let isPremium = false
+  let profileName = ''
 
   try {
     const supabase = await createClient()
@@ -18,10 +19,11 @@ export default async function Navbar() {
     if (user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('is_premium')
+        .select('is_premium, full_name, display_name')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
       isPremium = !!profile?.is_premium
+      profileName = profile?.full_name || profile?.display_name || user.email?.split('@')[0] || 'My Account'
     }
   } catch {
     user = null
@@ -29,38 +31,54 @@ export default async function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 glass-nav border-b border-black/[0.04]">
-      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center group">
-          <span className="font-bold text-[18px] tracking-tight">
-            <span className="text-[#e02424]">Hoberg</span>
-            <span className="text-[#1d1d1f] ml-1">Jobs</span>
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        {/* Logo with Nigerian Flag Tag */}
+        <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center group">
+            <span className="font-bold text-[20px] tracking-tight">
+              <span className="text-[#e02424]">Hoberg</span>
+              <span className="text-[#1d1d1f] ml-1">Jobs</span>
+            </span>
+          </Link>
+          <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2 py-0.5 rounded-full">
+            <span>🇳🇬</span>
+            <span>Nigeria First</span>
           </span>
-        </Link>
+        </div>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-7">
+        <nav className="hidden md:flex items-center gap-6">
           <Link
             href="/jobs"
-            className="text-[13px] font-medium text-[#1d1d1f]/70 hover:text-[#1d1d1f]
-                       transition-colors duration-200"
+            className="text-[13px] font-medium text-[#1d1d1f]/80 hover:text-[#1d1d1f] transition-colors"
           >
             Find Jobs
           </Link>
           <Link
-            href="/categories"
-            className="text-[13px] font-medium text-[#1d1d1f]/70 hover:text-[#1d1d1f]
-                       transition-colors duration-200"
+            href="/jobs/lagos"
+            className="text-[13px] font-medium text-[#1d1d1f]/80 hover:text-[#1d1d1f] transition-colors"
           >
-            Categories
+            Lagos Jobs
           </Link>
           <Link
-            href="/premium"
-            className="text-[13px] font-medium text-[#1d1d1f]/70 hover:text-[#1d1d1f]
-                       transition-colors duration-200 flex items-center gap-1"
+            href="/jobs/remote-nigeria"
+            className="text-[13px] font-medium text-[#1d1d1f]/80 hover:text-[#1d1d1f] transition-colors"
           >
-            <Crown className="w-3.5 h-3.5 text-amber-500" />
-            <span>Premium</span>
+            Remote NG
+          </Link>
+          <Link
+            href="/pricing"
+            className="text-[13px] font-medium text-[#1d1d1f]/80 hover:text-[#1d1d1f] transition-colors flex items-center gap-1"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>Pricing</span>
+          </Link>
+          <Link
+            href="/employers"
+            className="text-[13px] font-medium text-[#1d1d1f]/80 hover:text-[#1d1d1f] transition-colors flex items-center gap-1"
+          >
+            <PlusCircle className="w-3.5 h-3.5 text-[#e02424]" />
+            <span>Post a Job</span>
           </Link>
         </nav>
 
@@ -69,11 +87,23 @@ export default async function Navbar() {
           {user ? (
             <div className="hidden md:flex items-center gap-3">
               <Link
-                href="/dashboard"
+                href="/app"
                 className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#1d1d1f] bg-[#f5f5f7] hover:bg-[#e8e8ed] px-3.5 py-1.5 rounded-full border border-[#d2d2d7]/60 transition-colors"
               >
                 {isPremium && <Crown className="w-3.5 h-3.5 text-amber-500" />}
                 <span>Dashboard</span>
+              </Link>
+              <Link
+                href="/app/tracker"
+                className="text-[13px] font-medium text-[#86868b] hover:text-[#1d1d1f] transition-colors"
+              >
+                Tracker
+              </Link>
+              <Link
+                href="/app/cv"
+                className="text-[13px] font-medium text-[#86868b] hover:text-[#1d1d1f] transition-colors"
+              >
+                My CV
               </Link>
               <SignOutButton />
             </div>
@@ -81,44 +111,23 @@ export default async function Navbar() {
             <div className="hidden md:flex items-center gap-3">
               <Link
                 href="/login"
-                className="inline-flex text-[13px] font-medium text-[#1d1d1f]/70
-                           hover:text-[#1d1d1f] transition-colors duration-200"
+                className="text-[13px] font-medium text-[#1d1d1f] hover:opacity-80 transition-opacity"
               >
-                Log in
+                Sign In
               </Link>
               <Link
-                href="/signup"
-                className="inline-flex text-[13px] font-medium text-white
-                           bg-[#e02424] hover:bg-[#c81e1e] px-4 py-1.5 rounded-full
-                           transition-colors duration-200"
+                href="/login"
+                className="inline-flex items-center justify-center text-[13px] font-semibold text-white bg-[#e02424] hover:bg-[#c81e1e] active:scale-[0.98] px-4 py-1.5 rounded-full transition-all shadow-sm"
               >
-                Sign up
+                Get Started Free
               </Link>
             </div>
           )}
 
-          {/* Mobile Quick Sign up / Dashboard button */}
-          {!user ? (
-            <Link
-              href="/signup"
-              className="md:hidden inline-flex text-[12px] font-bold text-white bg-[#e02424] hover:bg-[#c81e1e] px-3.5 py-1 rounded-full transition-colors shadow-xs"
-            >
-              Sign up
-            </Link>
-          ) : (
-            <Link
-              href="/dashboard"
-              className="md:hidden inline-flex text-[12px] font-bold text-[#1d1d1f] bg-[#f5f5f7] border border-[#d2d2d7]/70 px-3 py-1 rounded-full transition-colors"
-            >
-              Dashboard
-            </Link>
-          )}
-
-          {/* Mobile hamburger */}
-          <MobileMenu userEmail={user?.email} isPremium={isPremium} />
+          {/* Mobile hamburger menu */}
+          <MobileMenu user={user} isPremium={isPremium} profileName={profileName} />
         </div>
       </div>
     </header>
   )
 }
-

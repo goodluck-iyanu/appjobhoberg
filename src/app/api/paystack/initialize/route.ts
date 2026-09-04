@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    const { amount, planTier, customPaymentLink } = await request.json()
+    const { planId, planName, amountNgn, kobo } = await request.json()
 
     const supabase = await createClient()
     const {
@@ -15,18 +15,11 @@ export async function POST(request: Request) {
     }
 
     const email = user.email || 'customer@example.com'
-    const reference = `hoberg_${planTier || 'founding'}_${user.id.slice(0, 8)}_${Date.now()}`
+    const reference = `hoberg_${planId || 'pro'}_${user.id.slice(0, 8)}_${Date.now()}`
     const { origin } = new URL(request.url)
-    const callbackUrl = `${origin}/dashboard?upgraded=true&reference=${reference}`
+    const callbackUrl = `${origin}/app?upgraded=true&reference=${reference}&plan=${planId || 'pro_monthly'}`
 
-    // If user provided a custom Paystack Payment Page link
-    if (customPaymentLink && customPaymentLink.startsWith('http')) {
-      return NextResponse.json({
-        authorization_url: customPaymentLink,
-        reference,
-      })
-    }
-
+    const finalKobo = kobo || (amountNgn ? amountNgn * 100 : 250000)
     const paystackSecret = process.env.PAYSTACK_SECRET_KEY
 
     // If secret key is provided, use Paystack's official initialization API
@@ -39,17 +32,23 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify({
           email,
-          amount: (amount || 4000) * 100, // Paystack uses Kobo (NGN * 100)
+          amount: finalKobo,
           reference,
           callback_url: callbackUrl,
           metadata: {
             user_id: user.id,
-            plan_tier: planTier || 'founding_member',
+            plan_id: planId || 'pro_monthly',
+            plan_name: planName || 'Hoberg Pro',
             custom_fields: [
               {
                 display_name: 'User ID',
                 variable_name: 'user_id',
                 value: user.id,
+              },
+              {
+                display_name: 'Product',
+                variable_name: 'product',
+                value: planId,
               },
             ],
           },
@@ -65,10 +64,11 @@ export async function POST(request: Request) {
         })
       } else {
         console.error('Paystack initialization error:', paystackData)
+        return NextResponse.json({ error: paystackData.message || 'Payment provider error' }, { status: 400 })
       }
     }
 
-    // Test mode fallback simulation
+    // Development/Test mode fallback simulation
     return NextResponse.json({
       authorization_url: callbackUrl,
       reference,
@@ -78,4 +78,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 })
   }
 }
-

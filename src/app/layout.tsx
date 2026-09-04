@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import Link from 'next/link'
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import AppBottomNav from '@/components/AppBottomNav'
 import AuthSessionLogger from '@/components/AuthSessionLogger'
 import { ToastProvider } from '@/components/Toast'
 
@@ -15,17 +16,19 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL('https://jobs.hoberg.com.ng'),
   title: {
-    default: 'Hoberg Jobs — Verified Remote Opportunities Worldwide',
+    default: 'Hoberg Jobs — Real Jobs in Nigeria & Remote Opportunities',
     template: '%s | Hoberg Jobs',
   },
   description:
-    'Discover legitimate, verified remote opportunities worldwide across all industries. Built by Hoberg Digital Agency.',
+    'The least humiliating way to hunt a job in Nigeria. Fewer fake posts, a CV you edit once, honest match scores, apply free, and a tracker so the chaos lives in one place.',
   keywords: [
-    'Remote Jobs',
-    'Nigeria Remote Jobs',
+    'Jobs in Nigeria',
+    'Lagos Jobs',
+    'Abuja Jobs',
+    'Remote Jobs Nigeria',
     'Work From Home Africa',
-    'Remote Tech Jobs',
-    'Virtual Assistant Jobs',
+    'NYSC Jobs',
+    'Tech Jobs Nigeria',
     'Customer Support Remote',
     'Hoberg Jobs',
   ],
@@ -45,11 +48,11 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    locale: 'en_US',
+    locale: 'en_NG',
     url: 'https://jobs.hoberg.com.ng',
-    title: 'Hoberg Jobs — Verified Remote Opportunities Worldwide',
+    title: 'Hoberg Jobs — Real Jobs in Nigeria & Remote Opportunities',
     description:
-      'Discover legitimate, verified remote opportunities worldwide across all industries. Built by Hoberg Digital Agency.',
+      'The least humiliating way to hunt a job in Nigeria. Fewer fake posts, a CV you edit once, honest match scores, apply free, and a tracker so the chaos lives in one place.',
     siteName: 'Hoberg Jobs',
     images: [
       {
@@ -62,9 +65,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Hoberg Jobs — Verified Remote Opportunities Worldwide',
+    title: 'Hoberg Jobs — Real Jobs in Nigeria & Remote Opportunities',
     description:
-      'Discover legitimate, verified remote opportunities worldwide across all industries. Built by Hoberg Digital Agency.',
+      'The least humiliating way to hunt a job in Nigeria. Fewer fake posts, honest match scores, free applications, and an integrated tracker.',
     creator: '@hobergdigital',
     images: ['/opengraph-image'],
   },
@@ -77,68 +80,84 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className={`${inter.className} min-h-screen flex flex-col`}>
+      <body className={`${inter.className} min-h-screen flex flex-col bg-[#fbfbfd] text-[#1d1d1f] pb-16 md:pb-0`}>
         <ToastProvider>
           {/* Real-time auth session logging */}
           <AuthSessionLogger />
 
-          {/* ─── Dynamic Navbar ─── */}
+          {/* Dynamic Navbar */}
           <Navbar />
 
-          {/* ─── Main ─── */}
+          {/* Main content */}
           <main className="flex-1 flex flex-col">{children}</main>
+
+          {/* Mobile Bottom Navigation for Quick One-Tap Access */}
+          <AppBottomNav />
         </ToastProvider>
 
-        {/* ─── Footer ─── */}
+        {/* Public Footer */}
         <footer className="bg-[#f5f5f7] border-t border-black/[0.04] mt-auto">
           <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Top row */}
-            <div className="py-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="py-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
               {/* Brand */}
-              <div className="space-y-1">
-                <p className="font-semibold text-[13px] text-[#1d1d1f]">
-                  Hoberg Jobs
-                </p>
-                <p className="text-[12px] text-[#86868b] max-w-xs leading-relaxed">
-                  Curated remote opportunities from world-class companies worldwide.
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-[18px] text-[#1d1d1f]">
+                    <span className="text-[#e02424]">Hoberg</span> Jobs
+                  </span>
+                  <span className="text-[11px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                    🇳🇬 Nigeria First
+                  </span>
+                </div>
+                <p className="text-[13px] text-[#86868b] max-w-sm leading-relaxed">
+                  Real jobs in Lagos, Abuja, and verified remote opportunities that actually hire from Nigeria. Apply is always 100% free.
                 </p>
               </div>
 
               {/* Link columns */}
-              <div className="flex gap-10 text-[12px]">
-                <div className="space-y-2">
-                  <p className="font-semibold text-[#1d1d1f]">Platform</p>
-                  <Link
-                    href="/jobs"
-                    className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-200"
-                  >
-                    Find Jobs
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 text-[13px]">
+                <div className="space-y-2.5">
+                  <p className="font-semibold text-[#1d1d1f]">Locations</p>
+                  <Link href="/jobs/lagos" className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors">
+                    Lagos Jobs
                   </Link>
-                  <Link
-                    href="/categories"
-                    className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-200"
-                  >
-                    Categories
+                  <Link href="/jobs/abuja" className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors">
+                    Abuja Jobs
                   </Link>
-                  <Link
-                    href="/premium"
-                    className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-200"
-                  >
-                    Premium
+                  <Link href="/jobs/remote-nigeria" className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors">
+                    Remote (Nigeria)
+                  </Link>
+                  <Link href="/jobs/remote-dollar" className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors">
+                    Dollar Remote
                   </Link>
                 </div>
-                <div className="space-y-2">
-                  <p className="font-semibold text-[#1d1d1f]">Legal</p>
-                  <Link
-                    href="/privacy_policy"
-                    className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-200"
-                  >
+
+                <div className="space-y-2.5">
+                  <p className="font-semibold text-[#1d1d1f]">For Seekers</p>
+                  <Link href="/jobs" className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors">
+                    Browse All Jobs
+                  </Link>
+                  <Link href="/app/cv" className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors">
+                    Master CV Upload
+                  </Link>
+                  <Link href="/app/tracker" className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors">
+                    Application Tracker
+                  </Link>
+                  <Link href="/pricing" className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors">
+                    Pricing & Pro
+                  </Link>
+                </div>
+
+                <div className="space-y-2.5 col-span-2 sm:col-span-1">
+                  <p className="font-semibold text-[#1d1d1f]">For Employers</p>
+                  <Link href="/employers/post" className="block text-[#e02424] font-medium hover:underline">
+                    Post a Job (Free)
+                  </Link>
+                  <Link href="/privacy_policy" className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors">
                     Privacy Policy
                   </Link>
-                  <Link
-                    href="/terms_of_service"
-                    className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-200"
-                  >
+                  <Link href="/terms_of_service" className="block text-[#86868b] hover:text-[#1d1d1f] transition-colors">
                     Terms of Service
                   </Link>
                 </div>
@@ -146,9 +165,9 @@ export default function RootLayout({
             </div>
 
             {/* Bottom bar */}
-            <div className="border-t border-black/[0.04] py-5 flex flex-col sm:flex-row justify-between items-center gap-3">
-              <p className="text-[11px] text-[#86868b]">
-                Copyright &copy; {new Date().getFullYear()} Hoberg Jobs. Built by{' '}
+            <div className="border-t border-black/[0.04] py-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+              <p className="text-[12px] text-[#86868b]">
+                &copy; {new Date().getFullYear()} Hoberg Jobs. Built by{' '}
                 <a
                   href="https://hoberg.com.ng"
                   target="_blank"
@@ -157,21 +176,19 @@ export default function RootLayout({
                 >
                   Hoberg Digital Agency
                 </a>
-                . All rights reserved.
+                . Zero fees to apply.
               </p>
-              <div className="flex gap-5 text-[11px]">
-                <Link
-                  href="/privacy_policy"
-                  className="text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-200"
-                >
-                  Privacy Policy
+              <div className="flex items-center gap-4 text-[12px] text-[#86868b]">
+                <Link href="/privacy_policy" className="hover:text-[#1d1d1f]">
+                  Privacy
                 </Link>
-                <span className="text-[#d2d2d7]">|</span>
-                <Link
-                  href="/terms_of_service"
-                  className="text-[#86868b] hover:text-[#1d1d1f] transition-colors duration-200"
-                >
-                  Terms of Service
+                <span>•</span>
+                <Link href="/terms_of_service" className="hover:text-[#1d1d1f]">
+                  Terms
+                </Link>
+                <span>•</span>
+                <Link href="/pricing" className="hover:text-[#1d1d1f]">
+                  Pricing
                 </Link>
               </div>
             </div>

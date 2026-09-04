@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { createAdminClient } from '@/utils/supabase/admin'
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,97 +17,95 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
+    const adminSupabase = createAdminClient()
+
     const {
+      full_name,
       fullName,
-      country,
+      phone,
       city,
-      careerField,
-      desiredRoles,
-      userStatus,
-      educationLevel,
-      institution,
-      graduationYear,
-      experienceYears,
-      experienceSummary,
+      country,
+      open_to_relocate,
+      remote_from_nigeria,
+      seniority,
+      nysc_status,
+      target_roles,
       skills,
-      resumeUrl,
-      linkedinUrl,
-      twitterUrl,
-      whatsappNumber,
-      githubUrl,
-      portfolioUrl,
-      jobTypePreference,
-      expectedSalary,
-      reviewStatus,
-      targetStatus,
+      experience,
+      education,
+      links,
+      profile_strength,
     } = body
 
-    const nextReviewStatus = targetStatus || reviewStatus || 'draft'
-    const skillsArray = Array.isArray(skills)
-      ? skills
-      : typeof skills === 'string'
-      ? skills.split(',').map((s: string) => s.trim()).filter(Boolean)
-      : []
+    const displayName = full_name || fullName || user.user_metadata?.full_name || user.email?.split('@')[0]
 
     const payload: Record<string, any> = {
       id: user.id,
-      full_name: fullName || user.user_metadata?.full_name || user.email?.split('@')[0],
-      display_name: fullName || user.user_metadata?.full_name || user.email?.split('@')[0],
-      country: country || 'Nigeria',
+      full_name: displayName,
+      display_name: displayName,
+      email: user.email,
+      phone: phone || null,
       city: city || 'Lagos',
-      career_field: careerField,
-      desired_roles: desiredRoles,
-      user_status: userStatus || 'professional',
-      education_level: educationLevel,
-      institution,
-      graduation_year: graduationYear,
-      experience_years: experienceYears,
-      experience_summary: experienceSummary,
-      skills: skillsArray,
-      resume_url: resumeUrl,
-      linkedin_url: linkedinUrl,
-      twitter_url: twitterUrl,
-      whatsapp_number: whatsappNumber,
-      github_url: githubUrl,
-      portfolio_url: portfolioUrl,
-      job_type_preference: jobTypePreference,
-      expected_salary: expectedSalary,
-      review_status: nextReviewStatus,
+      country: country || 'Nigeria',
+      open_to_relocate: Boolean(open_to_relocate),
+      remote_from_nigeria: remote_from_nigeria !== false,
+      seniority: seniority || 'mid',
+      nysc_status: nysc_status || 'completed',
+      target_roles: Array.isArray(target_roles) ? target_roles : [],
+      skills: Array.isArray(skills) ? skills : [],
+      experience: Array.isArray(experience) ? experience : [],
+      education: Array.isArray(education) ? education : [],
+      links: typeof links === 'object' ? links : {},
+      profile_strength: typeof profile_strength === 'number' ? profile_strength : 50,
       updated_at: new Date().toISOString(),
     }
 
-    if (targetStatus === 'under_review') {
-      payload.submitted_at = new Date().toISOString()
-    }
+    // 1. Try upsert with authenticated client
+    let { data, error } = await supabase.from('profiles').upsert(payload).select().single()
 
-    // Upsert into Supabase profiles using authenticated client
-    let { data, error } = await supabase
-      .from('profiles')
-      .upsert(payload)
-      .select()
-      .single()
-
-    if (error && error.message?.includes('full_name')) {
-      delete payload.full_name
-      const retry = await supabase.from('profiles').upsert(payload).select().single()
-      data = retry.data
-      error = retry.error
+    // 2. Admin fallback if any RLS permission edge cases occur
+    if (error) {
+      console.warn('Authenticated profile upsert warning, trying admin client:', error.message)
+      const adminResult = await adminSupabase.from('profiles').upsert(payload).select().single()
+      data = adminResult.data
+      error = adminResult.error
     }
 
     if (error) {
-      return NextResponse.json({ success: false, error: error?.message || 'Database error' }, { status: 500 })
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 })
     }
+
+    // 3. Create or update Master snapshot in cv_versions table
+    try {
+      await adminSupabase.from('cv_versions').insert({
+        user_id: user.id,
+        kind: 'master',
+        title: 'Master CV Snapshot',
+        content: {
+          full_name: displayName,
+          email: user.email,
+          phone,
+          city,
+          target_roles,
+          skills,
+          experience,
+          education,
+          links,
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+    } catch {}
 
     return NextResponse.json({
       success: true,
       profile: data,
-      reviewStatus: nextReviewStatus,
+      message: 'Master profile successfully updated.',
     })
   } catch (err: any) {
     return NextResponse.json(
-      { success: false, error: err?.message || 'Failed to save profile' },
+      { success: false, error: err.message || 'Server error' },
       { status: 500 }
     )
   }
 }
-

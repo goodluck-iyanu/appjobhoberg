@@ -59,6 +59,11 @@ import {
   MessageCircle,
   Activity,
   History,
+  UploadCloud,
+  User,
+  PlusCircle,
+  Edit3,
+  Plus,
 } from 'lucide-react'
 
 // Custom Brand Icons (High-fidelity inline SVGs)
@@ -157,4 +162,9 @@ export {
   MessageCircle,
   Activity,
   History,
+  UploadCloud,
+  User,
+  PlusCircle,
+  Edit3,
+  Plus,
 }
