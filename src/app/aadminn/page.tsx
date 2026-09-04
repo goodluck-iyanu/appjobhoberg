@@ -1167,7 +1167,7 @@ export default function AdminPortalPage() {
               </table>
             </div>
           </div>
-        ) : filterTab === 'employer_posts' ? (
+        ) : (
           /* ---------------------------------------------------- */
           /* VIEW 2: CANDIDATES MANAGEMENT TABLE */
           /* ---------------------------------------------------- */
