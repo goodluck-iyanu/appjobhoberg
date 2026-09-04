@@ -134,12 +134,12 @@ export default function MobileMenu({ user, isPremium, profileName }: MobileMenuP
                   My Seeker Hub
                 </p>
                   <Link
-                    href="/app"
+                    href="/"
                     onClick={close}
                     className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[14px] font-medium text-[#1d1d1f] hover:bg-gray-50"
                   >
-                    <Briefcase className="w-4 h-4 text-[#e02424]" />
-                    <span>Dashboard & Matches</span>
+                    <Home className="w-4 h-4 text-[#e02424]" />
+                    <span>My Dashboard</span>
                   </Link>
                   <Link
                     href="/app/tracker"
@@ -158,12 +158,12 @@ export default function MobileMenu({ user, isPremium, profileName }: MobileMenuP
                     <span>Master CV & Versions</span>
                   </Link>
                   <Link
-                    href="/profile"
+                    href="/app/billing"
                     onClick={close}
                     className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[14px] font-medium text-[#1d1d1f] hover:bg-gray-50"
                   >
                     <User className="w-4 h-4 text-gray-600" />
-                    <span>Profile & Preferences</span>
+                    <span>Billing & Credits</span>
                   </Link>
                   <div className="my-2 border-t border-gray-100" />
                 </>
