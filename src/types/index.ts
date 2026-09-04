@@ -1,6 +1,6 @@
 export type SeniorityLevel = 'nysc' | 'intern' | 'entry' | 'mid' | 'senior' | 'all'
 export type WorkType = 'remote' | 'hybrid' | 'onsite'
-export type GeoScope = 'nigeria' | 'africa' | 'worldwide' | 'unknown'
+export type GeoScope = 'nigeria' | 'africa' | 'worldwide' | 'unknown' | 'remote_ng' | 'worldwide_ok' | 'geo_blocked'
 export type HiresFromNigeria = 'yes' | 'no' | 'unknown'
 export type VerificationStatus = 'verified_employer' | 'aggregated' | 'remote_unverified'
 export type ApplicationStatus = 'Saved' | 'Applied' | 'Interview' | 'Offer' | 'Closed'

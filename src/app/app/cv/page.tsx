@@ -415,6 +415,16 @@ function MasterCvContent() {
               </div>
 
               <div>
+                <label className="block text-[12px] font-semibold text-[#1d1d1f] mb-1">Google Email (Locked)</label>
+                <input
+                  type="email"
+                  value={email}
+                  disabled
+                  className="w-full text-[13px] bg-[#e5e5ea] text-[#86868b] border border-[#d2d2d7] rounded-xl px-3.5 py-2.5 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
                 <label className="block text-[12px] font-semibold text-[#1d1d1f] mb-1">Phone Number (WhatsApp)</label>
                 <input
                   type="tel"

@@ -8,11 +8,11 @@ export default function AppBottomNav() {
   const pathname = usePathname()
 
   const navItems = [
-    { href: '/app', label: 'Home', icon: Home, active: pathname === '/app' || pathname === '/dashboard' },
+    { href: '/', label: 'Home', icon: Home, active: pathname === '/' },
     { href: '/jobs', label: 'Jobs', icon: Briefcase, active: pathname.startsWith('/jobs') },
     { href: '/app/tracker', label: 'Tracker', icon: CheckCircle, active: pathname.startsWith('/app/tracker') },
     { href: '/app/cv', label: 'My CV', icon: FileText, active: pathname.startsWith('/app/cv') },
-    { href: '/profile', label: 'Profile', icon: User, active: pathname.startsWith('/profile') },
+    { href: '/app/billing', label: 'Billing', icon: User, active: pathname.startsWith('/app/billing') || pathname === '/pricing' },
   ]
 
   return (

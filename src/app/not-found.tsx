@@ -1,37 +1,20 @@
 import Link from 'next/link'
-import { Search, ArrowLeft } from '@/components/icons'
+import { ArrowRight, Search } from '@/components/icons'
 
 export default function NotFound() {
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center px-6 text-center bg-white">
-      <div className="w-16 h-16 bg-[#f5f5f7] rounded-2xl flex items-center justify-center mb-6 border border-[#d2d2d7]/50 mx-auto shadow-sm">
-        <Search className="w-8 h-8 text-[#86868b]" />
+    <div className="flex-1 bg-[#f5f5f7] flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
+      <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mb-6">
+        <Search className="w-8 h-8 text-[#e02424]" />
       </div>
-      
-      <h1 className="text-4xl sm:text-5xl font-semibold text-[#1d1d1f] tracking-tight mb-4">
-        Page not found.
-      </h1>
-      
-      <p className="text-[17px] text-[#86868b] max-w-md mx-auto mb-10 leading-relaxed">
-        The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+      <h1 className="text-4xl font-bold text-[#1d1d1f] mb-3">Page Not Found</h1>
+      <p className="text-[16px] text-[#86868b] max-w-sm mx-auto mb-8">
+        The page you are looking for doesn't exist, has been removed, or is temporarily unavailable.
       </p>
-
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm mx-auto">
-        <Link 
-          href="/"
-          className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-[#0066cc] text-white text-[15px] font-medium hover:bg-[#0077ed] transition-colors w-full sm:w-auto"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Homepage
-        </Link>
-        <Link 
-          href="/jobs"
-          className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-[#f5f5f7] text-[#1d1d1f] text-[15px] font-medium hover:bg-[#e8e8ed] transition-colors w-full sm:w-auto border border-[#d2d2d7]/40"
-        >
-          Browse Jobs
-        </Link>
-      </div>
+      <Link href="/jobs" className="inline-flex items-center gap-2 bg-[#1d1d1f] hover:bg-black text-white px-6 py-3.5 rounded-full font-semibold text-[14px] transition-all shadow-sm">
+        <span>Browse Jobs</span>
+        <ArrowRight className="w-4 h-4" />
+      </Link>
     </div>
   )
 }
-

@@ -88,16 +88,38 @@ export function normalizeCategory(cat?: string): string {
 }
 
 /**
- * Detects whether a job hires from Nigeria or has high/low chance
+ * Detects whether a job hires from Nigeria and returns the exact tag needed.
  */
 export function detectHiresFromNigeria(locationText: string, description: string): {
   hiresFromNigeria: 'yes' | 'no' | 'unknown'
-  geoScope: 'nigeria' | 'africa' | 'worldwide' | 'unknown'
+  geoScope: 'nigeria' | 'remote_ng' | 'worldwide_ok' | 'geo_blocked' | 'unknown'
   city: string
   country: string
 } {
   const loc = (locationText || '').toLowerCase()
   const desc = (description || '').toLowerCase()
+
+  // 2. Strict US / EU / UK work authorization requirement (geo_blocked)
+  if (
+    desc.includes('us citizenship required') ||
+    desc.includes('must be authorized to work in the us') ||
+    desc.includes('us work authorization required') ||
+    desc.includes('must reside in the united states') ||
+    desc.includes('must be located in the us') ||
+    desc.includes('us only') ||
+    loc.includes('united states only') ||
+    loc.includes('usa only') ||
+    loc.includes('uk only') ||
+    loc.includes('eu only') ||
+    loc.includes('canada only')
+  ) {
+    return {
+      hiresFromNigeria: 'no',
+      geoScope: 'geo_blocked',
+      city: 'International',
+      country: 'International',
+    }
+  }
 
   // 1. Explicit Nigeria / State
   if (
@@ -114,31 +136,9 @@ export function detectHiresFromNigeria(locationText: string, description: string
 
     return {
       hiresFromNigeria: 'yes',
-      geoScope: 'nigeria',
+      geoScope: loc.includes('remote') || desc.includes('remote') ? 'remote_ng' : 'nigeria',
       city,
       country: 'Nigeria',
-    }
-  }
-
-  // 2. Strict US / EU / UK work authorization requirement (Cannot hire from Nigeria)
-  if (
-    desc.includes('us citizenship required') ||
-    desc.includes('must be authorized to work in the us') ||
-    desc.includes('us work authorization required') ||
-    desc.includes('must reside in the united states') ||
-    desc.includes('must be located in the us') ||
-    desc.includes('us only') ||
-    loc.includes('united states only') ||
-    loc.includes('usa only') ||
-    loc.includes('uk only') ||
-    loc.includes('eu only') ||
-    loc.includes('canada only')
-  ) {
-    return {
-      hiresFromNigeria: 'no',
-      geoScope: 'unknown',
-      city: 'International',
-      country: 'International',
     }
   }
 
@@ -150,7 +150,7 @@ export function detectHiresFromNigeria(locationText: string, description: string
   ) {
     return {
       hiresFromNigeria: 'yes',
-      geoScope: loc.includes('africa') ? 'africa' : 'worldwide',
+      geoScope: 'worldwide_ok',
       city: 'Remote',
       country: loc.includes('africa') ? 'Africa' : 'Global',
     }
@@ -278,6 +278,9 @@ export async function fetchLiveJobs(options?: {
   // In-memory advanced filtering
   let filtered = jobsList
 
+  // Hide geo_blocked from default lists
+  filtered = filtered.filter(j => j.geo_scope !== 'geo_blocked')
+
   // Query search
   if (options?.query) {
     const q = options.query.toLowerCase().trim()
@@ -313,6 +316,7 @@ export async function fetchLiveJobs(options?: {
       (job) =>
         (job.salary_range && job.salary_range.includes('$')) ||
         (job.salary_currency === 'USD') ||
+        (job.geo_scope === 'worldwide_ok') ||
         (job.source && job.source.includes('RemoteOK'))
     )
   }
