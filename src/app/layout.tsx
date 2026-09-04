@@ -5,6 +5,7 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import AppBottomNav from '@/components/AppBottomNav'
 import AuthSessionLogger from '@/components/AuthSessionLogger'
+import CookieConsent from '@/components/CookieConsent'
 import { ToastProvider } from '@/components/Toast'
 
 const inter = Inter({
@@ -182,11 +183,11 @@ export default function RootLayout({
                 <Link href="/privacy_policy" className="hover:text-[#1d1d1f]">
                   Privacy
                 </Link>
-                <span>•</span>
+                <span>·</span>
                 <Link href="/terms_of_service" className="hover:text-[#1d1d1f]">
                   Terms
                 </Link>
-                <span>•</span>
+                <span>·</span>
                 <Link href="/pricing" className="hover:text-[#1d1d1f]">
                   Pricing
                 </Link>
@@ -194,6 +195,7 @@ export default function RootLayout({
             </div>
           </div>
         </footer>
+        <CookieConsent />
       </body>
     </html>
   )
