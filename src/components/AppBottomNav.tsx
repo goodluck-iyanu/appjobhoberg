@@ -16,7 +16,10 @@ export default function AppBottomNav() {
   ]
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-black/[0.08] px-2 py-2">
+    <div 
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-black/[0.08] px-2 pt-2"
+      style={{ paddingBottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}
+    >
       <div className="grid grid-cols-5 gap-1 max-w-md mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon

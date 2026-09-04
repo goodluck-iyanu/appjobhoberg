@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { createClient } from '@/utils/supabase/client'
 import {
@@ -28,17 +29,36 @@ interface MobileMenuProps {
 export default function MobileMenu({ user, isPremium, profileName }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [authLoading, setAuthLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const supabase = createClient()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const close = useCallback(() => setIsOpen(false), [])
 
   useEffect(() => {
     if (isOpen) {
+      const scrollY = window.scrollY
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
       document.body.style.overflow = 'hidden'
     } else {
+      const scrollY = document.body.style.top
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
       document.body.style.overflow = ''
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1)
+      }
     }
     return () => {
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
       document.body.style.overflow = ''
     }
   }, [isOpen])
@@ -57,78 +77,62 @@ export default function MobileMenu({ user, isPremium, profileName }: MobileMenuP
     }
   }
 
-  return (
-    <div className="md:hidden">
-      {/* Hamburger toggle */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="flex items-center justify-center w-10 h-10 rounded-xl text-[#1d1d1f] hover:bg-black/5 active:bg-black/10 transition-colors"
-        aria-label="Open navigation menu"
-      >
-        <Menu className="w-6 h-6 text-[#1d1d1f]" />
-      </button>
+  const menuContent = isOpen ? (
+    <div 
+      className="fixed inset-0 z-[9999] flex flex-col bg-white"
+      style={{ height: '100dvh', minHeight: '-webkit-fill-available' }}
+    >
+      {/* Sheet Header */}
+      <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white">
+        <Link href="/" onClick={close} className="flex items-center gap-2">
+          <span className="font-bold text-[18px] tracking-tight">
+            <span className="text-[#e02424]">Hoberg</span>
+            <span className="text-[#1d1d1f] ml-1">Jobs</span>
+          </span>
+          <span className="text-[10px] font-medium bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
+            🇳🇬 NG
+          </span>
+        </Link>
+        <button
+          type="button"
+          onClick={close}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100"
+          aria-label="Close menu"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
 
-      {/* Full-screen Drawer Overlay */}
-      {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex justify-end">
-          {/* Dimmed backdrop */}
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-            onClick={close}
-            aria-hidden="true"
-          />
-
-          {/* Menu Sheet */}
-          <div className="relative z-10 w-full max-w-[320px] h-full flex flex-col shadow-2xl border-l border-gray-200 bg-white">
-            {/* Sheet Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white">
-              <Link href="/" onClick={close} className="flex items-center gap-2">
-                <span className="font-bold text-[18px] tracking-tight">
-                  <span className="text-[#e02424]">Hoberg</span>
-                  <span className="text-[#1d1d1f] ml-1">Jobs</span>
+          {/* User Profile Banner if logged in */}
+          {user && (
+            <div className="flex-shrink-0 px-5 py-3.5 bg-[#f5f5f7] border-b border-gray-200/60">
+              <p className="text-[11px] text-[#86868b] font-medium uppercase tracking-wider">Signed in as</p>
+              <p className="text-[14px] font-semibold text-[#1d1d1f] truncate mt-0.5">
+                {profileName || user.email}
+              </p>
+              {isPremium ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full mt-1.5">
+                  <Crown className="w-3 h-3" />
+                  <span>Hoberg Pro Member</span>
                 </span>
-                <span className="text-[10px] font-medium bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
-                  🇳🇬 NG
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#86868b] bg-white px-2 py-0.5 rounded-full mt-1.5 border border-gray-200">
+                  <span>Free Seeker Plan</span>
                 </span>
-              </Link>
-              <button
-                type="button"
-                onClick={close}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100"
-                aria-label="Close menu"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              )}
             </div>
+          )}
 
-            {/* User Profile Banner if logged in */}
-            {user && (
-              <div className="px-5 py-3.5 bg-[#f5f5f7] border-b border-gray-200/60">
-                <p className="text-[11px] text-[#86868b] font-medium uppercase tracking-wider">Signed in as</p>
-                <p className="text-[14px] font-semibold text-[#1d1d1f] truncate mt-0.5">
-                  {profileName || user.email}
+          {/* Nav Links (Scrollable Middle) */}
+          <div 
+            className="px-4 py-4 space-y-1 bg-white"
+            style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}
+          >
+            {user ? (
+              <>
+                <p className="text-[11px] font-semibold text-[#86868b] uppercase tracking-wider px-3 py-2">
+                  My Seeker Hub
                 </p>
-                {isPremium ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full mt-1.5">
-                    <Crown className="w-3 h-3" />
-                    <span>Hoberg Pro Member</span>
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#86868b] bg-white px-2 py-0.5 rounded-full mt-1.5 border border-gray-200">
-                    <span>Free Seeker Plan</span>
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Nav Links */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
-              {user ? (
-                <>
-                  <p className="text-[11px] font-semibold text-[#86868b] uppercase tracking-wider px-3 py-2">
-                    My Seeker Hub
-                  </p>
                   <Link
                     href="/app"
                     onClick={close}
@@ -255,8 +259,11 @@ export default function MobileMenu({ user, isPremium, profileName }: MobileMenuP
             </div>
 
             {/* Bottom Auth Section */}
-            <div className="p-4 border-t border-gray-100 bg-[#f5f5f7]">
-              {user ? (
+          <div 
+            className="flex-shrink-0 p-4 border-t border-gray-100 bg-[#f5f5f7]"
+            style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+          >
+            {user ? (
                 <div className="flex items-center justify-between">
                   <Link
                     href="/app/billing"
@@ -295,10 +302,24 @@ export default function MobileMenu({ user, isPremium, profileName }: MobileMenuP
                   <span>{authLoading ? 'Signing in...' : 'Sign in with Google'}</span>
                 </button>
               )}
-            </div>
           </div>
         </div>
-      )}
+      ) : null
+
+  return (
+    <div className="md:hidden">
+      {/* Hamburger toggle */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="flex items-center justify-center w-10 h-10 rounded-xl text-[#1d1d1f] hover:bg-black/5 active:bg-black/10 transition-colors"
+        aria-label="Open navigation menu"
+      >
+        <Menu className="w-6 h-6 text-[#1d1d1f]" />
+      </button>
+
+      {/* Render menu through a portal so it breaks out of any backdrop-filters or stacking contexts */}
+      {mounted && createPortal(menuContent, document.body)}
     </div>
   )
 }

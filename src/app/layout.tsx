@@ -81,7 +81,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className={`${inter.className} min-h-screen flex flex-col bg-[#fbfbfd] text-[#1d1d1f] pb-16 md:pb-0`}>
+      <body className={`${inter.className} min-h-[100dvh] flex flex-col bg-[#fbfbfd] text-[#1d1d1f] mobile-pb md:pb-0`}>
         <ToastProvider>
           {/* Real-time auth session logging */}
           <AuthSessionLogger />

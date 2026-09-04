@@ -12,8 +12,15 @@
 }
 
 /* ─── Base ─── */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 html {
   scroll-behavior: smooth;
+  height: 100%;
+  height: -webkit-fill-available;
 }
 
 body {
@@ -22,6 +29,18 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  
+  /* iOS fixes */
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+}
+
+@media (max-width: 767px) {
+  .mobile-pb {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
 }
 
 /* ─── Selection ─── */
