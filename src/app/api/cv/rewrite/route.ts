@@ -48,22 +48,22 @@ export async function POST(req: NextRequest) {
     let canProceed = false
     let reason = ''
 
-    if (isPro) {
-      canProceed = true
-      reason = 'pro_subscription'
-    } else {
-      // Check credit ledger for 'rewrite_cv'
-      const { data: credits } = await adminSupabase
-        .from('credit_ledger')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('kind', 'rewrite_cv')
+    // Check credit ledger for both quotas and wallet
+    const { data: credits } = await adminSupabase
+      .from('credit_ledger')
+      .select('*')
+      .eq('user_id', user.id)
+      .in('kind', ['rewrite_quota', 'rewrite_cv'])
 
-      const totalCredits = (credits || []).reduce((acc: number, c: any) => acc + c.delta, 0)
-      if (totalCredits > 0) {
-        canProceed = true
-        reason = 'credit'
-      }
+    const quotaCredits = (credits || []).filter(c => c.kind === 'rewrite_quota').reduce((acc: number, c: any) => acc + c.delta, 0)
+    const walletCredits = (credits || []).filter(c => c.kind === 'rewrite_cv').reduce((acc: number, c: any) => acc + c.delta, 0)
+
+    if (quotaCredits > 0) {
+      canProceed = true
+      reason = 'rewrite_quota'
+    } else if (walletCredits > 0) {
+      canProceed = true
+      reason = 'rewrite_cv'
     }
 
     if (!canProceed) {
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           requiresPayment: true,
-          error: 'You do not have any Rewrite credits left. Upgrade to Pro or buy 1 Full CV Rewrite for ₦2,000.',
+          error: 'You have no Rewrite credits left. Upgrade to Pro or buy 1 Full CV Rewrite for ₦2,000.',
         },
         { status: 402 }
       )
@@ -121,13 +121,12 @@ export async function POST(req: NextRequest) {
     }
 
     // 6. Deduct credit
-    if (reason === 'credit') {
+    if (reason === 'rewrite_quota' || reason === 'rewrite_cv') {
       await adminSupabase.from('credit_ledger').insert({
         user_id: user.id,
-        kind: 'rewrite_cv',
+        kind: reason,
         delta: -1,
-        reason: 'used_on_job',
-        ref: job.id,
+        reason: 'used_rewrite',
         balance_after: 0,
         created_at: new Date().toISOString(),
       })

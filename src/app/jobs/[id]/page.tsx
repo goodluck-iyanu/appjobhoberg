@@ -50,7 +50,7 @@ export default async function JobDetails({
       try {
         let { data: profile } = await supabase
           .from('profiles')
-          .select('review_status, is_premium')
+          .select('review_status, is_premium, target_roles, skills, city, seniority, remote_from_nigeria')
           .eq('id', user.id)
           .maybeSingle()
 
@@ -64,7 +64,7 @@ export default async function JobDetails({
               review_status: 'draft',
               created_at: new Date().toISOString(),
             })
-            .select('review_status, is_premium')
+            .select('review_status, is_premium, target_roles, skills, city, seniority, remote_from_nigeria')
             .maybeSingle()
           profile = newProf
         }
@@ -80,6 +80,22 @@ export default async function JobDetails({
     }
   } catch {
     user = null
+  }
+
+  // Calculate Match using the fast utility
+  let matchResult = null
+  let profileData = null
+  if (user) {
+    try {
+      const supabase = await createClient()
+      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
+      profileData = data
+    } catch {}
+    
+    if (profileData) {
+      const { calculateJobMatch } = await import('@/utils/matching')
+      matchResult = calculateJobMatch(profileData, job)
+    }
   }
 
   // Check if description is HTML or plain text using regex for HTML tags
@@ -203,6 +219,8 @@ export default async function JobDetails({
                   companyName={job.company_name}
                   applyUrl={job.apply_url}
                   isLoggedIn={!!user}
+                  isPremium={isPremium}
+                  matchResult={matchResult}
                 />
             </div>
           </div>

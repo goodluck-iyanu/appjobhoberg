@@ -20,52 +20,57 @@ export default function BillingPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [credits, setCredits] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function loadData() {
+    async function load() {
       const {
         data: { user },
       } = await supabase.auth.getUser()
-
       if (!user) {
-        router.push('/login?next=/app/billing')
+        window.location.href = '/login?next=/app/billing'
         return
       }
+      setUser(user)
 
       const { data: prof } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .maybeSingle()
+        .single()
       setProfile(prof)
 
       const { data: ledger } = await supabase
         .from('credit_ledger')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-      setCredits(ledger || [])
 
+      setCredits(ledger || [])
       setLoading(false)
     }
-
-    loadData()
-  }, [router, supabase])
+    load()
+  }, [])
 
   if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center p-8 bg-[#f5f5f7]">
-        <div className="w-8 h-8 border-3 border-[#e02424] border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    )
+    return <div className="flex-1 bg-[#fbfbfd] flex items-center justify-center p-8">Loading...</div>
   }
 
-  const isPro = Boolean(profile?.is_premium)
+  const isPro = profile?.is_premium
+  const planLabel = isPro
+    ? PRICING_PLANS.find((p) => p.id === profile?.premium_tier)?.name || 'Hoberg Pro'
+    : 'Free Seeker Plan'
+
+  // Calculate wallet credits
   const tailorCredits = credits.filter((c) => c.kind === 'tailor_cv').reduce((acc, c) => acc + c.delta, 0)
   const rewriteCredits = credits.filter((c) => c.kind === 'rewrite_cv').reduce((acc, c) => acc + c.delta, 0)
+
+  // Calculate quota credits
+  const tailorQuota = credits.filter((c) => c.kind === 'tailor_quota').reduce((acc, c) => acc + c.delta, 0)
+  const rewriteQuota = credits.filter((c) => c.kind === 'rewrite_quota').reduce((acc, c) => acc + c.delta, 0)
+  const coverLetterQuota = credits.filter((c) => c.kind === 'cover_letter_quota').reduce((acc, c) => acc + c.delta, 0)
 
   return (
     <div className="flex-1 bg-[#f5f5f7] py-6 sm:py-10">
@@ -109,7 +114,16 @@ export default function BillingPage() {
               </p>
             </div>
 
-            {!isPro && (
+            {isPro ? (
+              <div className="shrink-0 text-center flex flex-col items-center">
+                <span className="text-[12px] text-emerald-700 font-semibold mb-2">✓ Active Subscription</span>
+                <div
+                  className="bg-white border border-gray-200 text-gray-600 font-medium text-[12px] px-4 py-2 rounded-xl transition-colors text-center"
+                >
+                  Cancel anytime
+                </div>
+              </div>
+            ) : (
               <Link
                 href="/pricing"
                 className="bg-[#e02424] hover:bg-[#c81e1e] text-white font-semibold text-[13px] px-6 py-3 rounded-full shadow-xs shrink-0 text-center"
@@ -124,15 +138,25 @@ export default function BillingPage() {
             <div className="p-3.5 rounded-2xl bg-[#f5f5f7]">
               <p className="text-[11px] text-[#86868b] font-semibold uppercase tracking-wider">Tailored CV Credits</p>
               <p className="text-xl font-bold text-[#1d1d1f] mt-0.5">
-                {isPro ? '8 / month (Pro)' : `${Math.max(0, tailorCredits)} Credits`}
+                {isPro ? `${Math.max(0, tailorQuota)} / 8 (Pro)` : `${Math.max(0, tailorCredits)} Credits`}
               </p>
+              {isPro && Math.max(0, tailorCredits) > 0 && (
+                <p className="text-[11px] text-amber-700 mt-1 font-medium">
+                  + {tailorCredits} in wallet
+                </p>
+              )}
             </div>
 
             <div className="p-3.5 rounded-2xl bg-[#f5f5f7]">
               <p className="text-[11px] text-[#86868b] font-semibold uppercase tracking-wider">AI Rewrites</p>
               <p className="text-xl font-bold text-[#1d1d1f] mt-0.5">
-                {isPro ? '2 / month (Pro)' : `${Math.max(0, rewriteCredits)} Credits`}
+                {isPro ? `${Math.max(0, rewriteQuota)} / 2 (Pro)` : `${Math.max(0, rewriteCredits)} Credits`}
               </p>
+              {isPro && Math.max(0, rewriteCredits) > 0 && (
+                <p className="text-[11px] text-amber-700 mt-1 font-medium">
+                  + {rewriteCredits} in wallet
+                </p>
+              )}
             </div>
 
             <div className="p-3.5 rounded-2xl bg-[#f5f5f7] col-span-2 sm:col-span-1">

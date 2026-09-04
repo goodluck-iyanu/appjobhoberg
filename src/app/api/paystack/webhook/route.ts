@@ -78,6 +78,22 @@ export async function POST(req: NextRequest) {
               paystack_customer_code: data.customer?.customer_code || null,
             })
           } catch {}
+
+          // Reset and grant Pro Quotas for the new billing period
+          try {
+            await adminSupabase.from('credit_ledger')
+              .delete()
+              .eq('user_id', targetUserId)
+              .in('kind', ['tailor_quota', 'rewrite_quota', 'cover_letter_quota'])
+
+            await adminSupabase.from('credit_ledger').insert([
+              { user_id: targetUserId, kind: 'tailor_quota', delta: 8, reason: 'pro_renewal', balance_after: 8 },
+              { user_id: targetUserId, kind: 'rewrite_quota', delta: 2, reason: 'pro_renewal', balance_after: 2 },
+              { user_id: targetUserId, kind: 'cover_letter_quota', delta: 8, reason: 'pro_renewal', balance_after: 8 }
+            ])
+          } catch (e) {
+            console.error('Failed to grant quotas', e)
+          }
         }
 
         // 3. Handle One-Off Credit Purchases

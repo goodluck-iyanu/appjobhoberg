@@ -38,6 +38,8 @@ function MasterCvContent() {
   const [saving, setSaving] = useState(false)
   const [isConfirmed, setIsConfirmed] = useState(false)
   const [targetJob, setTargetJob] = useState<any>(null)
+  const [cvVersions, setCvVersions] = useState<any[]>([])
+  const [balances, setBalances] = useState({ tailor: 0, rewrite: 0, ats: 0 })
 
   // Form State
   const [fullName, setFullName] = useState('')
@@ -137,6 +139,32 @@ function MasterCvContent() {
         if (profile.profile_strength && profile.profile_strength > 25) {
           setIsConfirmed(true)
         }
+      }
+
+      // Fetch CV Versions
+      const { data: versions } = await supabase
+        .from('cv_versions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+      setCvVersions(versions || [])
+
+      // Fetch Balances
+      const { data: ledger } = await supabase
+        .from('credit_ledger')
+        .select('kind, delta')
+        .eq('user_id', user.id)
+
+      if (ledger) {
+        let tailor = 0
+        let rewrite = 0
+        let ats = 0
+        for (const row of ledger) {
+          if (row.kind.startsWith('tailor')) tailor += row.delta
+          if (row.kind.startsWith('rewrite')) rewrite += row.delta
+          if (row.kind === 'ats_check') ats += row.delta
+        }
+        setBalances({ tailor, rewrite, ats })
       }
 
       // If tailoring for a specific job, fetch the target job
@@ -623,6 +651,86 @@ function MasterCvContent() {
               {saving ? 'Saving Master CV...' : 'Save Master Profile ✨'}
             </button>
           </div>
+
+          {/* Versions List */}
+          <div className="mt-12 bg-white rounded-3xl p-6 sm:p-8 border border-black/[0.06] shadow-xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <h3 className="font-bold text-[18px] text-[#1d1d1f] flex items-center gap-2">
+                <FileText className="w-5 h-5 text-indigo-600" />
+                <span>Generated CV Versions</span>
+              </h3>
+              
+              <div className="flex flex-wrap items-center gap-2">
+                <Link 
+                  href={balances.tailor > 0 ? '/jobs' : '/pricing'} 
+                  className="px-3 py-1.5 text-[12px] font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                >
+                  Tailor for a Job ({balances.tailor})
+                </Link>
+                <Link 
+                  href={balances.rewrite > 0 ? '#' : '/pricing'} 
+                  className="px-3 py-1.5 text-[12px] font-semibold bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors"
+                >
+                  Rewrite CV ({balances.rewrite})
+                </Link>
+                <button 
+                  onClick={() => balances.ats > 0 ? alert('ATS Check Panel would open here.') : window.location.href = '/pricing'}
+                  className="px-3 py-1.5 text-[12px] font-semibold bg-amber-50 text-amber-700 rounded-lg hover:bg-amber-100 transition-colors cursor-pointer"
+                >
+                  ATS Check ({balances.ats})
+                </button>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Master CV */}
+              {isConfirmed && (
+                <div className="p-4 border border-black/[0.06] rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gray-50/50">
+                  <div>
+                    <p className="font-bold text-[14px] text-[#1d1d1f]">Master CV</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[12px] font-medium px-2 py-0.5 rounded bg-gray-200 text-gray-700">
+                        master
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button className="flex-1 sm:flex-none px-4 py-2 text-[13px] font-semibold bg-white border border-gray-200 hover:bg-gray-50 text-[#1d1d1f] rounded-xl transition-colors">
+                      Preview
+                    </button>
+                    <button className="flex-1 sm:flex-none px-4 py-2 text-[13px] font-semibold bg-[#1d1d1f] hover:bg-black text-white rounded-xl transition-colors">
+                      Download PDF
+                    </button>
+                  </div>
+                </div>
+              )}
+                {cvVersions.map((version) => (
+                  <div key={version.id} className="p-4 border border-black/[0.06] rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <p className="font-bold text-[14px] text-[#1d1d1f]">{version.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[12px] font-medium px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 capitalize">
+                          {version.kind}
+                        </span>
+                        <span className="text-[12px] text-[#86868b]">
+                          {new Date(version.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <button className="flex-1 sm:flex-none px-4 py-2 text-[13px] font-semibold bg-[#f5f5f7] hover:bg-[#ebebf0] text-[#1d1d1f] rounded-xl transition-colors">
+                        Preview
+                      </button>
+                      <button className="flex-1 sm:flex-none px-4 py-2 text-[13px] font-semibold bg-[#1d1d1f] hover:bg-black text-white rounded-xl transition-colors">
+                        Download PDF
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
         </div>
       </div>
     </div>

@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { jobId, jobTitle, companyName, applyUrl } = await req.json()
+    const { jobId, jobTitle, companyName, applyUrl, cvVersionId } = await req.json()
 
     if (!jobTitle || !applyUrl) {
       return NextResponse.json(
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     const adminSupabase = createAdminClient()
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(jobId || '')
 
-    const appPayload = {
+    const appPayload: any = {
       user_id: user.id,
       job_id: isUuid ? jobId : null,
       job_title: jobTitle,
@@ -38,6 +38,10 @@ export async function POST(req: NextRequest) {
       applied_at: new Date().toISOString(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+    }
+
+    if (cvVersionId) {
+      appPayload.cv_version_id = cvVersionId
     }
 
     // Try authenticated client insert first, then admin fallback

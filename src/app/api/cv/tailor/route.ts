@@ -49,25 +49,25 @@ export async function POST(req: NextRequest) {
     let canProceed = false
     let reason = ''
 
-    if (isPro) {
+    // Check credit ledger for both quotas and wallet
+    const { data: credits } = await adminSupabase
+      .from('credit_ledger')
+      .select('*')
+      .eq('user_id', user.id)
+      .in('kind', ['tailor_quota', 'tailor_cv'])
+
+    const quotaCredits = (credits || []).filter(c => c.kind === 'tailor_quota').reduce((acc, c) => acc + c.delta, 0)
+    const walletCredits = (credits || []).filter(c => c.kind === 'tailor_cv').reduce((acc, c) => acc + c.delta, 0)
+
+    if (quotaCredits > 0) {
       canProceed = true
-      reason = 'pro_subscription'
+      reason = 'tailor_quota'
+    } else if (walletCredits > 0) {
+      canProceed = true
+      reason = 'tailor_cv'
     } else if (!profile.free_tailor_used) {
       canProceed = true
       reason = 'free_trial'
-    } else {
-      // Check credit ledger
-      const { data: credits } = await adminSupabase
-        .from('credit_ledger')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('kind', 'tailor_cv')
-
-      const totalCredits = (credits || []).reduce((acc, c) => acc + c.delta, 0)
-      if (totalCredits > 0) {
-        canProceed = true
-        reason = 'credit'
-      }
     }
 
     if (!canProceed) {
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           requiresPayment: true,
-          error: 'You have used your free tailored CV trial. Upgrade to Pro or buy 1 tailored CV for ₦700.',
+          error: 'You have no Tailored CV credits left. Upgrade to Pro or buy a credit.',
         },
         { status: 402 }
       )
@@ -128,10 +128,10 @@ export async function POST(req: NextRequest) {
         .from('profiles')
         .update({ free_tailor_used: true })
         .eq('id', user.id)
-    } else if (reason === 'credit') {
+    } else if (reason === 'tailor_quota' || reason === 'tailor_cv') {
       await adminSupabase.from('credit_ledger').insert({
         user_id: user.id,
-        kind: 'tailor_cv',
+        kind: reason,
         delta: -1,
         reason: 'used_on_job',
         ref: job.id,
