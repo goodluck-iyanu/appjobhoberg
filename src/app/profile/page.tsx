@@ -275,8 +275,8 @@ export default function ProfilePage() {
   }
 
   const handleSubmitForReview = async () => {
-    if (!fullName.trim() || !country.trim() || !effectiveCity.trim() || !careerField || !skills.trim() || !resumeUrl.trim()) {
-      const errorText = 'Please complete all required fields (Full Name, Country, City, Career, Skills, and CV Link) before submitting for review.'
+    if (!fullName.trim() || !country.trim() || !effectiveCity.trim() || !careerField || !skills.trim()) {
+      const errorText = 'Please complete all required fields (Full Name, Country, City, Career, and Skills) before submitting for review.'
       setMsg({ type: 'error', text: errorText })
       toast.warning('Incomplete Profile', errorText)
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -775,18 +775,17 @@ export default function ProfilePage() {
 
                 <div>
                   <label className="block text-[13px] font-semibold text-[#1d1d1f] mb-1.5">
-                    CV / Resume Link (Google Drive, Dropbox, PDF URL) <span className="text-[#e02424]">*</span>
+                    CV / Resume Link (Optional)
                   </label>
                   <input
                     type="url"
-                    required
                     value={resumeUrl}
                     onChange={(e) => setResumeUrl(e.target.value)}
                     placeholder="https://drive.google.com/file/d/.../view"
                     className="w-full bg-[#f5f5f7] border border-[#d2d2d7]/60 rounded-xl px-3.5 py-2.5 text-[15px] outline-none focus:bg-white focus:ring-2 focus:ring-[#e02424]/20 focus:border-[#e02424] transition-all"
                   />
                   <p className="text-[11px] text-[#86868b] mt-1">
-                    Tip: Ensure link sharing permission is set to &quot;Anyone with the link can view&quot;.
+                    You can upload your master CV via the My CV tab later.
                   </p>
                 </div>
 

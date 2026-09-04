@@ -180,6 +180,44 @@ export default async function SeekerDashboardPage() {
           </div>
         )}
 
+        {/* ─── AI CV Tools Upsell ─── */}
+        <div className="bg-gradient-to-r from-amber-500/10 via-[#e02424]/5 to-transparent rounded-3xl p-5 sm:p-6 border border-amber-500/20 shadow-xs mb-8">
+          <div className="flex items-start gap-3">
+            <div className="bg-white p-2 rounded-full shadow-sm shrink-0 border border-amber-200">
+              <Sparkles className="w-5 h-5 text-amber-600" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-[16px] sm:text-[18px] font-bold text-[#1d1d1f]">
+                Get your CV updated for a high chance of getting a job 🚀
+              </h2>
+              <p className="text-[13px] text-[#86868b] mt-1 mb-3">
+                Employers use ATS software to filter out CVs without the right keywords. Let our AI tailor your CV to pass the bots.
+              </p>
+
+              <div className="flex flex-wrap gap-2.5">
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center gap-1.5 bg-white border border-amber-300 hover:border-amber-400 text-amber-800 font-semibold px-3 py-1.5 rounded-lg text-[13px] transition-colors shadow-sm"
+                >
+                  Tailor CV for a Job — ₦700
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center gap-1.5 bg-white border border-red-200 hover:border-red-300 text-red-700 font-semibold px-3 py-1.5 rounded-lg text-[13px] transition-colors shadow-sm"
+                >
+                  Full CV Rewrite — ₦2,000
+                </Link>
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center gap-1.5 bg-white border border-gray-200 hover:border-gray-300 text-[#1d1d1f] font-semibold px-3 py-1.5 rounded-lg text-[13px] transition-colors shadow-sm"
+                >
+                  View All AI Tools &rarr;
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* ─── Recommended Jobs Feed (High Match Scores) ─── */}
         <div>
           <div className="flex items-center justify-between gap-3 mb-4">
