@@ -56,11 +56,25 @@ export default async function SeekerDashboardPage() {
   const offerCount = apps.filter((a) => a.status === 'Offer').length
   const savedCount = apps.filter((a) => a.status === 'Saved').length
 
-  // 3. Fetch recommended jobs based on profile match
   const recommendedJobs = await fetchLiveJobs({
     limit: 10,
     userProfile: profile,
   })
+
+  // 4. Fetch Credit Balances
+  const { data: ledger } = await supabase
+    .from('credit_ledger')
+    .select('kind, delta')
+    .eq('user_id', user.id)
+
+  let tailorCredits = 0
+  let rewriteCredits = 0
+  if (ledger) {
+    for (const row of ledger) {
+      if (row.kind.startsWith('tailor')) tailorCredits += row.delta
+      if (row.kind.startsWith('rewrite')) rewriteCredits += row.delta
+    }
+  }
 
   const displayName = profile?.full_name || profile?.display_name || user.email?.split('@')[0] || 'Candidate'
   const isPremium = Boolean(profile?.is_premium)
@@ -180,43 +194,67 @@ export default async function SeekerDashboardPage() {
           </div>
         )}
 
-        {/* ─── AI CV Tools Upsell ─── */}
-        <div className="bg-gradient-to-r from-amber-500/10 via-[#e02424]/5 to-transparent rounded-3xl p-5 sm:p-6 border border-amber-500/20 shadow-xs mb-8">
-          <div className="flex items-start gap-3">
-            <div className="bg-white p-2 rounded-full shadow-sm shrink-0 border border-amber-200">
-              <Sparkles className="w-5 h-5 text-amber-600" />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-[16px] sm:text-[18px] font-bold text-[#1d1d1f]">
-                Get your CV updated for a high chance of getting a job 🚀
-              </h2>
-              <p className="text-[13px] text-[#86868b] mt-1 mb-3">
-                Employers use ATS software to filter out CVs without the right keywords. Let our AI tailor your CV to pass the bots.
-              </p>
+        {/* ─── AI CV Tools Upsell / Credit Status ─── */}
+        {!isPremium && tailorCredits <= 0 && rewriteCredits <= 0 ? (
+          <div className="bg-gradient-to-r from-amber-500/10 via-[#e02424]/5 to-transparent rounded-3xl p-5 sm:p-6 border border-amber-500/20 shadow-xs mb-8">
+            <div className="flex items-start gap-3">
+              <div className="bg-white p-2 rounded-full shadow-sm shrink-0 border border-amber-200">
+                <Sparkles className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-[16px] sm:text-[18px] font-bold text-[#1d1d1f]">
+                  Get your CV updated for a high chance of getting a job 🚀
+                </h2>
+                <p className="text-[13px] text-[#86868b] mt-1 mb-3">
+                  Employers use ATS software to filter out CVs without the right keywords. Let our AI tailor your CV to pass the bots.
+                </p>
 
-              <div className="flex flex-wrap gap-2.5">
-                <Link
-                  href="/pricing"
-                  className="inline-flex items-center gap-1.5 bg-white border border-amber-300 hover:border-amber-400 text-amber-800 font-semibold px-3 py-1.5 rounded-lg text-[13px] transition-colors shadow-sm"
-                >
-                  Tailor CV for a Job — ₦700
-                </Link>
-                <Link
-                  href="/pricing"
-                  className="inline-flex items-center gap-1.5 bg-white border border-red-200 hover:border-red-300 text-red-700 font-semibold px-3 py-1.5 rounded-lg text-[13px] transition-colors shadow-sm"
-                >
-                  Full CV Rewrite — ₦2,000
-                </Link>
-                <Link
-                  href="/pricing"
-                  className="inline-flex items-center gap-1.5 bg-white border border-gray-200 hover:border-gray-300 text-[#1d1d1f] font-semibold px-3 py-1.5 rounded-lg text-[13px] transition-colors shadow-sm"
-                >
-                  View All AI Tools &rarr;
-                </Link>
+                <div className="flex flex-wrap gap-2.5">
+                  <Link
+                    href="/pricing"
+                    className="inline-flex items-center gap-1.5 bg-white border border-amber-300 hover:border-amber-400 text-amber-800 font-semibold px-3 py-1.5 rounded-lg text-[13px] transition-colors shadow-sm"
+                  >
+                    Tailor CV for a Job — ₦700
+                  </Link>
+                  <Link
+                    href="/pricing"
+                    className="inline-flex items-center gap-1.5 bg-white border border-red-200 hover:border-red-300 text-red-700 font-semibold px-3 py-1.5 rounded-lg text-[13px] transition-colors shadow-sm"
+                  >
+                    Full CV Rewrite — ₦2,000
+                  </Link>
+                  <Link
+                    href="/pricing"
+                    className="inline-flex items-center gap-1.5 bg-white border border-gray-200 hover:border-gray-300 text-[#1d1d1f] font-semibold px-3 py-1.5 rounded-lg text-[13px] transition-colors shadow-sm"
+                  >
+                    View All AI Tools &rarr;
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-emerald-50 rounded-2xl p-4 sm:p-5 border border-emerald-200 mb-8 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-white p-1.5 rounded-full shadow-sm shrink-0">
+                <CheckCircle className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <h3 className="text-[14px] font-bold text-emerald-900">
+                  You have active CV credits
+                </h3>
+                <p className="text-[12px] text-emerald-700">
+                  {isPremium ? 'Your Hoberg Pro monthly quotas are active.' : `You have ${tailorCredits} tailored CVs left.`} Use them on any job detail page or in your Master CV.
+                </p>
+              </div>
+            </div>
+            <Link 
+              href="/app/cv"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-[12px] font-semibold rounded-xl transition-colors shrink-0"
+            >
+              Go to Master CV
+            </Link>
+          </div>
+        )}
 
         {/* ─── Recommended Jobs Feed (High Match Scores) ─── */}
         <div>
