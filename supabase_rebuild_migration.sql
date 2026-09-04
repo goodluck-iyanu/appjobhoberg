@@ -443,3 +443,9 @@ CREATE POLICY "Users can delete own alerts" ON public.alerts FOR DELETE TO authe
 -- Notify schema reload
 NOTIFY pgrst, 'reload schema';
 
+
+-- Fix missing email column
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS display_name TEXT;
+NOTIFY pgrst, 'reload schema';
+
