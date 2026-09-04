@@ -16,61 +16,34 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://jobs.hoberg.com.ng'),
-  title: {
-    default: 'Hoberg Jobs — Real Jobs in Nigeria & Remote Opportunities',
-    template: '%s | Hoberg Jobs',
-  },
-  description:
-    'The least humiliating way to hunt a job in Nigeria. Fewer fake posts, a CV you edit once, honest match scores, apply free, and a tracker so the chaos lives in one place.',
-  keywords: [
-    'Jobs in Nigeria',
-    'Lagos Jobs',
-    'Abuja Jobs',
-    'Remote Jobs Nigeria',
-    'Work From Home Africa',
-    'NYSC Jobs',
-    'Tech Jobs Nigeria',
-    'Customer Support Remote',
-    'Hoberg Jobs',
-  ],
-  authors: [{ name: 'Hoberg Digital Agency', url: 'https://hoberg.com.ng' }],
-  creator: 'Hoberg Digital Agency',
-  publisher: 'Hoberg Digital Agency',
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
+  title: 'Hoberg Jobs',
+  description: 'Find remote jobs that hire from Nigeria. Browse free. Apply free.',
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/apple-touch-icon.png',
   },
   openGraph: {
-    type: 'website',
-    locale: 'en_NG',
+    title: 'Hoberg Jobs',
+    description: 'Find remote jobs that hire from Nigeria. Browse free. Apply free.',
     url: 'https://jobs.hoberg.com.ng',
-    title: 'Hoberg Jobs — Real Jobs in Nigeria & Remote Opportunities',
-    description:
-      'The least humiliating way to hunt a job in Nigeria. Fewer fake posts, a CV you edit once, honest match scores, apply free, and a tracker so the chaos lives in one place.',
     siteName: 'Hoberg Jobs',
     images: [
       {
-        url: '/opengraph-image',
+        url: 'https://jobs.hoberg.com.ng/og-web.png',
         width: 1200,
         height: 630,
-        alt: 'Hoberg Jobs — Built by Hoberg Digital Agency',
+        alt: 'Hoberg Jobs',
       },
     ],
+    locale: 'en_NG',
+    type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Hoberg Jobs — Real Jobs in Nigeria & Remote Opportunities',
-    description:
-      'The least humiliating way to hunt a job in Nigeria. Fewer fake posts, honest match scores, free applications, and an integrated tracker.',
-    creator: '@hobergdigital',
-    images: ['/opengraph-image'],
+    title: 'Hoberg Jobs',
+    description: 'Find remote jobs that hire from Nigeria. Browse free. Apply free.',
+    images: ['https://jobs.hoberg.com.ng/og-web.png'],
   },
 }
 
