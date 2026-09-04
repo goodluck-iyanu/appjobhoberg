@@ -22,7 +22,9 @@ import {
   Crown,
 } from '@/components/icons'
 
-export default function MasterCvPage() {
+import { Suspense } from 'react'
+
+function MasterCvContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const tailorForJobId = searchParams.get('tailorFor')
@@ -618,7 +620,7 @@ export default function MasterCvPage() {
               disabled={saving || isPending}
               className="w-full sm:w-auto bg-[#e02424] hover:bg-[#c81e1e] active:scale-[0.98] text-white font-semibold text-[14px] px-8 py-3.5 rounded-full transition-all shadow-sm cursor-pointer disabled:opacity-60 shrink-0"
             >
-              {saving ? 'Saving Master CV...' : 'Save Master Profile →'}
+              {saving ? 'Saving Master CV...' : 'Save Master Profile ✨'}
             </button>
           </div>
         </div>
@@ -627,3 +629,10 @@ export default function MasterCvPage() {
   )
 }
 
+export default function MasterCvPage() {
+  return (
+    <Suspense fallback={<div className="flex-1 bg-[#0f0f11] text-white flex items-center justify-center min-h-screen">Loading Profile Builder...</div>}>
+      <MasterCvContent />
+    </Suspense>
+  )
+}
