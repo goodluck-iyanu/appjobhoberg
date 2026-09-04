@@ -137,6 +137,7 @@ export default function AdminPortalPage() {
   const [applications, setApplications] = useState<any[]>([])
   const [jobs, setJobs] = useState<any[]>([])
   const [employerPosts, setEmployerPosts] = useState<any[]>([])
+  const [autoSync, setAutoSync] = useState(true)
   const [metrics, setMetrics] = useState<Metrics>({
     totalUsers: 0,
     underReview: 0,
